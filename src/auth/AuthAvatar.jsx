@@ -1,11 +1,12 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import '../auth/styles/auth.css';
 
 export default function AuthAvatar({ 
   username = '', 
   eyesClosed = false, 
-  state = 'idle', // 'idle', 'shake', 'nod', 'walkAway', 'happy'
-  emotion = 'neutral' // 'neutral', 'happy', 'sad'
+  state = 'idle',
+  emotion = 'neutral'
 }) {
   const eyeOffset = Math.min(6, Math.max(-6, (username.length - 6) / 2));
   const [mouthPath, setMouthPath] = useState("M80 112 Q100 125 120 112");
@@ -53,7 +54,6 @@ export default function AuthAvatar({
         animate={state}
         variants={avatarVariants}
       >
-        {/* Floating indicator for state */}
         <AnimatePresence>
           {state === 'happy' && (
             <motion.div
@@ -62,7 +62,7 @@ export default function AuthAvatar({
               exit={{ opacity: 0, scale: 0.5 }}
               className="absolute -top-6 left-1/2 transform -translate-x-1/2"
             >
-              <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-full whitespace-nowrap">
+              <div className="bg-green-600 text-white text-xs px-2 py-1 rounded-full whitespace-nowrap border border-green-400/20">
                 ✓ Success!
               </div>
             </motion.div>
@@ -74,15 +74,14 @@ export default function AuthAvatar({
               exit={{ opacity: 0, scale: 0.5 }}
               className="absolute -top-6 left-1/2 transform -translate-x-1/2"
             >
-              <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-full whitespace-nowrap">
+              <div className="bg-red-600 text-white text-xs px-2 py-1 rounded-full whitespace-nowrap border border-red-400/20">
                 ✗ Invalid
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <svg viewBox="0 0 200 200" width="140" height="140" className="drop-shadow-lg">
-          {/* Head with subtle gradient */}
+        <svg viewBox="0 0 200 200" width="140" height="140" className="drop-shadow-xl">
           <defs>
             <linearGradient id="headGradient" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#FFDBCB" />
@@ -92,14 +91,11 @@ export default function AuthAvatar({
           
           <circle cx="100" cy="90" r="54" fill="url(#headGradient)" stroke="#E8B89B" strokeWidth="2" />
           
-          {/* Hair */}
           <path d="M45 70 C40 30, 160 20, 155 70 Z" fill="#5A2727" />
           
-          {/* Eyes with eyelids */}
           <g transform={`translate(${eyeOffset},0)`}>
-            {/* Left eye */}
             <g>
-              <ellipse cx="78" cy="90" rx="10" ry="7" fill="white" stroke="#D1D5DB" strokeWidth="1" />
+              <ellipse cx="78" cy="90" rx="10" ry="7" fill="white" stroke="#374151" strokeWidth="1" />
               {!eyesClosed && (
                 <>
                   <circle cx="78" cy="90" r="3.5" fill="#1F2937" />
@@ -119,9 +115,8 @@ export default function AuthAvatar({
               />
             </g>
             
-            {/* Right eye */}
             <g>
-              <ellipse cx="122" cy="90" rx="10" ry="7" fill="white" stroke="#D1D5DB" strokeWidth="1" />
+              <ellipse cx="122" cy="90" rx="10" ry="7" fill="white" stroke="#374151" strokeWidth="1" />
               {!eyesClosed && (
                 <>
                   <circle cx="122" cy="90" r="3.5" fill="#1F2937" />
@@ -142,7 +137,6 @@ export default function AuthAvatar({
             </g>
           </g>
 
-          {/* Mouth */}
           <path 
             d={mouthPath} 
             stroke="#8B5E3C" 
@@ -151,13 +145,11 @@ export default function AuthAvatar({
             strokeLinecap="round"
           />
           
-          {/* Blush effect */}
           <circle cx="65" cy="100" r="8" fill="#FFB6C1" opacity="0.3" />
           <circle cx="135" cy="100" r="8" fill="#FFB6C1" opacity="0.3" />
         </svg>
       </motion.div>
       
-      {/* Username display */}
       <AnimatePresence>
         {username && (
           <motion.div
@@ -166,8 +158,8 @@ export default function AuthAvatar({
             exit={{ opacity: 0, y: -10 }}
             className="mt-4 text-center"
           >
-            <p className="text-sm text-gray-600">Hello,</p>
-            <p className="font-medium text-gray-800 truncate max-w-[120px]">
+            <p className="text-sm text-gray-400">Hello,</p>
+            <p className="font-medium text-white truncate max-w-[120px]">
               {username || 'Guest'}
             </p>
           </motion.div>

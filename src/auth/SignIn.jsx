@@ -1,12 +1,14 @@
- // SignIn.jsx
 import { useState, useRef } from 'react';
 import AuthAvatar from './AuthAvatar';
 import SocialAuth from './SocialAuth';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
+import '../auth/styles/auth.css';
 
-const API_BASE = process.env.REACT_APP_API_BASE || '';
+const API_BASE = "http://localhost:9019";
 
 export default function SignIn() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -39,6 +41,12 @@ export default function SignIn() {
     return true;
   };
 
+  const handleSocialError = (type, message) => {
+    if (type === 'error') {
+      setError(message);
+    }
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     setError('');
@@ -64,8 +72,12 @@ export default function SignIn() {
       } else {
         setAvatarEmotion('happy');
         setAvatarState('nod');
-        setTimeout(() => { setAvatarState('walkAway'); }, 800);
-        setTimeout(() => { window.location.href = '/'; }, 1500);
+        setTimeout(() => { 
+          setAvatarState('walkAway'); 
+        }, 800);
+        setTimeout(() => { 
+          navigate('/');
+        }, 1500);
       }
     } catch (err) {
       setError('Network error. Please try again.');
@@ -78,28 +90,26 @@ export default function SignIn() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)' }}>
+    <div className="auth-layout">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="auth-card"
-        style={{ maxWidth: 960, width: '100%' }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-          {/* Left side - Avatar */}
-          <div style={{ flex: '1 1 40%', minWidth: 280 }} className="avatar-container">
-            <div style={{ marginBottom: 24, textAlign: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-                <div style={{ width: 48, height: 48, background: '#e11d48', borderRadius: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-                  <span style={{ color: 'white', fontWeight: 700, fontSize: 20 }}>H</span>
+        <div className="auth-grid">
+          <div className="avatar-container">
+            <div className="brand-header">
+              <div className="brand-logo">
+                <div className="logo-icon">
+                  <span className="logo-text">H</span>
                 </div>
-                <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>Hibiscus</h1>
+                <h1 className="brand-title">Hibiscus</h1>
               </div>
-              <p style={{ color: '#4b5563', fontSize: 14 }}>Secure authentication system</p>
+              <p className="brand-subtitle">Secure authentication system</p>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="avatar-wrapper">
               <AuthAvatar
                 username={email.split('@')[0]}
                 eyesClosed={isPasswordFocused}
@@ -108,23 +118,24 @@ export default function SignIn() {
               />
             </div>
 
-            <div style={{ marginTop: 24, textAlign: 'center' }}>
-              <h3 style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 8 }}>Welcome Back</h3>
-              <p style={{ color: '#6b7280', fontSize: 13 }}>Sign in to access your account</p>
+            <div className="welcome-section">
+              <h3 className="welcome-title">Welcome Back</h3>
+              <p className="welcome-subtitle">Sign in to access your account</p>
             </div>
           </div>
 
-          {/* Right side - Form */}
-          <div style={{ flex: '1 1 60%', minWidth: 320, padding: 24 }}>
-            <div style={{ maxWidth: 420, margin: '0 auto' }}>
-              <div style={{ marginBottom: 24 }}>
-                <h2 style={{ fontSize: 24, fontWeight: 700, color: '#111827', marginBottom: 6 }}>Sign In</h2>
-                <p style={{ color: '#6b7280' }}>Don't have an account? <a href="/register" style={{ color: '#e11d48', fontWeight: 600 }}>Create one now</a></p>
+          <div className="form-container">
+            <div className="form-wrapper">
+              <div className="form-header">
+                <h2 className="form-title">Sign In</h2>
+                <p className="form-switch">
+                  Don't have an account? <Link to="/register" className="form-link">Create one now</Link>
+                </p>
               </div>
 
-              <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Email Address</label>
+              <form onSubmit={submit} className="form">
+                <div className="form-group">
+                  <label className="form-label">Email Address</label>
                   <div>
                     <input
                       type="email"
@@ -138,9 +149,9 @@ export default function SignIn() {
                   </div>
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Password</label>
-                  <div style={{ position: 'relative' }}>
+                <div className="form-group">
+                  <label className="form-label">Password</label>
+                  <div className="password-container">
                     <input
                       ref={passwordRef}
                       type={showPassword ? 'text' : 'password'}
@@ -155,55 +166,74 @@ export default function SignIn() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      style={{ position: 'absolute', right: 10, top: 10, background: 'transparent', border: 'none', cursor: 'pointer' }}
+                      className="password-toggle"
                       aria-label="Toggle password visibility"
+                      disabled={loading}
                     >
-                      {showPassword ? 'Hide' : 'Show'}
+                      {showPassword ? (
+                        <svg className="eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                      ) : (
+                        <svg className="eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      )}
                     </button>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <label style={{ display: 'flex', alignItems: 'center' }}>
-                    <input type="checkbox" style={{ width: 16, height: 16 }} />
-                    <span style={{ marginLeft: 8, fontSize: 13, color: '#6b7280' }}>Remember me</span>
+                <div className="form-options">
+                  <label className="checkbox-label">
+                    <input type="checkbox" className="checkbox" disabled={loading} />
+                    <span className="checkbox-text">Remember me</span>
                   </label>
-                  <a href="#" style={{ color: '#e11d48', fontSize: 13 }}>Forgot password?</a>
+                  <Link to="/forgot-password" className="forgot-link">Forgot password?</Link>
                 </div>
 
                 <AnimatePresence>
                   {error && (
-                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="alert-error">
-                      <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <svg style={{ width: 20, height: 20, marginRight: 8 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }} 
+                      animate={{ opacity: 1, y: 0 }} 
+                      exit={{ opacity: 0 }} 
+                      className="alert-error"
+                    >
+                      <div className="alert-content">
+                        <svg className="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <p style={{ fontSize: 13, color: '#7f1d1d' }}>{error}</p>
+                        <p>{error}</p>
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                <button type="submit" disabled={loading} className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {loading ? 'Signing In...' : 'Sign In'}
+                <button type="submit" disabled={loading} className="btn-primary">
+                  {loading ? (
+                    <div className="loading-container">
+                      <div className="loading-spinner">
+                        <svg className="spinner" viewBox="0 0 24 24">
+                          <circle className="spinner-track" cx="12" cy="12" r="10" />
+                          <circle className="spinner-indicator" cx="12" cy="12" r="10" />
+                        </svg>
+                      </div>
+                      <span>Signing In...</span>
+                    </div>
+                  ) : 'Sign In'}
                 </button>
               </form>
 
-              <div style={{ marginTop: 20 }}>
-                <div style={{ position: 'relative', marginTop: 12 }}>
-                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center' }}>
-                    <div style={{ width: '100%', borderTop: '1px solid #e5e7eb' }} />
-                  </div>
-                  <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
-                    <span style={{ padding: '0 12px', background: 'white', color: '#6b7280', fontSize: 13 }}>Or continue with</span>
-                  </div>
+              <div className="divider-section">
+                <div className="divider">
+                  <span className="divider-text">Or continue with</span>
                 </div>
-
-                <SocialAuth />
+                <SocialAuth disabled={loading} type="signin" onError={handleSocialError} />
               </div>
 
-              <div style={{ marginTop: 20, textAlign: 'center', fontSize: 13, color: '#6b7280' }}>
-                <p>By signing in, you agree to our <a href="#" style={{ color: '#e11d48' }}>Terms</a> and <a href="#" style={{ color: '#e11d48' }}>Privacy Policy</a></p>
+              <div className="terms-section">
+                <p>By signing in, you agree to our <a href="#" className="terms-link">Terms</a> and <a href="#" className="terms-link">Privacy Policy</a></p>
               </div>
             </div>
           </div>
