@@ -4,6 +4,7 @@ import SignUp from './auth/SignUp';
 import GithubCallback from './auth/GithubCallback';
 import ForgotPassword from './auth/ForgotPassword';
 import ResetPassword from './auth/ResetPassword';
+import SignUpAdmin from './auth/SignUpAdmin';
  
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/auth/github/callback" element={<GithubCallback />} />
+          <Route path="/admin/register" element={<SignUpAdmin/>}/>
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </div>
