@@ -4,25 +4,35 @@ import SocialAuth from './SocialAuth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import '../auth/styles/auth.css';
-
-const API_BASE = "http://localhost:9019";
+import AuthService from '../admin/services/AuthService'; // if your AuthService lives at src/admin/services change to: ../admin/services/AuthService
 
 export default function SignIn() {
   const navigate = useNavigate();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
   const [avatarState, setAvatarState] = useState('idle');
   const [avatarEmotion, setAvatarEmotion] = useState('neutral');
+
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
   const passwordRef = useRef(null);
 
+  /* ------------------ Avatar helpers ------------------ */
   const handleEmailFocus = () => setAvatarEmotion('neutral');
-  const handlePasswordFocus = () => { setAvatarEmotion('neutral'); setIsPasswordFocused(true); };
+
+  const handlePasswordFocus = () => {
+    setAvatarEmotion('neutral');
+    setIsPasswordFocused(true);
+  };
+
   const handlePasswordBlur = () => setIsPasswordFocused(false);
 
+  /* ------------------ Validation ------------------ */
   const validateForm = () => {
     if (!email || !password) {
       setError('Please fill in all fields');
@@ -31,6 +41,7 @@ export default function SignIn() {
       setTimeout(() => setAvatarState('idle'), 1000);
       return false;
     }
+
     if (!/\S+@\S+\.\S+/.test(email)) {
       setError('Please enter a valid email address');
       setAvatarState('shake');
@@ -38,6 +49,7 @@ export default function SignIn() {
       setTimeout(() => setAvatarState('idle'), 1000);
       return false;
     }
+
     return true;
   };
 
@@ -47,48 +59,90 @@ export default function SignIn() {
     }
   };
 
-  const submit = async (e) => {
-    e.preventDefault();
-    setError('');
-    if (!validateForm()) return;
+      /* ------------------ Submit ------------------ */
+      // In the submit function of SignIn.js - update the try block:
+    const submit = async (e) => {
+      e.preventDefault();
+      setError('');
+      if (!validateForm()) return;
 
-    setLoading(true);
-    setAvatarEmotion('neutral');
+      setLoading(true);
+      setAvatarEmotion('neutral');
 
-    try {
-      const res = await fetch(API_BASE + '/api/auth/signin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email, password })
-      });
+      try {
+        // Use AuthService wrapper method
+        const response = await AuthService.login(email, password);
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        setError(body.message || 'Invalid email or password');
-        setAvatarState('shake');
-        setAvatarEmotion('sad');
-        setTimeout(() => { setAvatarState('idle'); setAvatarEmotion('neutral'); }, 1000);
-      } else {
+        // The backend response likely has: message, userId, isAdmin
+        const { userId, isAdmin, message } = response || {};
+
+        console.log('SignIn response:', response);
+
+        // Store user info in localStorage
+        // Note: The backend might not send username/email in signin response
+        // We'll get these from the verify endpoint instead
+        localStorage.setItem('isAdmin', String(Boolean(isAdmin)));
+        
+        // Try to get user details from verify endpoint
+        try {
+          const verifyResponse = await AuthService.verify();
+          console.log('Verify response after signin:', verifyResponse);
+          
+          if (verifyResponse?.username) {
+            localStorage.setItem('username', verifyResponse.username);
+          }
+          if (verifyResponse?.email) {
+            localStorage.setItem('userEmail', verifyResponse.email);
+          }
+          if (verifyResponse?.role) {
+            localStorage.setItem('userRole', verifyResponse.role);
+          }
+          if (verifyResponse?.isAdmin !== undefined) {
+            localStorage.setItem('isAdmin', String(verifyResponse.isAdmin));
+          }
+        } catch (verifyErr) {
+          console.warn('Could not verify user after signin:', verifyErr);
+        }
+
         setAvatarEmotion('happy');
         setAvatarState('nod');
-        setTimeout(() => { 
-          setAvatarState('walkAway'); 
-        }, 800);
-        setTimeout(() => { 
-          navigate('/');
-        }, 1500);
-      }
-    } catch (err) {
-      setError('Network error. Please try again.');
-      setAvatarState('shake');
-      setAvatarEmotion('sad');
-      setTimeout(() => { setAvatarState('idle'); setAvatarEmotion('neutral'); }, 1000);
-    } finally {
-      setLoading(false);
-    }
-  };
 
+        setTimeout(() => {
+          setAvatarState('walkAway');
+        }, 800);
+
+        // Final navigate after UI animations
+        setTimeout(() => {
+          console.log('SignIn - localStorage snapshot', {
+            isAdmin: localStorage.getItem('isAdmin'),
+            username: localStorage.getItem('username')
+          });
+
+          if (localStorage.getItem('isAdmin') === 'true') {
+            navigate('/admin', { replace: true });
+            console.log('Redirecting to admin');
+          } else {
+            navigate('/', { replace: true });
+            console.log('Redirecting to user home');
+          }
+        }, 1500);
+
+      } catch (err) {
+        console.error('SignIn error:', err);
+        const message = err?.message || (err?.data && err.data.message) || 'Network error. Please try again.';
+        setError(message);
+        setAvatarState('shake');
+        setAvatarEmotion('sad');
+        setTimeout(() => {
+          setAvatarState('idle');
+          setAvatarEmotion('neutral');
+        }, 1000);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+  /* ------------------ UI ------------------ */
   return (
     <div className="auth-layout">
       <motion.div
@@ -98,6 +152,8 @@ export default function SignIn() {
         className="auth-card"
       >
         <div className="auth-grid">
+
+          {/* ---------- LEFT / AVATAR ---------- */}
           <div className="avatar-container">
             <div className="brand-header">
               <div className="brand-logo">
@@ -120,35 +176,43 @@ export default function SignIn() {
 
             <div className="welcome-section">
               <h3 className="welcome-title">Welcome Back</h3>
-              <p className="welcome-subtitle">Sign in to access your account</p>
+              <p className="welcome-subtitle">
+                Sign in to access your account
+              </p>
             </div>
           </div>
 
+          {/* ---------- RIGHT / FORM ---------- */}
           <div className="form-container">
             <div className="form-wrapper">
+
               <div className="form-header">
                 <h2 className="form-title">Sign In</h2>
                 <p className="form-switch">
-                  Don't have an account? <Link to="/register" className="form-link">Create one now</Link>
+                  Don&apos;t have an account?{' '}
+                  <Link to="/register" className="form-link">
+                    Create one now
+                  </Link>
                 </p>
               </div>
 
               <form onSubmit={submit} className="form">
+
+                {/* Email */}
                 <div className="form-group">
                   <label className="form-label">Email Address</label>
-                  <div>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      onFocus={handleEmailFocus}
-                      placeholder="you@example.com"
-                      className="form-input"
-                      disabled={loading}
-                    />
-                  </div>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onFocus={handleEmailFocus}
+                    placeholder="you@example.com"
+                    className="form-input"
+                    disabled={loading}
+                  />
                 </div>
 
+                {/* Password */}
                 <div className="form-group">
                   <label className="form-label">Password</label>
                   <div className="password-container">
@@ -167,74 +231,64 @@ export default function SignIn() {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="password-toggle"
-                      aria-label="Toggle password visibility"
                       disabled={loading}
                     >
-                      {showPassword ? (
-                        <svg className="eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                        </svg>
-                      ) : (
-                        <svg className="eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      )}
+                      👁
                     </button>
                   </div>
                 </div>
 
+                {/* Options */}
                 <div className="form-options">
                   <label className="checkbox-label">
-                    <input type="checkbox" className="checkbox" disabled={loading} />
-                    <span className="checkbox-text">Remember me</span>
+                    <input type="checkbox" disabled={loading} />
+                    <span>Remember me</span>
                   </label>
-                  <Link to="/forgot-password" className="forgot-link">Forgot password?</Link>
+                  <Link to="/forgot-password" className="forgot-link">
+                    Forgot password?
+                  </Link>
                 </div>
 
+                {/* Error */}
                 <AnimatePresence>
                   {error && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: -10 }} 
-                      animate={{ opacity: 1, y: 0 }} 
-                      exit={{ opacity: 0 }} 
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
                       className="alert-error"
                     >
-                      <div className="alert-content">
-                        <svg className="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <p>{error}</p>
-                      </div>
+                      <p>{error}</p>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
+                {/* Submit */}
                 <button type="submit" disabled={loading} className="btn-primary">
-                  {loading ? (
-                    <div className="loading-container">
-                      <div className="loading-spinner">
-                        <svg className="spinner" viewBox="0 0 24 24">
-                          <circle className="spinner-track" cx="12" cy="12" r="10" />
-                          <circle className="spinner-indicator" cx="12" cy="12" r="10" />
-                        </svg>
-                      </div>
-                      <span>Signing In...</span>
-                    </div>
-                  ) : 'Sign In'}
+                  {loading ? 'Signing In…' : 'Sign In'}
                 </button>
               </form>
 
+              {/* Social */}
               <div className="divider-section">
                 <div className="divider">
-                  <span className="divider-text">Or continue with</span>
+                  <span>Or continue with</span>
                 </div>
-                <SocialAuth disabled={loading} type="signin" onError={handleSocialError} />
+                <SocialAuth
+                  disabled={loading}
+                  type="signin"
+                  onError={handleSocialError}
+                />
               </div>
 
               <div className="terms-section">
-                <p>By signing in, you agree to our <a href="#" className="terms-link">Terms</a> and <a href="#" className="terms-link">Privacy Policy</a></p>
+                <p>
+                  By signing in, you agree to our{' '}
+                  <a href="#" className="terms-link">Terms</a> and{' '}
+                  <a href="#" className="terms-link">Privacy Policy</a>
+                </p>
               </div>
+
             </div>
           </div>
         </div>

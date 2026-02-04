@@ -1,26 +1,59 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import SignIn from './auth/SignIn';
-import SignUp from './auth/SignUp';
-import GithubCallback from './auth/GithubCallback';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+import AdminLayout from './admin/layouts/AdminLayout';
+import Dashboard from './admin/pages/Dashboard';
+import SeriesManagement from './admin/pages/SeriesManagement';
+import EpisodeManagement from './admin/pages/EpisodeManagement';
+import SeriesDetail from './admin/pages/SeriesDetail';
 import ForgotPassword from './auth/ForgotPassword';
-import ResetPassword from './auth/ResetPassword';
-import SignUpAdmin from './auth/SignUpAdmin';
- 
-export default function App() {
+import ResetPassword from './auth/ResetPassword'
+
+import SignIn from './auth/SignIn';
+import ProtectedRoute from './admin/components/ProtectedRoute';
+
+function App() {
   return (
-    <Router>
-      <div className="dark-theme-app">
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<SignIn />} />
-          <Route path="/register" element={<SignUp />} />
+    <BrowserRouter>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/login" element={<SignIn />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/auth/github/callback" element={<GithubCallback />} />
-          <Route path="/admin/register" element={<SignUpAdmin/>}/>
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </div>
-    </Router>
+
+
+        {/* Admin Routes - Protected */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute adminOnly>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="series" element={<SeriesManagement />} />
+          <Route path="series/:id" element={<SeriesDetail />} />
+          <Route path="episodes" element={<EpisodeManagement />} />
+          <Route path="episodes/series/:seriesId" element={<EpisodeManagement />} />
+        </Route>
+
+        {/* User Routes - Protected */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <div>User Dashboard</div>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Catch all */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
+
+export default App;
