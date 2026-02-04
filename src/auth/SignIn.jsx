@@ -126,6 +126,7 @@ export default function SignIn() {
             console.log('Redirecting to user home');
           }
         }, 1500);
+        console.log('login worked')
 
       } catch (err) {
         console.error('SignIn error:', err);

@@ -18,6 +18,23 @@
   --text-secondary: #9ca3af;
   --border-color: #374151;
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Base Font Settings */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: var(--font-family);
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background-color: var(--bg-dark);
 }
 
 /* Admin Container */
@@ -1157,13 +1174,14 @@
   color: var(--text-secondary);
 }
 
-/* Action Buttons */
+/* UPDATED: Action Buttons with Tooltips */
 .action-buttons {
   display: flex;
   gap: 0.5rem;
 }
 
 .action-btn {
+  position: relative;
   width: 32px;
   height: 32px;
   border: none;
@@ -1174,6 +1192,49 @@
   cursor: pointer;
   transition: all 0.2s ease;
   color: white;
+  font-size: 0.75rem;
+}
+
+.action-btn::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--bg-darker);
+  color: var(--text-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 1000;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  margin-bottom: 8px;
+}
+
+.action-btn:hover::after {
+  opacity: 1;
+}
+
+.action-btn::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--border-color);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  margin-bottom: -2px;
+}
+
+.action-btn:hover::before {
+  opacity: 1;
 }
 
 .action-btn.view {
@@ -1204,6 +1265,59 @@
 .action-btn:hover {
   transform: translateY(-1px);
   opacity: 0.9;
+}
+
+/* NEW: Action Buttons with Text */
+.action-btn-with-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: white;
+  text-decoration: none;
+}
+
+.action-btn-with-text.view {
+  background-color: var(--primary-color);
+}
+
+.action-btn-with-text.edit {
+  background-color: var(--warning-color);
+}
+
+.action-btn-with-text.delete {
+  background-color: var(--danger-color);
+}
+
+.action-btn-with-text.success {
+  background-color: var(--secondary-color);
+}
+
+.action-btn-with-text.warning {
+  background-color: var(--warning-color);
+}
+
+.action-btn-with-text.secondary {
+  background-color: var(--bg-lighter);
+  color: var(--text-primary);
+}
+
+.action-btn-with-text:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+/* NEW: Icon-only buttons in episode cards */
+.episode-actions .action-btn {
+  width: 36px;
+  height: 36px;
+  font-size: 0.875rem;
 }
 
 /* Pagination */
@@ -1380,6 +1494,24 @@
   gap: 0.5rem;
 }
 
+/* NEW: Episode action buttons with better visibility */
+.episode-actions .action-btn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+}
+
+.episode-actions .action-btn::after {
+  font-size: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  white-space: nowrap;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+}
+
 /* Series Detail */
 .series-detail-container {
   display: flex;
@@ -1414,6 +1546,48 @@
 .header-actions {
   display: flex;
   gap: 0.5rem;
+}
+
+/* UPDATED: Series action buttons with text */
+.header-actions .action-btn-with-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: white;
+  text-decoration: none;
+}
+
+.header-actions .action-btn-with-text.edit {
+  background-color: var(--warning-color);
+}
+
+.header-actions .action-btn-with-text.delete {
+  background-color: var(--danger-color);
+}
+
+.header-actions .action-btn-with-text.success {
+  background-color: var(--secondary-color);
+}
+
+.header-actions .action-btn-with-text.warning {
+  background-color: var(--warning-color);
+}
+
+.header-actions .action-btn-with-text.secondary {
+  background-color: var(--bg-lighter);
+  color: var(--text-primary);
+}
+
+.header-actions .action-btn-with-text:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
 }
 
 .series-overview {
@@ -1948,6 +2122,232 @@
   gap: 1rem;
 }
 
+/* NEW STYLES FOR COMPONENTS */
+
+/* Invalid ID Container */
+.invalid-id-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1.5rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+.invalid-id-container h2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--danger-color);
+}
+
+.invalid-id-container p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  max-width: 400px;
+}
+
+/* Warning Message */
+.warning-message {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background-color: rgba(245, 158, 11, 0.1);
+  border: 1px solid var(--warning-color);
+  border-radius: 8px;
+  color: var(--warning-color);
+  font-size: 0.875rem;
+}
+
+.warning-message svg {
+  flex-shrink: 0;
+}
+
+.warning-message span {
+  margin-right: auto;
+}
+
+/* Alert Styles */
+.alert {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+}
+
+.alert.alert-warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  border: 1px solid var(--warning-color);
+  color: var(--warning-color);
+}
+
+.alert svg {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.alert div {
+  flex: 1;
+}
+
+.alert div strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.alert div p {
+  margin: 0 0 0.75rem;
+  color: inherit;
+  opacity: 0.9;
+}
+
+.alert-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Info Card */
+.info-card {
+  background-color: var(--bg-light);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.info-card h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  color: var(--text-primary);
+}
+
+.info-card ol {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: var(--text-secondary);
+}
+
+.info-card li {
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.info-card li:last-child {
+  margin-bottom: 0;
+}
+
+.info-card strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* NEW: Icon support for action buttons */
+.action-btn svg,
+.action-btn-with-text svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+  flex-shrink: 0;
+}
+
+/* NEW: Color-coded button labels */
+.btn-primary[title]::after,
+.btn-secondary[title]::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--bg-darker);
+  color: var(--text-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 1000;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  margin-bottom: 8px;
+}
+
+.btn-primary:hover[title]::after,
+.btn-secondary:hover[title]::after {
+  opacity: 1;
+}
+
+/* NEW: Button color guide legend */
+.button-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: var(--bg-light);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-size: 0.75rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.legend-color.primary { background-color: var(--primary-color); }
+.legend-color.warning { background-color: var(--warning-color); }
+.legend-color.danger { background-color: var(--danger-color); }
+.legend-color.success { background-color: var(--secondary-color); }
+.legend-color.secondary { background-color: var(--bg-lighter); }
+
+/* Typography Improvements */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* Button Consistency */
+button {
+  font-family: var(--font-family);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Input and Form Consistency */
+input, textarea, select {
+  font-family: var(--font-family);
+  font-size: 0.875rem;
+}
+
+/* Icon Sizes */
+svg {
+  width: 1em;
+  height: 1em;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .admin-sidebar {
@@ -2029,6 +2429,62 @@
   .user-menu-btn .header-user-info {
     display: none;
   }
+  
+  .alert {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .alert-actions {
+    flex-direction: column;
+  }
+  
+  .warning-message {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .warning-message span {
+    margin-right: 0;
+  }
+  
+  .header-actions {
+    flex-wrap: wrap;
+  }
+  
+  .header-actions .action-btn-with-text {
+    padding: 0.5rem;
+  }
+  
+  .header-actions .action-btn-with-text span {
+    display: none;
+  }
+  
+  .header-actions .action-btn-with-text::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--bg-darker);
+    color: var(--text-primary);
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    z-index: 1000;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+    margin-bottom: 8px;
+  }
+  
+  .header-actions .action-btn-with-text:hover::after {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 640px) {
@@ -2048,6 +2504,23 @@
     width: 32px;
     height: 32px;
   }
+  
+  .episodes-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .series-overview {
+    padding: 1rem;
+  }
+  
+  .series-title {
+    font-size: 1.5rem;
+  }
+  
+  .action-buttons {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
 
 /* Error Container */
@@ -2065,4 +2538,50 @@
   font-size: 1.875rem;
   font-weight: 700;
   margin: 0;
+}
+
+/* Smooth Scrolling */
+.admin-content {
+  scroll-behavior: smooth;
+}
+
+/* Focus States */
+button:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-darker);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-lighter);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-color);
+}
+
+/* NEW: Accessibility improvements for buttons */
+button:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* NEW: Ensure icons are visible in all buttons */
+.action-btn:not(:has(svg))::before {
+  content: attr(data-icon);
+  font-size: 0.875rem;
+  font-weight: 600;
 }
