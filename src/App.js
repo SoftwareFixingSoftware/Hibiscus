@@ -7,7 +7,9 @@ import SeriesManagement from './admin/pages/SeriesManagement';
 import EpisodeManagement from './admin/pages/EpisodeManagement';
 import SeriesDetail from './admin/pages/SeriesDetail';
 import ForgotPassword from './auth/ForgotPassword';
-import ResetPassword from './auth/ResetPassword'
+import ResetPassword from './auth/ResetPassword';
+import SignUp from './auth/SignUp';
+import SignUpAdmin from './auth/SignUpAdmin';
  
 
 import SignIn from './auth/SignIn';
@@ -21,6 +23,11 @@ function App() {
         <Route path="/login" element={<SignIn />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path='/register' element={<SignUp/>}/>
+          <Route path='/admin/register' element={<SignUpAdmin/>}/>
+
+          
+
 
 
         {/* Admin Routes - Protected */}

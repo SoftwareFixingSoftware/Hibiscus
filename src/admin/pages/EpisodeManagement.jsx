@@ -1,32 +1,19 @@
-import React, { useState, useEffect } from 'react';
+// src/pages/EpisodeManagement.jsx
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  FiPlus,
-  FiSearch,
-  FiEdit2,
-  FiTrash2,
-  FiPlayCircle,
-  FiPauseCircle,
-  FiUpload,
-  FiFilter,
-  FiChevronLeft,
-  FiChevronRight,
-  FiMusic,
-  FiHeadphones,
-  FiList,
-  FiAlertCircle
+  FiPlus, FiEdit2, FiTrash2, FiPlayCircle, FiPauseCircle, FiUpload,
+  FiFilter, FiChevronLeft, FiChevronRight, FiMusic, FiHeadphones, FiList, FiAlertCircle
 } from 'react-icons/fi';
 import EpisodeModal from '../components/EpisodeModal';
 import AudioUploadModal from '../components/AudioUploadModal';
 import EpisodeService from '../services/EpisodeService';
 import SeriesService from '../services/SeriesService';
-import FileService from '../services/FileService';
 
 const EpisodeManagement = () => {
   const { seriesId: rawSeriesId } = useParams();
   const navigate = useNavigate();
 
-  // Helper: UUID regex (v1-v5)
   const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   const isValidUuid = (id) => typeof id === 'string' && UUID_REGEX.test(id.trim());
 
@@ -51,7 +38,13 @@ const EpisodeManagement = () => {
 
   const PAGE_SIZE = 10;
 
-  // Validate and normalize seriesId whenever params change
+  // AUDIO PLAYBACK state & refs
+  const audioRefs = useRef(new Map()); // episodeId -> HTMLAudioElement
+  const objectUrlMap = useRef(new Map()); // episodeId -> objectUrl
+  const [currentPlayingId, setCurrentPlayingId] = useState(null);
+  const [loadingAudioId, setLoadingAudioId] = useState(null);
+
+  // Validate seriesId param
   useEffect(() => {
     if (!rawSeriesId) {
       setSeriesId(null);
@@ -59,7 +52,6 @@ const EpisodeManagement = () => {
       setLoading(false);
       return;
     }
-
     const candidate = rawSeriesId.trim();
     if (!isValidUuid(candidate)) {
       setInvalidSeriesId(true);
@@ -68,29 +60,27 @@ const EpisodeManagement = () => {
     } else {
       setInvalidSeriesId(false);
       setSeriesId(candidate);
-      setPage(0); // reset paging when series changes
+      setPage(0);
       setLoading(true);
     }
   }, [rawSeriesId]);
 
-  // Fetch episodes and series info when relevant params change
   useEffect(() => {
-    // Only fetch when we either have no seriesId (global mode) OR a valid UUID seriesId
-    if (rawSeriesId && !seriesId) {
-      // rawSeriesId was present but invalid -> don't fetch
-      return;
-    }
-
+    if (rawSeriesId && !seriesId) return; // invalid id, skip fetch
     fetchEpisodes();
-    if (seriesId) {
-      fetchSeriesInfo();
-    } else {
-      setSeriesInfo(null);
-    }
+    if (seriesId) fetchSeriesInfo();
+    else setSeriesInfo(null);
+
+    return () => {
+      // cleanup object URLs on unmount
+      objectUrlMap.current.forEach((url) => {
+        try { URL.revokeObjectURL(url); } catch (e) {}
+      });
+      objectUrlMap.current.clear();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, filters, seriesId]);
 
-  // Helper to unwrap axios or plain responses
   const unwrapResponse = (res) => {
     if (!res && res !== 0) return null;
     return res && res.data !== undefined ? res.data : res;
@@ -101,15 +91,14 @@ const EpisodeManagement = () => {
       const res = await SeriesService.getSeriesById(seriesId);
       const data = unwrapResponse(res);
       setSeriesInfo(data || null);
-    } catch (error) {
-      console.error('Error fetching series info:', error);
+    } catch (err) {
+      console.error('Error fetching series info:', err);
       setSeriesInfo(null);
     }
   };
 
   const fetchEpisodes = async () => {
     try {
-      // If params had an invalid seriesId, bail out (safety)
       if (rawSeriesId && !seriesId) {
         setEpisodes([]);
         setTotalPages(0);
@@ -117,65 +106,37 @@ const EpisodeManagement = () => {
         setLoading(false);
         return;
       }
-
       setLoading(true);
-
       const res = await EpisodeService.getEpisodesBySeries(seriesId, {
-        page,
-        size: PAGE_SIZE,
-        sortBy: filters.sortBy,
-        sortDirection: filters.sortDirection,
-        publishedOnly: filters.publishedOnly
+        page, size: PAGE_SIZE, sortBy: filters.sortBy, sortDirection: filters.sortDirection, publishedOnly: filters.publishedOnly
       });
-
       const raw = unwrapResponse(res) || {};
-
-      // pageContent is either raw.content (paged) or raw itself (array) or empty array
-      const pageContent = Array.isArray(raw)
-        ? raw
-        : (raw && Array.isArray(raw.content) ? raw.content : []);
-
-      // Normalize each episode to what the UI expects:
+      const pageContent = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.content) ? raw.content : []);
+      
+      // Process episodes - use audioUrl first, then audioStorageKey
       const processedEpisodes = (pageContent || []).map((ep) => {
-        // Duration: check possible fields
         const durationSeconds = ep.durationSeconds ?? ep.duration ?? ep.duration_in_seconds ?? null;
-
-        // File size: prefer raw bytes
         const fileSizeBytes = ep.fileSizeBytes ?? ep.fileSize ?? ep.file_size ?? null;
+        const audioKey = ep.audioUrl ?? ep.audioStorageKey ?? ep.audioFileUrl ?? ep.audioKey ?? null;
 
-        // Audio key/url: backend may return audioFileUrl, audioStorageKey, audioUrl, or nothing
-        const audioKey = ep.audioFileUrl ?? ep.audioStorageKey ?? ep.audioUrl ?? ep.audioKey ?? null;
-
-        // Build final audioUrl: if it's already an absolute URL, use it; otherwise resolve via FileService
-        let audioUrl = null;
-        if (audioKey) {
-          if (typeof audioKey === 'string' && (audioKey.startsWith('http://') || audioKey.startsWith('https://'))) {
-            audioUrl = audioKey;
-          } else {
-            audioUrl = FileService.getFileUrl(audioKey);
-          }
-        }
-
+        console.log(`Episode ${ep.id} - Audio URL:`, audioKey);
+        
         return {
           ...ep,
-          // keep original keys, but provide UI-friendly aliases used by the component:
-          duration: durationSeconds, // component reads episode.duration
-          durationSeconds,           // normalized
-          fileSize: fileSizeBytes,   // component reads episode.fileSize
+          duration: durationSeconds,
+          durationSeconds,
+          fileSize: fileSizeBytes,
           fileSizeBytes,
-          audioUrl
+          audioKey, // Store the full URL
+          hasAudio: !!audioKey // Simple flag to check if audio exists
         };
       });
-
+      
       setEpisodes(processedEpisodes);
-
-      // Update pagination metadata
       const rawTotalPages = (raw && typeof raw.totalPages === 'number') ? raw.totalPages : (processedEpisodes.length ? 1 : 0);
       const rawTotalElements = (raw && typeof raw.totalElements === 'number') ? raw.totalElements : (Array.isArray(pageContent) ? pageContent.length : processedEpisodes.length);
-
       setTotalPages(rawTotalPages);
       setTotalElements(rawTotalElements);
-
       setLoading(false);
     } catch (error) {
       console.error('Error fetching episodes:', error);
@@ -183,6 +144,105 @@ const EpisodeManagement = () => {
     }
   };
 
+  // ---------- AUDIO PLAYBACK HELPERS ----------
+  const attachAudioRef = (id, el) => {
+    if (!el) audioRefs.current.delete(id);
+    else {
+      audioRefs.current.set(id, el);
+      el.onended = () => setCurrentPlayingId(null);
+    }
+  };
+
+  const pauseAllExcept = (keepId = null) => {
+    audioRefs.current.forEach((audioEl, id) => {
+      if (id !== keepId && audioEl && !audioEl.paused) {
+        try { audioEl.pause(); } catch (e) {}
+      }
+    });
+    if (keepId === null) setCurrentPlayingId(null);
+  };
+
+  const revokeObjectUrl = (episodeId) => {
+    const url = objectUrlMap.current.get(episodeId);
+    if (url) {
+      try { URL.revokeObjectURL(url); } catch (e) {}
+      objectUrlMap.current.delete(episodeId);
+    }
+  };
+
+  // SIMPLIFIED AUDIO PLAY HANDLER - Uses the URL directly
+  const handlePlayClick = async (episode) => {
+    const id = episode.id;
+    const audioEl = audioRefs.current.get(id);
+    
+    if (!audioEl) {
+      console.error('Audio element not found for episode:', id);
+      return;
+    }
+
+    console.log('▶️ Playing episode:', episode.title || id);
+    console.log('   Audio URL from DB:', episode.audioKey);
+
+    // Toggle pause if same playing
+    if (!audioEl.paused && currentPlayingId === id) {
+      audioEl.pause();
+      setCurrentPlayingId(null);
+      console.log('   Action: paused');
+      return;
+    }
+
+    pauseAllExcept(id);
+
+    // Check if we have an audio URL
+    if (!episode.audioKey) {
+      alert('No audio file available for this episode.');
+      return;
+    }
+
+    setLoadingAudioId(id);
+
+    try {
+      // Clean up previous object URL
+      revokeObjectUrl(id);
+      
+      // If audio element already has the same source and is playable, just play it
+      if (audioEl.src === episode.audioKey && audioEl.currentTime > 0) {
+        console.log('   Resuming existing audio');
+        await audioEl.play();
+        setCurrentPlayingId(id);
+        return;
+      }
+      
+      console.log('   Setting audio source to:', episode.audioKey);
+      audioEl.src = episode.audioKey;
+      
+      // Try to play directly
+      await audioEl.play();
+      setCurrentPlayingId(id);
+      console.log('   Playback started successfully');
+      
+    } catch (err) {
+      console.error('   Playback error:', err);
+      
+      // Handle specific errors
+      if (err.name === 'NotAllowedError') {
+        alert('Autoplay was blocked. Please click the play button again.');
+      } else if (err.name === 'NetworkError') {
+        alert('Network error. Please check your internet connection and try again.');
+      } else if (err.name === 'MediaError') {
+        alert('Audio format not supported or corrupted file.');
+      } else {
+        alert('Unable to play audio. The audio file may not be accessible.');
+      }
+      
+      // Reset audio element
+      audioEl.src = '';
+    } finally {
+      setLoadingAudioId(null);
+    }
+  };
+
+  // ---------- other handlers ----------
   const handleCreate = () => {
     if (!seriesId) {
       setCreatingWithoutSeries(true);
@@ -204,7 +264,6 @@ const EpisodeManagement = () => {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this episode?')) return;
-
     try {
       await EpisodeService.deleteEpisode(id);
       fetchEpisodes();
@@ -247,7 +306,6 @@ const EpisodeManagement = () => {
     return `${mb.toFixed(2)} MB`;
   };
 
-  // Pagination helpers
   const handlePrevPage = () => setPage((p) => Math.max(0, p - 1));
   const handleNextPage = () => setPage((p) => Math.min(totalPages - 1, p + 1));
 
@@ -287,13 +345,13 @@ const EpisodeManagement = () => {
           {seriesId ? (
             <button className="btn-primary" onClick={handleCreate}>
               <FiPlus />
-              <span>Add New Episode</span>
+              <span style={{ marginLeft: 8 }}>Add New Episode</span>
             </button>
           ) : (
             <div className="warning-message">
               <FiAlertCircle />
-              <span>Select a series to create episodes</span>
-              <button className="btn-secondary" onClick={() => navigate('/admin/series')}>
+              <span style={{ marginLeft: 8 }}>Select a series to create episodes</span>
+              <button className="btn-secondary" style={{ marginLeft: 12 }} onClick={() => navigate('/admin/series')}>
                 Go to Series
               </button>
             </div>
@@ -305,7 +363,7 @@ const EpisodeManagement = () => {
         <div className="series-breadcrumb">
           <button className="back-link" onClick={() => navigate('/admin/series')}>
             <FiList />
-            <span>Back to Series</span>
+            <span style={{ marginLeft: 8 }}>Back to Series</span>
           </button>
         </div>
       )}
@@ -313,7 +371,7 @@ const EpisodeManagement = () => {
       {creatingWithoutSeries && (
         <div className="alert alert-warning">
           <FiAlertCircle />
-          <div>
+          <div style={{ marginLeft: 8 }}>
             <strong>Cannot create episode without a series</strong>
             <p>Please select a series first, or create one from the Series page.</p>
             <div className="alert-actions">
@@ -333,7 +391,7 @@ const EpisodeManagement = () => {
           <div className="filter-group">
             <label className="filter-label">
               <FiFilter />
-              <span>Status</span>
+              <span style={{ marginLeft: 6 }}>Status</span>
             </label>
             <select
               value={filters.publishedOnly === null ? 'all' : filters.publishedOnly ? 'published' : 'draft'}
@@ -386,18 +444,6 @@ const EpisodeManagement = () => {
         </div>
       </div>
 
-      {!seriesId && (
-        <div className="info-card">
-          <h4>How to create episodes:</h4>
-          <ol>
-            <li>Go to <strong>Series</strong> page from the sidebar</li>
-            <li>Create a new series or select an existing one</li>
-            <li>Click on a series to view details</li>
-            <li>From the series detail page, click "Add New Episode"</li>
-          </ol>
-        </div>
-      )}
-
       <div className="episodes-grid">
         {episodes.length === 0 ? (
           <div className="empty-state">
@@ -437,27 +483,61 @@ const EpisodeManagement = () => {
                 <div className="episode-meta">
                   <div className="meta-item">
                     <FiHeadphones />
-                    <span>{getDurationString(episode.duration)}</span>
+                    <span style={{ marginLeft: 6 }}>{getDurationString(episode.duration)}</span>
                   </div>
-                  <div className="meta-item">
+                  <div className="meta-item" style={{ marginLeft: 12 }}>
                     <FiMusic />
-                    <span>{getFileSize(episode.fileSize)}</span>
+                    <span style={{ marginLeft: 6 }}>{getFileSize(episode.fileSize)}</span>
                   </div>
                   {episode.releaseDate && (
-                    <div className="meta-item">
+                    <div className="meta-item" style={{ marginLeft: 12 }}>
                       <span>{new Date(episode.releaseDate).toLocaleDateString()}</span>
                     </div>
                   )}
                 </div>
 
-                {episode.audioUrl && (
-                  <div className="audio-preview">
-                    <audio controls className="audio-player">
-                      <source src={episode.audioUrl} type="audio/mpeg" />
-                      Your browser does not support the audio element.
-                    </audio>
-                  </div>
-                )}
+                <div className="audio-preview" style={{ marginTop: 12 }}>
+                  <audio
+                    ref={(el) => attachAudioRef(episode.id, el)}
+                    className="audio-player"
+                    preload="none"
+                    controls
+                    onPlay={() => {
+                      pauseAllExcept(episode.id);
+                      setCurrentPlayingId(episode.id);
+                    }}
+                    onPause={() => {
+                      if (currentPlayingId === episode.id) setCurrentPlayingId(null);
+                    }}
+                  >
+                    Your browser does not support the audio element.
+                  </audio>
+
+                 <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                      <button
+                        className="btn-secondary"
+                        onClick={() => handlePlayClick(episode)}
+                        disabled={loadingAudioId === episode.id}
+                        title={currentPlayingId === episode.id ? 'Pause' : 'Play'}
+                      >
+                        {loadingAudioId === episode.id ? 'Loading…' : (currentPlayingId === episode.id ? <><FiPauseCircle/> Pause</> : <><FiPlayCircle/> Play</>)}
+                      </button>
+
+                      {/* Always show upload button - changed to allow re-upload */}
+                      <button
+                        className="btn-secondary"
+                        onClick={() => handleUploadAudio(episode)}
+                        title={episode.hasAudio ? "Replace Audio" : "Upload Audio"}
+                        style={{ 
+                          backgroundColor: episode.hasAudio ? '#f59e0b' : '#6b7280',
+                          color: 'white',
+                          border: 'none'
+                        }}
+                      >
+                        <FiUpload /> {episode.hasAudio ? 'Replace' : 'Upload'}
+                      </button>
+                    </div>
+                </div>
               </div>
 
               <div className="episode-actions">
@@ -480,15 +560,18 @@ const EpisodeManagement = () => {
                     </button>
                   )}
 
-                  {!episode.audioUrl && (
-                    <button
-                      className="action-btn secondary"
-                      onClick={() => handleUploadAudio(episode)}
-                      title="Upload Audio"
-                    >
-                      <FiUpload />
-                    </button>
-                  )}
+                  {/* Always show upload button - changed to allow re-upload */}
+                  <button
+                    className="action-btn secondary"
+                    onClick={() => handleUploadAudio(episode)}
+                    title={episode.hasAudio ? "Replace Audio" : "Upload Audio"}
+                    style={{ 
+                      backgroundColor: episode.hasAudio ? '#f59e0b' : '#6b7280',
+                      color: 'white'
+                    }}
+                  >
+                    <FiUpload />
+                  </button>
                 </div>
 
                 <div className="action-group">
@@ -519,46 +602,24 @@ const EpisodeManagement = () => {
             Showing {page * PAGE_SIZE + 1} to {Math.min((page + 1) * PAGE_SIZE, totalElements)} of {totalElements} episodes
           </div>
           <div className="pagination-controls">
-            <button
-              className="pagination-nav"
-              onClick={handlePrevPage}
-              disabled={page === 0}
-            >
-              <FiChevronLeft />
-            </button>
+            <button className="pagination-nav" onClick={handlePrevPage} disabled={page === 0}><FiChevronLeft /></button>
 
             <div className="pagination-numbers">
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 let pageNum;
-                if (totalPages <= 5) {
-                  pageNum = i;
-                } else if (page < 3) {
-                  pageNum = i;
-                } else if (page > totalPages - 4) {
-                  pageNum = totalPages - 5 + i;
-                } else {
-                  pageNum = page - 2 + i;
-                }
-
+                if (totalPages <= 5) pageNum = i;
+                else if (page < 3) pageNum = i;
+                else if (page > totalPages - 4) pageNum = totalPages - 5 + i;
+                else pageNum = page - 2 + i;
                 return (
-                  <button
-                    key={pageNum}
-                    onClick={() => setPage(pageNum)}
-                    className={`pagination-btn ${page === pageNum ? 'active' : ''}`}
-                  >
+                  <button key={pageNum} onClick={() => setPage(pageNum)} className={`pagination-btn ${page === pageNum ? 'active' : ''}`}>
                     {pageNum + 1}
                   </button>
                 );
               })}
             </div>
 
-            <button
-              className="pagination-nav"
-              onClick={handleNextPage}
-              disabled={page >= totalPages - 1}
-            >
-              <FiChevronRight />
-            </button>
+            <button className="pagination-nav" onClick={handleNextPage} disabled={page >= totalPages - 1}><FiChevronRight /></button>
           </div>
         </div>
       )}

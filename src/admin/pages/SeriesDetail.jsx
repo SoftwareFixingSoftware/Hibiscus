@@ -14,12 +14,12 @@ import {
   FiLink,
   FiBarChart2,
   FiPlus,
-  FiUpload, // ADD THIS IMPORT
-  FiImage // ADD THIS IMPORT
+  FiUpload,
+  FiImage
 } from 'react-icons/fi';
 import SeriesService from '../services/SeriesService';
 import EpisodeService from '../services/EpisodeService';
-import SeriesImageUploadModal from '../components/SeriesImageUploadModal'; // ADD THIS IMPORT
+import SeriesImageUploadModal from '../components/SeriesImageUploadModal';
 
 const SeriesDetail = () => {
   const { id } = useParams();
@@ -33,18 +33,19 @@ const SeriesDetail = () => {
     totalDownloads: 0,
     averageRating: 0
   });
-  
-  // ADD THIS STATE FOR IMAGE UPLOAD MODAL
+
   const [showImageUploadModal, setShowImageUploadModal] = useState(false);
 
   useEffect(() => {
     fetchSeriesDetails();
+ 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchSeriesDetails = async () => {
     try {
       setLoading(true);
-      
+
       const [seriesData, episodesData] = await Promise.all([
         SeriesService.getSeriesById(id),
         EpisodeService.getEpisodesBySeries(id, {
@@ -55,17 +56,16 @@ const SeriesDetail = () => {
       ]);
 
       setSeries(seriesData);
-      
-      // Calculate stats from episodes
-      const episodes = episodesData.content || episodesData;
+
+      const episodes = (episodesData && episodesData.content) ? episodesData.content : (episodesData || []);
       const publishedEpisodes = episodes.filter(ep => ep.isPublished);
-      
+
       setStats({
         totalEpisodes: episodes.length,
         publishedEpisodes: publishedEpisodes.length,
         totalPlays: episodes.reduce((sum, ep) => sum + (ep.playCount || 0), 0),
         totalDownloads: episodes.reduce((sum, ep) => sum + (ep.downloadCount || 0), 0),
-        averageRating: seriesData.averageRating || 0
+        averageRating: seriesData?.averageRating || 0
       });
 
       setLoading(false);
@@ -75,17 +75,10 @@ const SeriesDetail = () => {
     }
   };
 
-  const handleBack = () => {
-    navigate('/admin/series');
-  };
-
-  const handleEdit = () => {
-    navigate(`/admin/series/${id}/edit`);
-  };
-
+  const handleBack = () => navigate('/admin/series');
+  const handleEdit = () => navigate(`/admin/series/${id}/edit`);
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this series? This action cannot be undone.')) return;
-    
     try {
       await SeriesService.deleteSeries(id);
       navigate('/admin/series');
@@ -94,7 +87,6 @@ const SeriesDetail = () => {
       alert('Failed to delete series');
     }
   };
-
   const handlePublish = async () => {
     try {
       await SeriesService.updateSeries(id, { isPublished: true });
@@ -104,7 +96,6 @@ const SeriesDetail = () => {
       alert('Failed to publish series');
     }
   };
-
   const handleUnpublish = async () => {
     try {
       await SeriesService.updateSeries(id, { isPublished: false });
@@ -114,12 +105,8 @@ const SeriesDetail = () => {
       alert('Failed to unpublish series');
     }
   };
+  const handleAddEpisode = () => navigate(`/admin/episodes/series/${id}`);
 
-  const handleAddEpisode = () => {
-    navigate(`/admin/episodes/series/${id}`);
-  };
-
-  // ADD THIS FUNCTION
   const handleUploadCover = () => {
     setShowImageUploadModal(true);
   };
@@ -150,10 +137,10 @@ const SeriesDetail = () => {
         <button className="back-btn" onClick={handleBack}>
           <FiArrowLeft />
           <span>Back to Series</span>
+          
         </button>
         
         <div className="header-actions">
-          {/* ADD UPLOAD COVER BUTTON */}
           <button className="action-btn secondary" onClick={handleUploadCover}>
             <FiUpload />
             <span>Upload Cover</span>
@@ -170,6 +157,7 @@ const SeriesDetail = () => {
               <span>Publish</span>
             </button>
           )}
+
           <button className="action-btn edit" onClick={handleEdit}>
             <FiEdit2 />
             <span>Edit</span>
@@ -183,14 +171,16 @@ const SeriesDetail = () => {
 
       <div className="series-overview">
         <div className="series-cover-large">
-          {series.coverImage ? (
-            <img src={series.coverImage} alt={series.title} />
+          {series.coverImageUrl ? (
+ 
+            <img src={series.coverImageUrl} alt={series.title} />
           ) : (
             <div className="cover-placeholder">
-              <span>{series.title.charAt(0)}</span>
+              <span>{series.title ? series.title.charAt(0) : '?'}</span>
             </div>
           )}
-        </div>
+         </div>
+ 
         
         <div className="series-info">
           <div className="series-header">
@@ -205,7 +195,7 @@ const SeriesDetail = () => {
           <div className="series-meta">
             <div className="meta-item">
               <FiCalendar />
-              <span>Created: {new Date(series.createdAt).toLocaleDateString()}</span>
+              <span>Created: {series.createdAt ? new Date(series.createdAt).toLocaleDateString() : '—'}</span>
             </div>
             <div className="meta-item">
               <FiTag />
@@ -213,7 +203,7 @@ const SeriesDetail = () => {
             </div>
             <div className="meta-item">
               <FiLink />
-              <span>Slug: {series.slug}</span>
+              <span>Slug: {series.slug || '—'}</span>
             </div>
             <div className="meta-item">
               <span className="rating">
@@ -225,14 +215,13 @@ const SeriesDetail = () => {
           {series.tags && series.tags.length > 0 && (
             <div className="series-tags">
               {series.tags.map((tag, index) => (
-                <span key={index} className="tag">
-                  #{tag}
-                </span>
+                <span key={index} className="tag">#{tag}</span>
               ))}
             </div>
           )}
         </div>
       </div>
+      
 
       <div className="stats-grid">
         <div className="stat-card">
@@ -341,7 +330,6 @@ const SeriesDetail = () => {
         </div>
       </div>
       
-      {/* ADD IMAGE UPLOAD MODAL */}
       {showImageUploadModal && series && (
         <SeriesImageUploadModal
           series={series}

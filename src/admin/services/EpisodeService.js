@@ -1,3 +1,4 @@
+// src/services/EpisodeService.js
 import api from './api';
 
 const EpisodeService = {
@@ -12,29 +13,36 @@ const EpisodeService = {
   },
 
   // Get episode by ID
-  getEpisodeById: (id) => {
-    return api.get(`/secure/admin/episodes/${id}`);
+  getEpisodeById: async (id) => {
+    const res = await api.get(`/secure/admin/episodes/${id}`);
+    const ep = res.data;
+
+    console.log('🎬 EpisodeService - single episode details:');
+    console.log(`- Episode ID: ${ep.id}`);
+    console.log(`  Title: ${ep.title}`);
+    console.log(`  Audio URL: ${ep.audioUrl || ep.audioStorageKey || 'N/A'}`);
+    console.log(`  Has Audio: ${ep.hasAudio || 'N/A'}`);
+    console.log(`  Duration: ${ep.durationSeconds ?? ep.duration ?? 'N/A'} sec`);
+    console.log(`  Published: ${ep.isPublished}`);
+    console.log('-------------------------------');
+
+    return res;
   },
 
   /**
-   * Get episodes (flexible):
-   * - If seriesId provided (and no seasonId) => uses /secure/admin/episodes/series/{seriesId}
-   * - Otherwise uses /secure/admin/episodes with optional seasonId, publishedOnly, freeOnly
-   *
-   * Kept function name `getEpisodesBySeries` so existing callers don't change.
+   * Get episodes (flexible)
    */
-  getEpisodesBySeries: (seriesId, params = {}) => {
+  getEpisodesBySeries: async (seriesId, params = {}) => {
     const {
       page = 0,
       size = 20,
       sortBy = 'episodeNumber',
-      sortDirection = 'asc', // kept for API compatibility on client side; will be mapped to sortDir below
+      sortDirection = 'asc',
       publishedOnly,
       freeOnly,
       seasonId
     } = params;
 
-    // backend expects parameter `sortDir` (controller uses sortDir)
     const queryParams = {
       page,
       size,
@@ -45,48 +53,62 @@ const EpisodeService = {
       ...(seasonId && { seasonId })
     };
 
-    // If seriesId is provided and no seasonId, use series-specific endpoint for efficiency
+    let response;
     if (seriesId && !seasonId) {
-      return api.get(`/secure/admin/episodes/series/${seriesId}`, {
-        params: queryParams,
-      });
+      response = await api.get(`/secure/admin/episodes/series/${seriesId}`, { params: queryParams });
+    } else {
+      response = await api.get('/secure/admin/episodes', { params: queryParams });
     }
 
-    // Otherwise fetch from the global listing endpoint (supports seasonId, freeOnly, etc.)
-    return api.get('/secure/admin/episodes', {
-      params: queryParams,
-    });
+    return response;
   },
 
   // Update episode
   updateEpisode: (id, episodeData) => {
+    console.log(`Updating episode ${id}:`, episodeData);
     return api.put(`/secure/admin/episodes/${id}`, episodeData);
   },
 
   // Delete episode
   deleteEpisode: (id) => {
+    console.log(`Deleting episode ${id}`);
     return api.delete(`/secure/admin/episodes/${id}`);
   },
 
-  // Upload audio for episode - do not force Content-Type (browser will set boundary)
+  // Upload audio for episode (overwrites existing)
   uploadEpisodeAudio: (id, audioFile) => {
     const formData = new FormData();
     formData.append('file', audioFile);
 
+    console.log(`Uploading audio for episode ${id}:`, audioFile.name, audioFile.size);
     return api.post(`/secure/admin/episodes/${id}/upload-audio`, formData, {
-      // NOTE: do not set 'Content-Type' manually for multipart/form-data
-      // let the browser/axios set the correct headers (including boundary).
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
     });
+  },
+
+  // Delete audio from episode
+  deleteEpisodeAudio: (id) => {
+    console.log(`Deleting audio for episode ${id}`);
+    return api.delete(`/secure/admin/episodes/${id}/audio`);
   },
 
   // Publish episode
   publishEpisode: (id) => {
+    console.log(`Publishing episode ${id}`);
     return api.put(`/secure/admin/episodes/${id}/publish`);
   },
 
   // Unpublish episode
   unpublishEpisode: (id) => {
+    console.log(`Unpublishing episode ${id}`);
     return api.put(`/secure/admin/episodes/${id}/unpublish`);
+  },
+
+  // Get audio URL info for debugging
+  getAudioInfo: (episodeId) => {
+    return api.get(`/secure/admin/episodes/${episodeId}/audio-info`);
   }
 };
 

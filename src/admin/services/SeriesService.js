@@ -34,7 +34,7 @@ const SeriesService = {
 
   // Get series by ID
   getSeriesById: (id) => {
-    return api.get(`/secure/admin/series/${id}`);
+     return api.get(`/secure/admin/series/${id}`);
   },
 
   // Update series

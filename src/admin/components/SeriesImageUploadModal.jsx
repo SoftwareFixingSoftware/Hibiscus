@@ -9,70 +9,6 @@ const SeriesImageUploadModal = ({ series, onClose, onSubmit }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [imagePreview, setImagePreview] = useState(null);
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
-    if (!validTypes.includes(file.type)) {
-      setError('Please upload a valid image file (JPEG, PNG, GIF, WebP, SVG)');
-      return;
-    }
-
-    // Validate file size (10MB limit)
-    const maxSize = 10 * 1024 * 1024;
-    if (file.size > maxSize) {
-      setError('File size must be less than 10MB');
-      return;
-    }
-
-    setImageFile(file);
-    setError('');
-    
-    // Create preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setImagePreview(e.target.result);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleUpload = async (e) => {
-    e.preventDefault();
-    
-    if (!imageFile) {
-      setError('Please select an image file');
-      return;
-    }
-
-    if (!series || !series.id) {
-      setError('No series selected');
-      return;
-    }
-
-    setLoading(true);
-    setUploadProgress(0);
-
-    try {
-      // Use SeriesService method instead of direct XMLHttpRequest
-      await SeriesService.uploadSeriesCover(series.id, imageFile);
-      
-      setUploadProgress(100);
-      
-      // Wait a moment to show completion
-      setTimeout(() => {
-        onSubmit();
-      }, 500);
-
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      setError(error.message || 'Failed to upload image. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const formatFileSize = (bytes) => {
     if (!bytes) return '0 B';
     const k = 1024;
@@ -81,9 +17,73 @@ const SeriesImageUploadModal = ({ series, onClose, onSubmit }) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    if (!validTypes.includes(file.type)) {
+      setError('Invalid file type. Only JPEG, PNG, GIF, WebP, SVG allowed.');
+      setImageFile(null);
+      setImagePreview(null);
+      return;
+    }
+
+    // Validate file size (10MB)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setError(`File is too large (${formatFileSize(file.size)}). Max allowed size is ${formatFileSize(maxSize)}.`);
+      setImageFile(null);
+      setImagePreview(null);
+      return;
+    }
+
+    // File is valid
+    setImageFile(file);
+    setError('');
+
+    const reader = new FileReader();
+    reader.onload = (e) => setImagePreview(e.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleUpload = async (e) => {
+    e.preventDefault();
+
+    if (!imageFile) {
+      setError('Please select a valid image file before uploading.');
+      return;
+    }
+
+    if (!series || !series.id) {
+      setError('No series selected.');
+      return;
+    }
+
+    setLoading(true);
+    setUploadProgress(0);
+
+    try {
+      await SeriesService.uploadSeriesCover(series.id, imageFile);
+      setUploadProgress(100);
+
+      // Show completion briefly before closing
+      setTimeout(() => {
+        onSubmit();
+      }, 500);
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      setError(err.message || 'Failed to upload image. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleRemoveFile = () => {
     setImageFile(null);
     setImagePreview(null);
+    setError('');
   };
 
   return (
@@ -97,18 +97,14 @@ const SeriesImageUploadModal = ({ series, onClose, onSubmit }) => {
             <FiX />
           </button>
         </div>
-        
+
         <form onSubmit={handleUpload} className="modal-form">
-          {error && (
-            <div className="alert alert-error">
-              {error}
-            </div>
-          )}
+          {error && <div className="alert alert-error">{error}</div>}
 
           <div className="upload-instructions">
             <p>Upload a cover image for this series. Supported formats: JPEG, PNG, GIF, WebP, SVG</p>
             <p>Max file size: 10MB</p>
-            <p>Recommended size: 1200x1200 pixels (square)</p>
+            <p>Recommended size: 1200x1200 pixels</p>
           </div>
 
           <div className="image-upload-area">
@@ -156,7 +152,7 @@ const SeriesImageUploadModal = ({ series, onClose, onSubmit }) => {
           {uploadProgress > 0 && (
             <div className="upload-progress">
               <div className="progress-bar">
-                <div 
+                <div
                   className="progress-fill"
                   style={{ width: `${uploadProgress}%` }}
                 ></div>
@@ -179,7 +175,7 @@ const SeriesImageUploadModal = ({ series, onClose, onSubmit }) => {
             <button
               type="submit"
               className="btn-primary"
-              disabled={!imageFile || loading}
+              disabled={!imageFile || !!error || loading}
             >
               {loading ? 'Uploading...' : 'Upload Image'}
             </button>

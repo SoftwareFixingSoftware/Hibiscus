@@ -33,6 +33,7 @@ const SeriesManagement = () => {
 
   useEffect(() => {
     fetchSeries();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, filters, searchTerm]);
 
   const fetchSeries = async () => {
@@ -55,9 +56,10 @@ const SeriesManagement = () => {
         });
       }
 
-      setSeries(response.content || response);
+      const content = response.content || response;
+      setSeries(content);
       setTotalPages(response.totalPages || 1);
-      setTotalElements(response.totalElements || response.length || 0);
+      setTotalElements(response.totalElements || content.length || 0);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching series:', error);
@@ -162,7 +164,7 @@ const SeriesManagement = () => {
             <FiSearch className="search-icon" />
             <input
               type="text"
-              placeholder="Search series by title or description..."
+              placeholder="Search series by title"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -235,7 +237,6 @@ const SeriesManagement = () => {
           <thead>
             <tr>
               <th>Title</th>
-              <th>Description</th>
               <th>Status</th>
               <th>Episodes</th>
               <th>Created</th>
@@ -245,7 +246,7 @@ const SeriesManagement = () => {
           <tbody>
             {series.length === 0 ? (
               <tr>
-                <td colSpan="6" className="empty-state">
+                <td colSpan="5" className="empty-state">
                   <div className="empty-content">
                     <div className="empty-icon">📺</div>
                     <h3>No series found</h3>
@@ -262,11 +263,11 @@ const SeriesManagement = () => {
                   <td>
                     <div className="series-title-cell">
                       <div className="series-cover">
-                        {item.coverImage ? (
-                          <img src={item.coverImage} alt={item.title} />
+                        {item.coverImageUrl ? (
+                          <img src={item.coverImageUrl} alt={item.title} />
                         ) : (
                           <div className="series-cover-placeholder">
-                            {item.title.charAt(0)}
+                            {item.title ? item.title.charAt(0) : '?'}
                           </div>
                         )}
                       </div>
@@ -276,11 +277,7 @@ const SeriesManagement = () => {
                       </div>
                     </div>
                   </td>
-                  <td>
-                    <p className="series-description">
-                      {item.description?.substring(0, 60)}...
-                    </p>
-                  </td>
+
                   <td>
                     <span className={`status-badge ${getStatusBadge(item.isPublished)}`}>
                       {item.isPublished ? 'PUBLISHED' : 'DRAFT'}
@@ -294,8 +291,8 @@ const SeriesManagement = () => {
                   </td>
                   <td>
                     <div className="date-cell">
-                      <div className="date">{new Date(item.createdAt).toLocaleDateString()}</div>
-                      <div className="time">{new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                      <div className="date">{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '—'}</div>
+                      <div className="time">{item.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
                     </div>
                   </td>
                   <td>

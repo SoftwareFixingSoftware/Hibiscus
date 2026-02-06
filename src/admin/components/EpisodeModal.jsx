@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiX, FiCalendar, FiClock } from 'react-icons/fi';
+import { FiX, FiCalendar, FiClock, FiAlertCircle } from 'react-icons/fi';
 import EpisodeService from '../services/EpisodeService';
 
 const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
@@ -12,21 +12,25 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
     episodeNumber: 1,
     releaseDate: new Date().toISOString().split('T')[0],
     isPublished: false,
-    durationSeconds: 0 // REQUIRED FIELD
+    durationSeconds: 0,
+    isFree: false
   });
 
   useEffect(() => {
     if (episode) {
       // For edit mode
+      const releaseDate = episode.releaseDate ? 
+        new Date(episode.releaseDate).toISOString().split('T')[0] : 
+        new Date().toISOString().split('T')[0];
+      
       setFormData({
         title: episode.title || '',
         description: episode.description || '',
         episodeNumber: episode.episodeNumber || 1,
-        releaseDate: episode.releaseDate ? 
-          new Date(episode.releaseDate).toISOString().split('T')[0] : 
-          new Date().toISOString().split('T')[0],
+        releaseDate: releaseDate,
         isPublished: episode.isPublished || false,
-        durationSeconds: episode.durationSeconds || 0
+        durationSeconds: episode.durationSeconds || episode.duration || 0,
+        isFree: episode.isFree || false
       });
     } else {
       // For create mode
@@ -36,7 +40,8 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
         episodeNumber: 1,
         releaseDate: new Date().toISOString().split('T')[0],
         isPublished: false,
-        durationSeconds: 0
+        durationSeconds: 0,
+        isFree: false
       });
     }
   }, [episode]);
@@ -107,47 +112,44 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
     setLoading(true);
     
     try {
-      // Prepare the episode data - REMOVE durationMinutes from the data sent
+      // Prepare the episode data
       const episodeData = {
-        title: formData.title,
-        description: formData.description,
+        title: formData.title.trim(),
+        description: formData.description.trim(),
         episodeNumber: formData.episodeNumber,
         releaseDate: new Date(formData.releaseDate).toISOString(),
         isPublished: formData.isPublished,
-        durationSeconds: formData.durationSeconds // Send this, not durationMinutes
+        durationSeconds: formData.durationSeconds,
+        isFree: formData.isFree
       };
       
       console.log('Sending episode data:', episodeData);
-      console.log('Series ID:', seriesId);
       
       let result;
       if (isEditMode) {
+        console.log('Updating episode:', episode.id);
         result = await EpisodeService.updateEpisode(episode.id, episodeData);
       } else {
-        // For new episodes, we MUST have seriesId
+        console.log('Creating episode for series:', seriesId);
         if (!seriesId) {
           throw new Error('Cannot create episode without a series ID');
         }
         result = await EpisodeService.createEpisodeInSeries(seriesId, episodeData);
       }
       
-      console.log('Episode saved successfully');
-      onSubmit(result);
+      console.log('Episode saved successfully:', result.data);
+      onSubmit(result.data);
     } catch (error) {
       console.error('Error saving episode:', error);
       
       let errorMessage = 'Failed to save episode';
       
-      // Handle different types of errors
       if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
         console.error('Response error:', error.response.data);
         if (error.response.data) {
           if (error.response.data.message) {
             errorMessage = error.response.data.message;
           } else if (error.response.data.errors) {
-            // Handle validation errors from Spring Boot @Valid
             const validationErrors = error.response.data.errors;
             const fieldErrors = validationErrors.map(err => 
               `${err.field}: ${err.defaultMessage}`
@@ -158,17 +160,17 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
           }
         }
       } else if (error.request) {
-        // The request was made but no response was received
         console.error('Request error:', error.request);
         errorMessage = 'No response from server. Please check your connection.';
       } else {
-        // Something happened in setting up the request that triggered an Error
         errorMessage = error.message || 'Unknown error occurred';
       }
       
       // Handle specific error messages
       if (errorMessage.includes('durationSeconds')) {
         errorMessage = 'Duration is required. Please enter a valid duration in minutes.';
+      } else if (errorMessage.includes('already exists')) {
+        errorMessage = `Episode ${formData.episodeNumber} already exists for this series. Please choose a different episode number.`;
       }
       
       setErrors({ submit: errorMessage });
@@ -211,16 +213,22 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
           
           {errors.seriesId && (
             <div className="alert alert-error">
-              <strong>Error:</strong> {errors.seriesId}
-              <div style={{ marginTop: '8px' }}>
-                Please navigate to a specific series first, or go to the Series page and click "View Details" to manage episodes.
+              <FiAlertCircle />
+              <div style={{ marginLeft: '8px' }}>
+                <strong>Error:</strong> {errors.seriesId}
+                <div style={{ marginTop: '8px' }}>
+                  Please navigate to a specific series first, or go to the Series page and click "View Details" to manage episodes.
+                </div>
               </div>
             </div>
           )}
           
           {errors.submit && (
             <div className="alert alert-error">
-              <strong>Error:</strong> {errors.submit}
+              <FiAlertCircle />
+              <div style={{ marginLeft: '8px' }}>
+                <strong>Error:</strong> {errors.submit}
+              </div>
             </div>
           )}
           
@@ -330,6 +338,21 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
             </div>
           </div>
           
+          <div className="form-group checkbox-group" style={{ marginBottom: '15px' }}>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="isFree"
+                checked={formData.isFree}
+                onChange={handleChange}
+                className="checkbox-input"
+                disabled={loading}
+              />
+              <span className="checkbox-custom"></span>
+              <span className="checkbox-text">Free Episode (no purchase required)</span>
+            </label>
+          </div>
+          
           <div className="form-group checkbox-group">
             <label className="checkbox-label">
               <input
@@ -343,6 +366,11 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
               <span className="checkbox-custom"></span>
               <span className="checkbox-text">Publish immediately</span>
             </label>
+            <div className="form-hint" style={{ marginLeft: '30px', marginTop: '5px' }}>
+              {isEditMode && episode?.hasAudio ? 
+                'Episode has audio and can be published' : 
+                'Note: Episode needs audio before it can be published'}
+            </div>
           </div>
           
           <div className="modal-footer">

@@ -1145,6 +1145,8 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  transform: translateX(-6px); /* move slightly left */
+
 }
 
 .episode-count .count {
