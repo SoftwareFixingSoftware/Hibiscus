@@ -19,7 +19,7 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
 
       try {
         // This endpoint should work with cookies (withCredentials: true)
-        const response = await api.get('/secure/admin/auth/verify');
+        const response = await api.get('/auth/verify');
         
         console.log('ProtectedRoute - Verify response:', response);
         

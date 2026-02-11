@@ -35,6 +35,7 @@ const EpisodeManagement = () => {
   });
   const [seriesInfo, setSeriesInfo] = useState(null);
   const [creatingWithoutSeries, setCreatingWithoutSeries] = useState(false);
+  const [audioVersionTracker, setAudioVersionTracker] = useState({}); // Track audio versions
 
   const PAGE_SIZE = 10;
 
@@ -117,9 +118,24 @@ const EpisodeManagement = () => {
       const processedEpisodes = (pageContent || []).map((ep) => {
         const durationSeconds = ep.durationSeconds ?? ep.duration ?? ep.duration_in_seconds ?? null;
         const fileSizeBytes = ep.fileSizeBytes ?? ep.fileSize ?? ep.file_size ?? null;
-        const audioKey = ep.audioUrl ?? ep.audioStorageKey ?? ep.audioFileUrl ?? ep.audioKey ?? null;
-
-        console.log(`Episode ${ep.id} - Audio URL:`, audioKey);
+        
+        // Check all possible audio URL fields
+        let audioKey = ep.audioUrl || ep.audioStorageKey || ep.audioFileUrl || ep.audioKey || null;
+        
+        // If it's a relative path (starts with series/), convert to absolute URL
+        if (audioKey && !audioKey.startsWith('http') && !audioKey.startsWith('blob:')) {
+          if (audioKey.startsWith('series/')) {
+            audioKey = `http://localhost:9019/api/secure/files/${audioKey}`;
+          } else if (!audioKey.includes('/api/')) {
+            // Assume it's a relative path to our API
+            audioKey = `http://localhost:9019/api/secure/files/${audioKey}`;
+          }
+        }
+        
+        // Clean URL - remove any existing cache busting parameters
+        if (audioKey && audioKey.includes('?')) {
+          audioKey = audioKey.split('?')[0];
+        }
         
         return {
           ...ep,
@@ -127,8 +143,8 @@ const EpisodeManagement = () => {
           durationSeconds,
           fileSize: fileSizeBytes,
           fileSizeBytes,
-          audioKey, // Store the full URL
-          hasAudio: !!audioKey // Simple flag to check if audio exists
+          audioKey, // Store the clean URL
+          hasAudio: !!audioKey
         };
       });
       
@@ -150,13 +166,22 @@ const EpisodeManagement = () => {
     else {
       audioRefs.current.set(id, el);
       el.onended = () => setCurrentPlayingId(null);
+      // Add error handler
+      el.onerror = () => {
+        console.error(`Audio playback error for episode ${id}:`, el.error);
+        setCurrentPlayingId(null);
+        setLoadingAudioId(null);
+      };
     }
   };
 
   const pauseAllExcept = (keepId = null) => {
     audioRefs.current.forEach((audioEl, id) => {
       if (id !== keepId && audioEl && !audioEl.paused) {
-        try { audioEl.pause(); } catch (e) {}
+        try { 
+          audioEl.pause(); 
+          audioEl.currentTime = 0;
+        } catch (e) {}
       }
     });
     if (keepId === null) setCurrentPlayingId(null);
@@ -170,7 +195,27 @@ const EpisodeManagement = () => {
     }
   };
 
-  // SIMPLIFIED AUDIO PLAY HANDLER - Uses the URL directly
+  // Clear audio cache for a specific episode
+  const clearAudioCache = (episodeId) => {
+    // Clear object URL if exists
+    revokeObjectUrl(episodeId);
+    
+    // Clear audio element source
+    const audioEl = audioRefs.current.get(episodeId);
+    if (audioEl) {
+      audioEl.pause();
+      audioEl.currentTime = 0;
+      audioEl.src = '';
+    }
+    
+    // Update audio version tracker to force reload
+    setAudioVersionTracker(prev => ({
+      ...prev,
+      [episodeId]: (prev[episodeId] || 0) + 1
+    }));
+  };
+
+  // SIMPLIFIED AUDIO PLAY HANDLER - Uses the URL directly with cache busting
   const handlePlayClick = async (episode) => {
     const id = episode.id;
     const audioEl = audioRefs.current.get(id);
@@ -180,14 +225,10 @@ const EpisodeManagement = () => {
       return;
     }
 
-    console.log('▶️ Playing episode:', episode.title || id);
-    console.log('   Audio URL from DB:', episode.audioKey);
-
     // Toggle pause if same playing
     if (!audioEl.paused && currentPlayingId === id) {
       audioEl.pause();
       setCurrentPlayingId(null);
-      console.log('   Action: paused');
       return;
     }
 
@@ -205,24 +246,32 @@ const EpisodeManagement = () => {
       // Clean up previous object URL
       revokeObjectUrl(id);
       
-      // If audio element already has the same source and is playable, just play it
-      if (audioEl.src === episode.audioKey && audioEl.currentTime > 0) {
-        console.log('   Resuming existing audio');
-        await audioEl.play();
-        setCurrentPlayingId(id);
-        return;
-      }
+      // CRITICAL: Add cache busting query parameter with version
+      let audioUrl = episode.audioKey;
       
-      console.log('   Setting audio source to:', episode.audioKey);
-      audioEl.src = episode.audioKey;
+      // Always add cache busting parameters
+      const separator = audioUrl.includes('?') ? '&' : '?';
+      const version = audioVersionTracker[id] || 0;
+      audioUrl = `${audioUrl}${separator}v=${version}&t=${Date.now()}`;
       
-      // Try to play directly
+      // Reset the audio element completely
+      audioEl.pause();
+      audioEl.currentTime = 0;
+      audioEl.src = audioUrl;
+      
+      // Load the new source
+      await new Promise((resolve, reject) => {
+        audioEl.oncanplay = resolve;
+        audioEl.onerror = reject;
+        audioEl.load();
+      });
+      
+      // Try to play
       await audioEl.play();
       setCurrentPlayingId(id);
-      console.log('   Playback started successfully');
       
     } catch (err) {
-      console.error('   Playback error:', err);
+      console.error('Playback error:', err);
       
       // Handle specific errors
       if (err.name === 'NotAllowedError') {
@@ -240,6 +289,15 @@ const EpisodeManagement = () => {
     } finally {
       setLoadingAudioId(null);
     }
+  };
+
+  // Handle successful audio upload
+  const handleAudioUploadSuccess = (episodeId) => {
+    // Clear audio cache for this episode
+    clearAudioCache(episodeId);
+    
+    // Fetch fresh episode data
+    fetchEpisodes();
   };
 
   // ---------- other handlers ----------
@@ -523,7 +581,7 @@ const EpisodeManagement = () => {
                         {loadingAudioId === episode.id ? 'Loading…' : (currentPlayingId === episode.id ? <><FiPauseCircle/> Pause</> : <><FiPlayCircle/> Play</>)}
                       </button>
 
-                      {/* Always show upload button - changed to allow re-upload */}
+                      {/* Upload/Replace button */}
                       <button
                         className="btn-secondary"
                         onClick={() => handleUploadAudio(episode)}
@@ -560,7 +618,7 @@ const EpisodeManagement = () => {
                     </button>
                   )}
 
-                  {/* Always show upload button - changed to allow re-upload */}
+                  {/* Upload button */}
                   <button
                     className="action-btn secondary"
                     onClick={() => handleUploadAudio(episode)}
@@ -624,7 +682,7 @@ const EpisodeManagement = () => {
         </div>
       )}
 
-      {showEpisodeModal && seriesId && (
+      {showEpisodeModal && (
         <EpisodeModal
           episode={selectedEpisode}
           seriesId={seriesId}
@@ -650,7 +708,7 @@ const EpisodeManagement = () => {
           onSubmit={() => {
             setShowUploadModal(false);
             setSelectedEpisode(null);
-            fetchEpisodes();
+            handleAudioUploadSuccess(selectedEpisode.id);
           }}
         />
       )}

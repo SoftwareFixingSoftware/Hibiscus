@@ -1,38 +1,41 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
+// Admin Components
 import AdminLayout from './admin/layouts/AdminLayout';
 import Dashboard from './admin/pages/Dashboard';
 import SeriesManagement from './admin/pages/SeriesManagement';
 import EpisodeManagement from './admin/pages/EpisodeManagement';
 import SeriesDetail from './admin/pages/SeriesDetail';
+
+// Auth Components
 import ForgotPassword from './auth/ForgotPassword';
 import ResetPassword from './auth/ResetPassword';
 import SignUp from './auth/SignUp';
 import SignUpAdmin from './auth/SignUpAdmin';
- 
-
 import SignIn from './auth/SignIn';
+
+// Public User Components
+import HomePage from './user/pages/HomePage'; // <-- NEW: public home page
+
+// Common Components
 import ProtectedRoute from './admin/components/ProtectedRoute';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Routes */}
+        {/* ========== PUBLIC ROUTES ========== */}
+        <Route path="/" element={<HomePage />} />                   {/* Home */}
         <Route path="/login" element={<SignIn />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path='/register' element={<SignUp/>}/>
-          <Route path='/admin/register' element={<SignUpAdmin/>}/>
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/register" element={<SignUp />} />
+        <Route path="/admin/register" element={<SignUpAdmin />} />
 
-          
-
-
-
-        {/* Admin Routes - Protected */}
+        {/* ========== ADMIN ROUTES (Protected) ========== */}
         <Route
-          path="/admin"
+          path="/admin/*"
           element={
             <ProtectedRoute adminOnly>
               <AdminLayout />
@@ -47,18 +50,26 @@ function App() {
           <Route path="episodes/series/:seriesId" element={<EpisodeManagement />} />
         </Route>
 
-        {/* User Routes - Protected */}
+        {/* ========== ADDITIONAL PUBLIC ROUTES (Optional) ========== 
+             You can easily add these later:
+        <Route path="/series" element={<SeriesListPage />} />
+        <Route path="/series/:id" element={<SeriesDetailPage />} />
+        <Route path="/episodes" element={<EpisodesPage />} />
+        <Route path="/episode/:id" element={<EpisodeDetailPage />} />
+        <Route path="/search" element={<SearchResultsPage />} />
+        */}
+
+        {/* ========== 404 - NOT FOUND ========== */}
         <Route
-          path="/"
+          path="*"
           element={
-            <ProtectedRoute>
-              <div>User Dashboard</div>
-            </ProtectedRoute>
+            <div className="error-container">
+              <h2>Page Not Found</h2>
+              <p>The page you're looking for doesn't exist.</p>
+              <button onClick={() => window.location.href = '/'}>Go Home</button>
+            </div>
           }
         />
-
-        {/* Catch all */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );
