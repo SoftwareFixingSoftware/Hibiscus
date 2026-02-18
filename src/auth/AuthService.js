@@ -1,5 +1,5 @@
 // src/admin/services/AuthService.js
-import api from './api';
+import api from '../admin/services/api';
 
 const AuthService = {
   // Login - returns response.data from api
@@ -9,7 +9,7 @@ const AuthService = {
   logout: () => api.post('/auth/logout'),
 
   // Verify auth status - THIS SHOULD WORK WITH COOKIES
-  verify: () => api.get('/secure/admin/auth/verify'),
+  verify: () => api.get('/auth/verify'),
 
   // Get current user from localStorage
   getCurrentUser: () => {

@@ -4,7 +4,7 @@ import SocialAuth from './SocialAuth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import '../auth/styles/auth.css';
-import AuthService from '../admin/services/AuthService'; // if your AuthService lives at src/admin/services change to: ../admin/services/AuthService
+import AuthService from './AuthService'; 
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -122,7 +122,7 @@ export default function SignIn() {
             navigate('/admin', { replace: true });
             console.log('Redirecting to admin');
           } else {
-            navigate('/', { replace: true });
+            navigate('/user/dashboard', { replace: true });
             console.log('Redirecting to user home');
           }
         }, 1500);

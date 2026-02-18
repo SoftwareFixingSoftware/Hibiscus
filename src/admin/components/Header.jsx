@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiMenu, FiSearch, FiBell, FiChevronDown } from 'react-icons/fi';
-import AuthService from '../services/AuthService';
+import AuthService from '../../auth/AuthService';
 
 const Header = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
