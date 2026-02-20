@@ -5,17 +5,19 @@ const API_BASE_URL = 'http://localhost:9019/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true, // This sends cookies automatically
+  withCredentials: true,
 });
 
-// NO NEED for request interceptor with token from localStorage
-// since we're using HTTP-only cookies
+// request logger (optional but useful)
+api.interceptors.request.use((cfg) => {
+  console.log('➡️ HTTP', cfg.method?.toUpperCase(), cfg.baseURL + cfg.url, cfg.params || '');
+  return cfg;
+}, (err) => Promise.reject(err));
 
 api.interceptors.response.use(
-  (response) => response.data,
+  (response) => response.data, // keep unwrapping body (your UserService.request expects this)
   (error) => {
     if (error.response?.status === 401) {
-      // Clear any stored user info
       localStorage.removeItem('username');
       localStorage.removeItem('userEmail');
       localStorage.removeItem('userRole');
@@ -25,7 +27,9 @@ api.interceptors.response.use(
         window.location.href = '/login';
       }
     }
-    return Promise.reject(error.response?.data || error.message || error);
+
+    // RETURN THE FULL ERROR OBJECT so callers can inspect .code, .name, .response, etc.
+    return Promise.reject(error);
   }
 );
 

@@ -8,7 +8,7 @@ import Dashboard from './admin/pages/Dashboard';
 import SeriesManagement from './admin/pages/SeriesManagement';
 import EpisodeManagement from './admin/pages/EpisodeManagement';
 import SeriesDetail from './admin/pages/SeriesDetail';
-
+import AdminUsers from './admin/pages/AdminUsers'
 // Auth Components
 import ForgotPassword from './auth/ForgotPassword';
 import ResetPassword from './auth/ResetPassword';
@@ -48,6 +48,7 @@ function App() {
           <Route path="series" element={<SeriesManagement />} />
           <Route path="series/:id" element={<SeriesDetail />} />
           <Route path="episodes" element={<EpisodeManagement />} />
+          <Route path="users" element={<AdminUsers/>} />
           <Route path="episodes/series/:seriesId" element={<EpisodeManagement />} />
         </Route>
 

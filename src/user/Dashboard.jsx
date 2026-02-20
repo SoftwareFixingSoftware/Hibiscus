@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import PublicSeriesService from "./service/PublicSeriesService";
 import PublicEpisodeService from "./service/PublicEpisodeService";
 import "./Dashboard.css";
@@ -40,12 +41,16 @@ const RippleButton = ({ children, onClick, className = "", ...props }) => {
 };
 
 export default function Dashboard() {
+  // ---------- Router helpers ----------
+  const location = useLocation();
+  const navigate = useNavigate();
+
   // ---------- State ----------
   const [allSeries, setAllSeries] = useState([]); // all fetched series (browse mode)
   const [searchResults, setSearchResults] = useState([]); // results when searching
   const [selectedSeries, setSelectedSeries] = useState(null);
   const [episodes, setEpisodes] = useState([]);
-  const [selectedEpisode, setSelectedEpisode] = useState(null);
+  const [selectedEpisode, setSelectedEpisode] = useState(null); // mapped episode object
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -96,6 +101,20 @@ export default function Dashboard() {
     createdAt: s.createdAt,
     raw: s,
   });
+
+  // ---------- Helper: map episode ----------
+  function mapEpisode(e, i) {
+    return {
+      id: e.id || e.episodeId || e.uuid,
+      title: e.title || e.name || e.episodeTitle || `Episode ${i + 1}`,
+      duration: e.durationSeconds || e.duration || null,
+      number: e.episodeNumber || e.number || i + 1,
+      publishedAt: e.publishedAt || e.createdAt || null,
+      plays: e.playsDisplay || e.plays || "—",
+      description: e.description || e.summary || e.note || "",
+      raw: e,
+    };
+  }
 
   // ---------- Derived data (browse mode) ----------
   const heroSeries = useMemo(() => {
@@ -200,74 +219,41 @@ export default function Dashboard() {
     // eslint-disable-next-line
   }, [selectedSeries, episodes]);
 
-  // ---------- URL sync helpers ----------
-  // Parse URL like /series/:seriesId[/episode/:episodeId]?play=true
-  const parseLocation = () => {
-    try {
-      const path = window.location.pathname || "/";
-      const seriesMatch = path.match(/^\/series\/([^/]+)(?:\/episode\/([^/]+))?/);
-      const params = new URLSearchParams(window.location.search);
-      const play = params.get("play") === "true" || params.get("play") === "1";
-      if (seriesMatch) {
-        return { seriesId: decodeURIComponent(seriesMatch[1]), episodeId: seriesMatch[2] ? decodeURIComponent(seriesMatch[2]) : null, play };
-      }
-      return { seriesId: null, episodeId: null, play: false };
-    } catch {
-      return { seriesId: null, episodeId: null, play: false };
-    }
+  // ---------- URL strategy: use query params under /user/dashboard ----------
+  // read series/episode/play from query string (fallback to nothing)
+  const readQs = () => {
+    const qs = new URLSearchParams(location.search);
+    return {
+      seriesId: qs.get("series") || null,
+      episodeId: qs.get("episode") || null,
+      play: qs.get("play") === "true" || qs.get("play") === "1",
+    };
   };
 
-  const updateUrlForSeries = (seriesId, replace = false) => {
-    const url = seriesId ? `/series/${encodeURIComponent(seriesId)}` : "/";
-    if (replace) window.history.replaceState({}, "", url);
-    else window.history.pushState({}, "", url);
-  };
+  // Router-driven sync: when query params change, load series/episode
+  useEffect(() => {
+    const { seriesId, episodeId, play } = readQs();
 
-  const updateUrlForEpisode = (seriesId, episodeId, { play = false, replace = false } = {}) => {
-    let url = `/series/${encodeURIComponent(seriesId)}/episode/${encodeURIComponent(episodeId)}`;
-    if (play) url += `?play=true`;
-    if (replace) window.history.replaceState({}, "", url);
-    else window.history.pushState({}, "", url);
-  };
-
-  const removePlayParam = (replace = false) => {
-    // remove ?play from current url, keep pathname and other params
-    const u = new URL(window.location.href);
-    u.searchParams.delete("play");
-    if (replace) window.history.replaceState({}, "", u.pathname + u.search);
-    else window.history.pushState({}, "", u.pathname + u.search);
-  };
-
-  // Sync UI with URL (called on mount and on popstate)
-  const syncWithUrl = async () => {
-    const { seriesId, episodeId, play } = parseLocation();
     if (!seriesId) {
-      // go back to listing mode
+      // back to listing
       setSelectedSeries(null);
+      setEpisodes([]);
       setSelectedEpisode(null);
       setMode("browse");
       return;
     }
 
-    // if we already have this series selected, avoid refetching details unnecessarily
-    const alreadySelected = selectedSeries && (selectedSeries.id === seriesId || selectedSeries.uuid === seriesId);
-
-    try {
+    // load the series/episodes and optionally play
+    (async function openSeriesById(id, epId, shouldPlay) {
       setLoading(true);
-      if (!alreadySelected) {
-        // fetch series detail & episodes
-        try {
-          const detail = await PublicSeriesService.getSeriesById(seriesId);
-          setSelectedSeries(detail || null);
-        } catch (err) {
-          console.warn("Failed to fetch series detail for URL sync", err);
-          setSelectedSeries(null);
-        }
-      }
-
-      // fetch episodes if possible
+      // we consider this to be detail 'mode' even though we keep mode state 'browse'
       try {
-        const eps = await PublicEpisodeService.getEpisodesBySeries(seriesId, {
+        // fetch series detail
+        const detail = await PublicSeriesService.getSeriesById(id);
+        setSelectedSeries(detail || null);
+
+        // fetch episodes
+        const eps = await PublicEpisodeService.getEpisodesBySeries(id, {
           page: 0,
           size: 1000,
           sortBy: "episodeNumber",
@@ -275,50 +261,66 @@ export default function Dashboard() {
         });
         const list = Array.isArray(eps) ? eps : eps?.content || eps?.items || [];
         setEpisodes(list || []);
-      } catch (err) {
-        console.warn("Failed to fetch episodes for URL sync", err);
-        setEpisodes([]);
-      }
 
-      if (episodeId) {
-        // find the episode object in the fetched episodes
-        const epRaw = (Array.isArray(episodes) ? episodes : []).find(
-          (x) => (x.id || x.episodeId || x.uuid) === episodeId
-        );
-        // fallback: try fetching if not present (optional)
-        const targetEp = epRaw || null;
-        setSelectedEpisode(targetEp);
-        if (play && targetEp) {
-          // if play param present, start play
-          await playEpisode(targetEp);
-        } else if (!play) {
-          // ensure player isn't automatically playing if query doesn't request so
+        // select episode if episodeId provided in query
+        if (epId) {
+          const found = (list || []).find((x) => (x.id || x.episodeId || x.uuid) === epId) || null;
+          setSelectedEpisode(found ? mapEpisode(found, 0) : null);
+          if (shouldPlay && found) {
+            await playEpisode(found, { seriesId: id, replaceUrl: true });
+          }
+        } else {
+          setSelectedEpisode(null);
+          if (!shouldPlay) {
+            if (player.playing) stopPlayback(true);
+          }
         }
-      } else {
+
+        requestAnimationFrame(() => updateOverlayFade());
+      } catch (err) {
+        console.error("openSeriesById (qs)", err);
+        setSelectedSeries(null);
+        setEpisodes([]);
         setSelectedEpisode(null);
-        if (player.playing && !play) {
-          // stop playback if the URL no longer indicates playing
-          stopPlayback(true);
-        }
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("syncWithUrl", err);
-    } finally {
-      setLoading(false);
+    })(seriesId, episodeId, play);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
+
+  // ---------- Util: update query string (no router changes required) ----------
+  // These navigate only change the query string while staying on the same route (/user/dashboard)
+  const updateUrlForSeries = (seriesId, replace = false) => {
+    const qs = new URLSearchParams(location.search);
+    if (seriesId) {
+      qs.set("series", seriesId);
+    } else {
+      qs.delete("series");
+      qs.delete("episode");
+      qs.delete("play");
     }
+    const path = `${location.pathname}?${qs.toString()}`;
+    navigate(path, { replace });
   };
 
-  // listen for browser navigation
-  useEffect(() => {
-    const onPop = () => {
-      syncWithUrl();
-    };
-    window.addEventListener("popstate", onPop);
-    // initial sync on mount
-    syncWithUrl();
-    return () => window.removeEventListener("popstate", onPop);
-    // eslint-disable-next-line
-  }, []);
+  const updateUrlForEpisode = (seriesId, episodeId, { play = false, replace = false } = {}) => {
+    const qs = new URLSearchParams(location.search);
+    if (seriesId) qs.set("series", seriesId);
+    if (episodeId) qs.set("episode", episodeId);
+    if (play) qs.set("play", "true");
+    else qs.delete("play");
+    const path = `${location.pathname}?${qs.toString()}`;
+    navigate(path, { replace });
+  };
+
+  const removePlayParam = (replace = false) => {
+    const qs = new URLSearchParams(location.search);
+    qs.delete("play");
+    const path = `${location.pathname}${qs.toString() ? "?" + qs.toString() : ""}`;
+    navigate(path, { replace });
+  };
 
   // ---------- Data loading functions ----------
   async function loadBrowseSeries() {
@@ -368,11 +370,11 @@ export default function Dashboard() {
     setSearchQuery("");
     setMode("browse");
     setSearchTrigger(0);
-    // update url to root (listing)
-    window.history.pushState({}, "", "/");
+    // update url to root of dashboard (no query)
+    updateUrlForSeries(null, true);
   };
 
-  // openSeries now updates the URL
+  // openSeries now updates the query string (stays on /user/dashboard)
   async function openSeries(s) {
     setLoading(true);
     setError(null);
@@ -380,9 +382,10 @@ export default function Dashboard() {
       const id = s.id || s.uuid;
       if (!id) throw new Error("series id missing");
 
-      // Update URL to series route
+      // update query string: ?series=<id>
       updateUrlForSeries(id);
 
+      // optimistic UI: fetch & set detail to reduce flicker
       const detail = await PublicSeriesService.getSeriesById(id);
       setSelectedSeries(detail || s.raw);
 
@@ -411,14 +414,15 @@ export default function Dashboard() {
   // ---------- Audio helpers ----------
   const isFullUrl = (s) => typeof s === "string" && /^https?:\/\//i.test(s.trim());
 
-  const playEpisode = async (ep) => {
+  // playEpisode accepts options: { seriesId, replaceUrl }
+  const playEpisode = async (ep, options = {}) => {
     try {
       const id = ep.id || ep.episodeId || ep.uuid;
       if (!id) throw new Error("episode id missing");
 
-      // Update URL to show episode + set play=true
-      const sid = selectedSeries?.id || selectedSeries?.uuid || (ep.seriesId || ep.series?.id) || null;
-      if (sid) updateUrlForEpisode(sid, id, { play: true });
+      // find series id (prefer passed option)
+      const sid = options.seriesId || selectedSeries?.id || selectedSeries?.uuid || (ep.seriesId || ep.series?.id) || null;
+      if (sid) updateUrlForEpisode(sid, id, { play: true, replace: options.replaceUrl || false });
 
       const candidates = [
         "audioStorageKey",
@@ -451,7 +455,7 @@ export default function Dashboard() {
 
       await audioRef.current.play();
 
-      setSelectedEpisode(ep);
+      setSelectedEpisode(mapEpisode(ep, 0));
       setPlayer({
         playing: true,
         src: url,
@@ -484,7 +488,7 @@ export default function Dashboard() {
     }
   };
 
-  // Stop playback and clear player state. If replaceUrl is true, use replaceState (used on pop navigation)
+  // Stop playback and clear player state. If replaceUrl is true, navigate with replace.
   const stopPlayback = (replaceUrl = false) => {
     try {
       if (audioRef.current) {
@@ -504,7 +508,7 @@ export default function Dashboard() {
       author: "",
     });
     setSelectedEpisode(null);
-    // remove play param but keep pathname (so we stay on /series/:id or /)
+    // remove play param but keep series in query
     removePlayParam(replaceUrl);
   };
 
@@ -517,13 +521,9 @@ export default function Dashboard() {
   };
 
   // When clicking an episode row (select episode without playing)
-  const selectEpisodeWithoutPlay = (epRaw) => {
-    setSelectedEpisode(epRaw);
-    const sid = selectedSeries?.id || selectedSeries?.uuid || (epRaw.seriesId || epRaw.series?.id) || null;
-    const eid = epRaw.id || epRaw.episodeId || epRaw.uuid;
-    if (sid && eid) {
-      updateUrlForEpisode(sid, eid);
-    }
+  // NOTE: per your request: do NOT change the URL on episode row click
+  const selectEpisodeWithoutPlay = (epRaw, idx) => {
+    setSelectedEpisode(mapEpisode(epRaw, idx));
   };
 
   // Overlay fade updater
@@ -571,7 +571,13 @@ export default function Dashboard() {
         <aside className="dash-sidebar">
           <div className="dash-logo">pf</div>
           <div className="dash-nav">
-            <RippleButton className="nav-item" onClick={() => { setSelectedSeries(null); window.history.pushState({}, "", "/"); }}>
+            <RippleButton
+              className="nav-item"
+              onClick={() => {
+                setSelectedSeries(null);
+                updateUrlForSeries(null);
+              }}
+            >
               ← Home
             </RippleButton>
             <RippleButton className="nav-item">Store</RippleButton>
@@ -584,56 +590,104 @@ export default function Dashboard() {
           <section className="series-detail">
             <div className="series-left">
               <div className="series-cover artwork-area">
-                <img
-                  src={selectedSeries.coverImageUrl || selectedSeries.cover}
-                  alt={selectedSeries.title}
-                />
+                <img src={selectedSeries.coverImageUrl || selectedSeries.cover} alt={selectedSeries.title} />
               </div>
-              <div
-                ref={overlayRef}
-                className="series-info-overlay warm-overlay no-scrollbars"
-              >
+              <div ref={overlayRef} className="series-info-overlay warm-overlay no-scrollbars">
                 <div className={`desc-fade fade-top ${showTopFade ? "visible" : ""}`} />
                 <div className={`desc-fade fade-bottom ${showBottomFade ? "visible" : ""}`} />
+
+                {/* Now Playing / Selected Episode badge */}
                 {selectedEpisode && (
                   <div className="now-playing-badge">
-                    <span className="now-playing-icon">▶</span> Now Playing:{" "}
-                    {selectedEpisode.title || selectedEpisode.name}
+                    <span className="now-playing-icon">▶</span>{" "}
+                    {player.playing && player.episodeId === selectedEpisode.id ? "Now Playing:" : "Selected:"}{" "}
+                    {selectedEpisode.title}
                   </div>
                 )}
+
                 <div className="breadcrumb">
-                  <button className="crumb" onClick={() => { setSelectedSeries(null); setSelectedEpisode(null); window.history.pushState({}, "", "/"); }}>
+                  <button
+                    className="crumb"
+                    onClick={() => {
+                      setSelectedSeries(null);
+                      setSelectedEpisode(null);
+                      updateUrlForSeries(null);
+                    }}
+                  >
                     Home
                   </button>{" "}
                   /{" "}
-                  <button className="crumb" onClick={() => { setSelectedSeries(null); setSelectedEpisode(null); window.history.pushState({}, "", "/"); }}>
+                  <button
+                    className="crumb"
+                    onClick={() => {
+                      setSelectedSeries(null);
+                      setSelectedEpisode(null);
+                      updateUrlForSeries(null);
+                    }}
+                  >
                     Series
                   </button>{" "}
                   / <strong>{selectedSeries.title}</strong>
                 </div>
+
                 <div className="badges-row">
-                  <span className="badge genre">
-                    #{selectedSeries.category?.toUpperCase() || "ROMANCE"}
-                  </span>
-                  {selectedSeries.isCompleted && (
-                    <span className="badge completed">COMPLETED SERIES</span>
-                  )}
+                  <span className="badge genre">#{selectedSeries.category?.toUpperCase() || "ROMANCE"}</span>
+                  {selectedSeries.isCompleted && <span className="badge completed">COMPLETED SERIES</span>}
                 </div>
+
                 <h2 className="series-title">{selectedSeries.title}</h2>
+
                 <div className="series-meta-row">
                   <span className="muted">{selectedSeries.plays || "—"} PLAYS</span>
                   <span className="muted">• ★ {selectedSeries.averageRating ?? 4.6}</span>
                   <span className="muted">• {selectedSeries.category || "ROMANCE"}</span>
                 </div>
-                <div className="series-description-text">
-                  {selectedSeries.description || "No description provided."}
-                </div>
+
+                <div className="series-description-text">{selectedSeries.description || "No description provided."}</div>
+
                 <div className="author-row">
                   <div className="muted small">By</div>
-                  <div style={{ fontWeight: 700, marginLeft: 8 }}>
-                    {selectedSeries.authorName || selectedSeries.author || "Unknown"}
-                  </div>
+                  <div style={{ fontWeight: 700, marginLeft: 8 }}>{selectedSeries.authorName || selectedSeries.author || "Unknown"}</div>
                 </div>
+
+                {/* ---------- Selected episode panel ---------- */}
+                {selectedEpisode && (
+                  <div className="selected-episode-panel" style={{ marginTop: 16, padding: 12, borderRadius: 8, background: "rgba(255,255,255,0.02)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <div style={{ fontWeight: 700 }}>{selectedEpisode.title}</div>
+                        <div className="muted small">
+                          {selectedEpisode.number ? `E${selectedEpisode.number} • ` : ""}
+                          {selectedEpisode.duration ? formatDuration(selectedEpisode.duration) : "—"} •{" "}
+                          {selectedEpisode.publishedAt ? relativeDate(selectedEpisode.publishedAt) : ""}
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <RippleButton
+                          className="ctrl play small"
+                          onClick={() => playEpisode(selectedEpisode.raw)}
+                          aria-label="Play selected episode"
+                        >
+                          ► Play
+                        </RippleButton>
+                        <RippleButton
+                          className="ctrl"
+                          onClick={() => {
+                            setSelectedEpisode(null);
+                          }}
+                        >
+                          Close
+                        </RippleButton>
+                      </div>
+                    </div>
+
+                    {selectedEpisode.description && (
+                      <div style={{ marginTop: 8 }} className="muted small">
+                        {selectedEpisode.description}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -646,33 +700,34 @@ export default function Dashboard() {
               </div>
               <div className="episodes-list">
                 {loading
-                  ? Array.from({ length: 8 }).map((_, i) => (
-                      <div key={i} className="episode-row skeleton" style={{ height: "68px" }} />
-                    ))
+                  ? Array.from({ length: 8 }).map((_, i) => <div key={i} className="episode-row skeleton" style={{ height: "68px" }} />)
                   : episodes.map((eRaw, idx) => {
                       const e = mapEpisode(eRaw, idx);
                       const isPlaying = player.episodeId === (e.id || eRaw.id);
+                      const isSelected = selectedEpisode && selectedEpisode.id === e.id;
                       return (
                         <div
                           key={e.id || idx}
-                          className={`episode-row ${isPlaying ? "playing" : ""}`}
+                          className={`episode-row ${isPlaying ? "playing" : ""} ${isSelected ? "selected" : ""}`}
                           title={e.title}
-                          onClick={() => selectEpisodeWithoutPlay(eRaw)}
+                          onClick={() => selectEpisodeWithoutPlay(eRaw, idx)}
                         >
                           <div className="episode-left">
                             <div className="episode-number">E{e.number}</div>
                             <div className="episode-meta">
                               <div className="episode-title">{e.title}</div>
                               <div className="muted small">
-                                {e.duration ? formatDuration(e.duration) : "—"} •{" "}
-                                {e.publishedAt ? relativeDate(e.publishedAt) : ""}
+                                {e.duration ? formatDuration(e.duration) : "—"} • {e.publishedAt ? relativeDate(e.publishedAt) : ""}
                               </div>
                             </div>
                           </div>
                           <div className="episode-actions">
                             <RippleButton
                               className="play-circle"
-                              onClick={(ev) => { ev.stopPropagation(); playEpisode(eRaw); }}
+                              onClick={(ev) => {
+                                ev.stopPropagation();
+                                playEpisode(eRaw); // play updates query string ?series=...&episode=...&play=true
+                              }}
                               aria-label={`Play ${e.title}`}
                             >
                               {isPlaying ? "▮▮" : "▶"}
@@ -697,17 +752,23 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="player-controls">
-              <RippleButton className="ctrl" onClick={() => { if (audioRef.current) audioRef.current.currentTime -= 10; }}>◐</RippleButton>
+              <RippleButton className="ctrl" onClick={() => { if (audioRef.current) audioRef.current.currentTime -= 10; }}>
+                ◐
+              </RippleButton>
               <RippleButton className="ctrl play" onClick={togglePlayPause}>
                 {player.playing ? "▮▮" : "►"}
               </RippleButton>
-              <RippleButton className="ctrl" onClick={() => { if (audioRef.current) audioRef.current.currentTime += 10; }}>10s</RippleButton>
+              <RippleButton className="ctrl" onClick={() => { if (audioRef.current) audioRef.current.currentTime += 10; }}>
+                10s
+              </RippleButton>
               <RippleButton className="ctrl cancel" onClick={() => stopPlayback(false)} title="Stop / Cancel">
                 ✕
               </RippleButton>
             </div>
             <div className="player-progress" onClick={handleSeek}>
-              <div className="progress-bar"><div className="progress" style={{ width: `${progress}%` }} /></div>
+              <div className="progress-bar">
+                <div className="progress" style={{ width: `${progress}%` }} />
+              </div>
             </div>
           </div>
         )}
@@ -721,9 +782,13 @@ export default function Dashboard() {
   return (
     <div className="dash-root">
       <aside className="dash-sidebar">
-        <div className="dash-logo" onClick={clearSearch} style={{ cursor: "pointer" }}>pf</div>
+        <div className="dash-logo" onClick={clearSearch} style={{ cursor: "pointer" }}>
+          pf
+        </div>
         <div className="dash-nav">
-          <RippleButton className="nav-item active" onClick={clearSearch}>Home</RippleButton>
+          <RippleButton className="nav-item active" onClick={clearSearch}>
+            Home
+          </RippleButton>
           <RippleButton className="nav-item">Store</RippleButton>
           <RippleButton className="nav-item">Studio</RippleButton>
           <RippleButton className="nav-item">Profile</RippleButton>
@@ -840,19 +905,10 @@ export default function Dashboard() {
                   </div>
                   <div className="carousel-wrap category-carousel">
                     {items.map((s) => (
-                      <article
-                        key={s.id}
-                        className="card clickable"
-                        onClick={() => openSeries(s.raw)}
-                        title={s.title}
-                      >
+                      <article key={s.id} className="card clickable" onClick={() => openSeries(s.raw)} title={s.title}>
                         <div className="card-art">
                           <div className="card-badge">{s.completed ? "COMPLETED" : "SERIES"}</div>
-                          {s.cover ? (
-                            <img className="card-thumb" src={s.cover} alt={s.title} />
-                          ) : (
-                            <div className="card-thumb" />
-                          )}
+                          {s.cover ? <img className="card-thumb" src={s.cover} alt={s.title} /> : <div className="card-thumb" />}
                         </div>
                         <div className="card-body">
                           <div className="plays">{s.plays} PLAYS</div>
@@ -871,19 +927,10 @@ export default function Dashboard() {
             {mode === "search" && (
               <div className="carousel-wrap large">
                 {searchResults.map((s) => (
-                  <article
-                    key={s.id}
-                    className="card clickable"
-                    onClick={() => openSeries(s.raw)}
-                    title={s.title}
-                  >
+                  <article key={s.id} className="card clickable" onClick={() => openSeries(s.raw)} title={s.title}>
                     <div className="card-art">
                       <div className="card-badge">{s.completed ? "COMPLETED" : "SERIES"}</div>
-                      {s.cover ? (
-                        <img className="card-thumb" src={s.cover} alt={s.title} />
-                      ) : (
-                        <div className="card-thumb" />
-                      )}
+                      {s.cover ? <img className="card-thumb" src={s.cover} alt={s.title} /> : <div className="card-thumb" />}
                     </div>
                     <div className="card-body">
                       <div className="plays">{s.plays} PLAYS</div>
@@ -898,9 +945,7 @@ export default function Dashboard() {
             )}
 
             {displaySeries.length === 0 && !loading && (
-              <div style={{ textAlign: "center", padding: "40px", color: "var(--muted)" }}>
-                No series found.
-              </div>
+              <div style={{ textAlign: "center", padding: "40px", color: "var(--muted)" }}>No series found.</div>
             )}
 
             {/* FOOTER */}
@@ -913,16 +958,32 @@ export default function Dashboard() {
                 <div className="footer-section">
                   <h4>Contact</h4>
                   <ul>
-                    <li><a href="mailto:support@podcastapp.com">support@podcastapp.com</a></li>
-                    <li><a href="tel:+1234567890">+1 (234) 567-890</a></li>
+                    <li>
+                      <a href="mailto:support@podcastapp.com">support@podcastapp.com</a>
+                    </li>
+                    <li>
+                      <a href="tel:+1234567890">+1 (234) 567-890</a>
+                    </li>
                   </ul>
                 </div>
                 <div className="footer-section">
                   <h4>Follow Us</h4>
                   <ul className="social-links">
-                    <li><a href="#" target="_blank" rel="noopener noreferrer">Twitter</a></li>
-                    <li><a href="#" target="_blank" rel="noopener noreferrer">Instagram</a></li>
-                    <li><a href="#" target="_blank" rel="noopener noreferrer">Facebook</a></li>
+                    <li>
+                      <a href="#" target="_blank" rel="noopener noreferrer">
+                        Twitter
+                      </a>
+                    </li>
+                    <li>
+                      <a href="#" target="_blank" rel="noopener noreferrer">
+                        Instagram
+                      </a>
+                    </li>
+                    <li>
+                      <a href="#" target="_blank" rel="noopener noreferrer">
+                        Facebook
+                      </a>
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -942,33 +1003,26 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="player-controls">
-            <RippleButton className="ctrl" onClick={() => { if (audioRef.current) audioRef.current.currentTime -= 10; }}>◐</RippleButton>
+            <RippleButton className="ctrl" onClick={() => { if (audioRef.current) audioRef.current.currentTime -= 10; }}>
+              ◐
+            </RippleButton>
             <RippleButton className="ctrl play" onClick={togglePlayPause}>
               {player.playing ? "▮▮" : "►"}
             </RippleButton>
-            <RippleButton className="ctrl" onClick={() => { if (audioRef.current) audioRef.current.currentTime += 10; }}>10s</RippleButton>
+            <RippleButton className="ctrl" onClick={() => { if (audioRef.current) audioRef.current.currentTime += 10; }}>
+              10s
+            </RippleButton>
             <RippleButton className="ctrl cancel" onClick={() => stopPlayback(false)} title="Stop / Cancel">
               ✕
             </RippleButton>
           </div>
           <div className="player-progress" onClick={handleSeek}>
-            <div className="progress-bar"><div className="progress" style={{ width: `${progress}%` }} /></div>
+            <div className="progress-bar">
+              <div className="progress" style={{ width: `${progress}%` }} />
+            </div>
           </div>
         </div>
       )}
     </div>
   );
-}
-
-// Helper to map episode (used in detail view)
-function mapEpisode(e, i) {
-  return {
-    id: e.id || e.episodeId || e.uuid,
-    title: e.title || e.name || e.episodeTitle || `Episode ${i + 1}`,
-    duration: e.durationSeconds || e.duration || null,
-    number: e.episodeNumber || e.number || i + 1,
-    publishedAt: e.publishedAt || e.createdAt || null,
-    plays: e.playsDisplay || e.plays || "—",
-    raw: e,
-  };
 }
