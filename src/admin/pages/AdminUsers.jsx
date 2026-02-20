@@ -4,34 +4,86 @@ import { FiSearch, FiChevronLeft, FiChevronRight, FiUser } from 'react-icons/fi'
 import UserService from '../services/UserService';
 import { mapDtoToUser, displayName } from '../components/UserModel';
 
-/**
- * Admin users table + detail drawer
- */
-
 const DEFAULT_PAGE_SIZE = 20;
 
 const thStyle = { padding: '12px 10px', fontSize: 13, color: '#374151' };
 const tdStyle = { padding: '12px 10px', fontSize: 14, color: '#111827', verticalAlign: 'middle' };
 const actionBtn = { padding: '6px 10px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' };
 const pageBtn = { padding: 8, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' };
-const drawerOverlay = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', justifyContent: 'flex-end', zIndex: 60 };
-const drawer = { width: 520, maxWidth: '100%', height: '100%', background: '#fff', padding: 20, boxShadow: '-8px 0 24px rgba(15,23,42,0.12)', overflow: 'auto' };
 const primaryBtn = { padding: '8px 12px', borderRadius: 8, border: 'none', background: '#0ea5a4', color: '#fff', cursor: 'pointer' };
 const outlineBtn = { padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' };
 
+// DRAWER STYLES
+const drawerOverlay = {
+  position: 'fixed',
+  inset: 0,
+  background: 'rgba(15,23,42,0.55)',
+  backdropFilter: 'blur(2px)',
+  display: 'flex',
+  justifyContent: 'flex-end',
+  zIndex: 1000
+};
+
+const drawer = {
+  width: '600px',
+  maxWidth: '100%',
+  height: '100%',
+  background: '#ffffff',
+  display: 'flex',
+  flexDirection: 'column',
+  boxShadow: '-10px 0 30px rgba(0,0,0,0.12)'
+};
+
+const drawerHeader = {
+  padding: '20px 24px',
+  borderBottom: '1px solid #f1f5f9',
+  fontSize: 18,
+  fontWeight: 600
+};
+
+const drawerBody = {
+  flex: 1,
+  overflowY: 'auto',
+  padding: '20px 24px',
+  display: 'grid',
+  gap: 16
+};
+
+const drawerFooter = {
+  padding: '16px 24px',
+  borderTop: '1px solid #f1f5f9',
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: 12,
+  background: '#fff'
+};
+
+const inputStyle = {
+  width: '100%',
+  padding: '10px 12px',
+  borderRadius: 8,
+  border: '1px solid #e5e7eb',
+  fontSize: 14
+};
+
+const labelStyle = {
+  fontSize: 13,
+  fontWeight: 500,
+  marginBottom: 4,
+  display: 'block',
+  color: '#374151'
+};
+
 const normalizePage = (body = {}) => {
-  // Already the DTO we want:
   if (Array.isArray(body.content)) {
     return {
       content: body.content,
-      totalElements: typeof body.totalElements === 'number' ? body.totalElements : (body.total || body.totalElements || 0),
+      totalElements: typeof body.totalElements === 'number' ? body.totalElements : (body.total || 0),
       totalPages: typeof body.totalPages === 'number' ? body.totalPages : Math.ceil((body.total || 0) / (body.size || DEFAULT_PAGE_SIZE)),
       number: typeof body.number === 'number' ? body.number : (body.page || 0),
       size: typeof body.size === 'number' ? body.size : (body.size || DEFAULT_PAGE_SIZE)
     };
   }
-
-  // HATEOAS style: { _embedded: { users: [...] }, page: { totalElements, totalPages, number, size } }
   if (body._embedded) {
     const key = Object.keys(body._embedded)[0];
     const content = Array.isArray(body._embedded[key]) ? body._embedded[key] : [];
@@ -44,8 +96,6 @@ const normalizePage = (body = {}) => {
       size: typeof meta.size === 'number' ? meta.size : DEFAULT_PAGE_SIZE
     };
   }
-
-  // Some older PageImpl serializations use _content or content inside nested fields
   if (Array.isArray(body._content)) {
     return {
       content: body._content,
@@ -55,8 +105,6 @@ const normalizePage = (body = {}) => {
       size: body.size || DEFAULT_PAGE_SIZE
     };
   }
-
-  // Final fallback: treat body as array
   if (Array.isArray(body)) {
     return {
       content: body,
@@ -66,7 +114,6 @@ const normalizePage = (body = {}) => {
       size: body.length
     };
   }
-
   return { content: [], totalElements: 0, totalPages: 0, number: 0, size: DEFAULT_PAGE_SIZE };
 };
 
@@ -81,6 +128,12 @@ const AdminUsers = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
+
+  // Editing states
+  const [isEditing, setIsEditing] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState(null);
+  const [editForm, setEditForm] = useState({});
 
   // debounce q -> setQ
   useEffect(() => {
@@ -105,10 +158,7 @@ const AdminUsers = () => {
       setError(null);
 
       try {
-        console.log('Fetching users:', listParams());
         const body = await UserService.listUsers(listParams(), { signal });
-        console.log('Users API body:', body);
-
         const normalized = normalizePage(body);
         const content = normalized.content.map(mapDtoToUser);
 
@@ -119,31 +169,17 @@ const AdminUsers = () => {
           number: normalized.number
         });
       } catch (err) {
-        // canceled
         if (!err) return;
-        if (err?.canceled || err?.code === 'ERR_CANCELED' || err?.name === 'CanceledError' || err?.name === 'AbortError') {
-          console.log('Users fetch aborted/canceled');
-          return;
-        }
-
-        if (err?.response?.status === 403 || err?.status === 403) {
-          setError('You do not have permission to view users (403). Ensure your account has ROLE_ADMIN.');
-          return;
-        }
-        if (err?.response?.status === 401 || err?.status === 401) {
-          setError('Not authorized (401). Your session may have expired — please log in again.');
-          return;
-        }
-
-        console.error('Failed to load users', err);
-        setError(err?.message || (typeof err === 'string' ? err : 'Failed to load users'));
+        if (err?.canceled || err?.code === 'ERR_CANCELED' || err?.name === 'CanceledError' || err?.name === 'AbortError') return;
+        if (err?.response?.status === 403 || err?.status === 403) setError('You do not have permission (403)');
+        else if (err?.response?.status === 401 || err?.status === 401) setError('Not authorized (401)');
+        else setError(err?.message || 'Failed to load users');
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-
     return () => controller.abort();
   }, [listParams]);
 
@@ -154,16 +190,17 @@ const AdminUsers = () => {
 
   const openUser = (userId) => {
     const found = data.content.find((x) => x.userId === userId);
-    if (found) { setSelectedUser(found); return; }
+    if (found) { setSelectedUser(found); setEditForm(found); setIsEditing(true); return; }
 
-    // fallback: fetch single user
     const controller = new AbortController();
     UserService.getUserById(userId, { signal: controller.signal })
-      .then((resBody) => setSelectedUser(mapDtoToUser(resBody)))
-      .catch((err) => {
-        if (err?.canceled || err?.code === 'ERR_CANCELED' || err?.name === 'CanceledError') return;
-        console.error('Failed to load user', err);
-      });
+      .then((resBody) => {
+        const mapped = mapDtoToUser(resBody);
+        setSelectedUser(mapped);
+        setEditForm(mapped);
+        setIsEditing(true);
+      })
+      .catch(console.error);
   };
 
   const clearFilters = () => {
@@ -175,12 +212,50 @@ const AdminUsers = () => {
 
   const formatDate = (iso) => {
     if (!iso) return '-';
+    try { return new Date(iso).toLocaleString(); } catch { return iso; }
+  };
+
+  const handleEditChange = (key, value) => setEditForm((s) => ({ ...s, [key]: value }));
+
+  const handleSaveEdit = async () => {
+    if (!selectedUser) return;
+    setEditLoading(true);
+    setEditError(null);
+
     try {
-      const d = new Date(iso);
-      return d.toLocaleString();
-    } catch {
-      return iso;
+      const payload = {
+        name: editForm.name,
+        username: editForm.username,
+        email: editForm.email,
+        locale: editForm.locale,
+        countryCode: editForm.countryCode,
+        active: !!editForm.active,
+        emailVerified: !!editForm.emailVerified,
+        admin: !!editForm.admin
+      };
+
+      const updated = await UserService.updateUser(selectedUser.userId, payload);
+      const mapped = mapDtoToUser(updated);
+
+      setData((prev) => ({
+        ...prev,
+        content: prev.content.map((u) => (u.userId === mapped.userId ? mapped : u))
+      }));
+
+      setSelectedUser(mapped);
+      setEditForm(mapped);
+      setIsEditing(false);
+    } catch (err) {
+      setEditError(err?.response?.data?.message || err?.message || 'Failed to update user');
+    } finally {
+      setEditLoading(false);
     }
+  };
+
+  const closeDrawer = () => {
+    setSelectedUser(null);
+    setIsEditing(false);
+    setEditError(null);
   };
 
   return (
@@ -238,7 +313,6 @@ const AdminUsers = () => {
                     <th style={{ ...thStyle, textAlign: 'center' }}>Actions</th>
                   </tr>
                 </thead>
-
                 <tbody>
                   {data.content.length === 0 ? (
                     <tr><td colSpan={11} style={{ padding: 24, color: '#6b7280' }}>No users found.</td></tr>
@@ -259,7 +333,7 @@ const AdminUsers = () => {
                       <td style={tdStyle}>{u.emailVerified ? 'Yes' : 'No'}</td>
                       <td style={tdStyle}>{formatDate(u.createdAt)}</td>
                       <td style={{ ...tdStyle, textAlign: 'center' }}>
-                        <button onClick={() => openUser(u.userId)} style={actionBtn}>View</button>
+                        <button onClick={() => openUser(u.userId)} style={actionBtn}>Edit</button>
                       </td>
                     </tr>
                   ))}
@@ -279,44 +353,100 @@ const AdminUsers = () => {
         )}
       </section>
 
-      {/* detail drawer */}
+      {/* DETAIL DRAWER */}
       {selectedUser && (
-        <div style={drawerOverlay} onClick={() => setSelectedUser(null)}>
+        <div style={drawerOverlay} onClick={closeDrawer}>
           <div style={drawer} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0 }}>{displayName(selectedUser)}</h3>
-              <button onClick={() => setSelectedUser(null)} style={{ background: 'transparent', border: 'none', fontSize: 18 }}>✕</button>
+            {/* HEADER */}
+            <div style={drawerHeader}>
+              Edit User — {displayName(selectedUser)}
             </div>
 
-            <div style={{ marginTop: 12 }}>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <div style={{ width: 72, height: 72, borderRadius: 10, overflow: 'hidden', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {selectedUser.avatarUrl ? <img src={selectedUser.avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <FiUser size={28} />}
-                </div>
-
-                <div>
-                  <div style={{ fontWeight: 700 }}>{selectedUser.name || selectedUser.username}</div>
-                  <div style={{ color: '#6b7280' }}>{selectedUser.email}</div>
-                  <div style={{ color: '#6b7280', fontSize: 13 }}>{selectedUser.username ? `@${selectedUser.username}` : ''}</div>
-                </div>
+            {/* BODY */}
+            <div style={drawerBody}>
+              <div>
+                <label style={labelStyle}>Full Name</label>
+                <input
+                  style={inputStyle}
+                  value={editForm.name || ''}
+                  onChange={(e) => handleEditChange('name', e.target.value)}
+                />
               </div>
 
-              <div style={{ marginTop: 16 }}>
-                <dl style={{ display: 'grid', gridTemplateColumns: '140px 1fr', rowGap: 8, columnGap: 12 }}>
-                  <dt style={{ color: '#6b7280' }}>Locale</dt><dd>{selectedUser.locale || '-'}</dd>
-                  <dt style={{ color: '#6b7280' }}>Country</dt><dd>{selectedUser.countryCode || '-'}</dd>
-                  <dt style={{ color: '#6b7280' }}>Active</dt><dd>{selectedUser.active ? 'Yes' : 'No'}</dd>
-                  <dt style={{ color: '#6b7280' }}>Admin</dt><dd>{selectedUser.admin ? 'Yes' : 'No'}</dd>
-                  <dt style={{ color: '#6b7280' }}>Email verified</dt><dd>{selectedUser.emailVerified ? 'Yes' : 'No'}</dd>
-                  <dt style={{ color: '#6b7280' }}>Created</dt><dd>{formatDate(selectedUser.createdAt)}</dd>
-                  <dt style={{ color: '#6b7280' }}>Last seen</dt><dd>{formatDate(selectedUser.lastSeenAt)}</dd>
-                </dl>
+              <div>
+                <label style={labelStyle}>Username</label>
+                <input
+                  style={inputStyle}
+                  value={editForm.username || ''}
+                  onChange={(e) => handleEditChange('username', e.target.value)}
+                />
               </div>
 
-              <div style={{ marginTop: 18, display: 'flex', gap: 8 }}>
-                <button onClick={() => { /* handle edit navigation */ }} style={primaryBtn}>Edit user</button>
-                <button onClick={() => { /* more actions */ }} style={outlineBtn}>More</button>
+              <div>
+                <label style={labelStyle}>Email</label>
+                <input
+                  style={inputStyle}
+                  value={editForm.email || ''}
+                  onChange={(e) => handleEditChange('email', e.target.value)}
+                />
               </div>
+
+              <div>
+                <label style={labelStyle}>Locale</label>
+                <input
+                  style={inputStyle}
+                  value={editForm.locale || ''}
+                  onChange={(e) => handleEditChange('locale', e.target.value)}
+                  placeholder="e.g., en-US"
+                />
+              </div>
+
+              <div>
+                <label style={labelStyle}>Country Code</label>
+                <input
+                  style={inputStyle}
+                  value={editForm.countryCode || ''}
+                  onChange={(e) => handleEditChange('countryCode', e.target.value)}
+                  placeholder="e.g., US"
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+                <label style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 4, color: '#000' }}>
+                  <input
+                    type="checkbox"
+                    name="admin"
+                    checked={!!editForm.admin}
+                    onChange={(e) => handleEditChange('admin', e.target.checked)}
+                  /> Admin
+                </label>
+                <label style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 4, color: '#000' }}>
+                  <input
+                    type="checkbox"
+                    name="active"
+                    checked={!!editForm.active}
+                    onChange={(e) => handleEditChange('active', e.target.checked)}
+                  /> Active
+                </label>
+                <label style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 4, color: '#000' }}>
+                  <input
+                    type="checkbox"
+                    name="emailVerified"
+                    checked={!!editForm.emailVerified}
+                    onChange={(e) => handleEditChange('emailVerified', e.target.checked)}
+                  /> Email Verified
+                </label>
+              </div>
+
+              {editError && <div style={{ color: 'crimson', fontSize: 14 }}>{editError}</div>}
+            </div>
+
+            {/* FOOTER */}
+            <div style={drawerFooter}>
+              <button onClick={closeDrawer} style={outlineBtn}>Cancel</button>
+              <button onClick={handleSaveEdit} disabled={editLoading} style={primaryBtn}>
+                {editLoading ? 'Saving...' : 'Save Changes'}
+              </button>
             </div>
           </div>
         </div>

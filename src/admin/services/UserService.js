@@ -10,10 +10,10 @@ const isCanceledError = (err) =>
   err?.code === 'ERR_CANCELED' ||
   err?.original?.code === 'ERR_CANCELED' ||
   err?.name === 'CanceledError' ||
-  err?.original?.name === 'CanceledError';
+  err?.original?.name === 'CanceledError' ||
+  err?.name === 'AbortError';
 
 /** Centralized request wrapper that returns response.body or a normalized rejection */
-// src/services/UserService.js (only the request function)
 const request = async (promise) => {
   try {
     const res = await promise;
@@ -59,11 +59,6 @@ const buildListParams = ({
 };
 
 const UserService = {
-  /**
-   * List users (returns body of Spring Page)
-   * params: see buildListParams
-   * options: { signal: AbortSignal }
-   */
   listUsers: (params = {}, options = {}) => {
     const query = buildListParams(params);
     log('listUsers', query);

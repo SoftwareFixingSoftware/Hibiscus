@@ -6,12 +6,9 @@
 
 const toIso = (v) => {
   if (!v) return null;
-  // already ISO-like?
   if (typeof v === 'string') return v;
-  // Date object
   if (v instanceof Date) return v.toISOString();
   try {
-    // attempt to create Date (handles LocalDateTime strings too)
     const d = new Date(v);
     if (!Number.isNaN(d.getTime())) return d.toISOString();
   } catch (e) {
