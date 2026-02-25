@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PublicEpisodeService from '../services/PublicEpisodeService';
-import { formatDuration, relativeDate } from '../utils/episodeHelpers';
+import { relativeDate } from '../utils/episodeHelpers';
+import Footer from '../components/common/Footer';
 import '../styles/user.css';
 
 const PurchaseHistoryPage = () => {
@@ -64,6 +65,7 @@ const PurchaseHistoryPage = () => {
           ))}
         </div>
       )}
+      <Footer />
     </div>
   );
 };

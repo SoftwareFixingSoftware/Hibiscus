@@ -8,12 +8,23 @@
   --glass-bg: rgba(18, 18, 18, 0.7);
   --glass-border: rgba(255, 255, 255, 0.05);
 
+  /* sidebar sizes */
+  --sidebar-width: 220px;         /* expanded sidebar width (changed) */
+  --sidebar-collapsed-width: 60px;/* collapsed sidebar width (unchanged-ish) */
+
   /* overlay tuning */
   --overlay-max-height: 52%;
 }
 
+/* ---------- base ---------- */
 * {
   box-sizing: border-box;
+}
+
+/* keep a thin scrollbar rule for all elements */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
 
 html,
@@ -41,20 +52,49 @@ body {
 
 /* ---------- Sidebar ---------- */
 .dash-sidebar {
-  width: 84px;
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  max-width: var(--sidebar-width);
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(10px);
   border-right: 1px solid var(--glass-border);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 18px 8px;
+  align-items: stretch; /* allow children to fill width so text can show */
+  padding: 18px 12px;
   gap: 14px;
+  transition: width 0.28s ease, min-width 0.28s ease, max-width 0.28s ease;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
+.dash-sidebar.collapsed {
+  width: var(--sidebar-collapsed-width);
+  min-width: var(--sidebar-collapsed-width);
+  max-width: var(--sidebar-collapsed-width);
+  align-items: center;
+  padding: 18px 8px;
+}
+
+/* header inside sidebar */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 8px;
+  margin-bottom: 20px;
+}
+
+/* when collapsed center the header content */
+.dash-sidebar.collapsed .sidebar-header {
+  justify-content: center;
+}
+
+/* logo */
 .dash-logo {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border-radius: 10px;
   background: linear-gradient(135deg, #ff7aa8, #e11d48);
   display: flex;
@@ -62,34 +102,132 @@ body {
   justify-content: center;
   font-weight: 800;
   color: #fff;
+  flex: 0 0 auto;
+  margin-right: 6px;
 }
 
+.dash-sidebar.collapsed .dash-logo {
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
+  margin-right: 0;
+}
+
+/* toggle */
+.sidebar-toggle {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--muted);
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.18s;
+  flex-shrink: 0;
+}
+
+.sidebar-toggle:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.dash-sidebar.collapsed .sidebar-toggle {
+  margin-left: 0;
+}
+
+/* nav area */
 .dash-nav {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin-top: 8px;
   width: 100%;
-  align-items: center;
+  align-items: stretch; /* full width items so labels are visible */
+  overflow: auto;
+  padding-right: 6px;
 }
 
+/* each nav item is full width and left-aligned */
 .nav-item {
-  width: 86%;
-  padding: 8px 10px;
+  width: calc(100% - 8px);
+  padding: 10px 12px;
   border-radius: 8px;
   background: transparent;
   color: var(--muted);
   border: none;
   cursor: pointer;
-  text-align: center;
-  font-size: 13px;
+  text-align: left;
+  font-size: 14px;
   transition: background 0.2s ease, color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* collapsed nav items center only icon */
+.dash-sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 10px 6px;
+  width: 100%;
+}
+
+/* icon */
+.nav-icon {
+  font-size: 20px;
+  min-width: 28px;
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* label next to icon */
+.nav-label {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  line-height: 1;
+  max-width: calc(var(--sidebar-width) - 96px); /* leaves room for icon + padding */
+}
+
+/* hide labels when collapsed */
+.dash-sidebar.collapsed .nav-label {
+  display: none;
 }
 
 .nav-item.active,
 .nav-item:hover {
   background: rgba(255, 255, 255, 0.02);
   color: #fff;
+}
+
+/* Make sure focus outlines are accessible */
+.nav-item:focus {
+  outline: 2px solid rgba(255,255,255,0.06);
+  outline-offset: 2px;
+}
+
+/* If sidebar is collapsed, move main content and player accordingly */
+.dash-sidebar.collapsed + .dash-main {
+  margin-left: var(--sidebar-collapsed-width);
+  width: calc(100% - var(--sidebar-collapsed-width));
+}
+
+/* mini player adjustment when collapsed */
+.dash-sidebar.collapsed ~ .dash-player {
+  left: var(--sidebar-collapsed-width);
+}
+
+/* When expanded, ensure player and main align with full sidebar width */
+.dash-player {
+  left: var(--sidebar-width);
 }
 
 /* ---------- Main Content ---------- */
@@ -99,6 +237,7 @@ body {
   transition: opacity 0.25s ease, transform 0.3s ease;
 }
 
+/* Keep fade transitions (your classes kept) */
 .dash-main.fade-enter {
   opacity: 0;
   transform: scale(0.98);
@@ -551,7 +690,7 @@ body {
 /* ---------- Mini Player ---------- */
 .dash-player {
   position: fixed;
-  left: 84px;
+  left: var(--sidebar-width);
   right: 0;
   bottom: 0;
   height: 72px;
@@ -563,6 +702,7 @@ body {
   gap: 20px;
   padding: 0 26px;
   z-index: 60;
+  transition: left 0.28s ease;
 }
 
 .player-left {
@@ -718,11 +858,6 @@ body {
   background: rgba(255, 255, 255, 0.2);
 }
 
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
-}
-
 /* ---------- Background Animation ---------- */
 body::before {
   content: "";
@@ -753,8 +888,8 @@ body::before {
 
 /* ---------- Reduced Motion ---------- */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  ::before,
+  * ,
+  ::before ,
   ::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
@@ -1010,6 +1145,10 @@ body::before {
   .series-cover {
     height: 420px;
   }
+  /* reduce sidebar width on medium screens for better proportion */
+  :root {
+    --sidebar-width: 200px;
+  }
 }
 
 @media (max-width: 880px) {
@@ -1032,6 +1171,11 @@ body::before {
     max-width: none;
     border-radius: 12px;
   }
+
+  /* progressively reduce sidebar width on smaller screens */
+  :root {
+    --sidebar-width: 180px;
+  }
 }
 
 @media (max-width: 800px) {
@@ -1051,6 +1195,24 @@ body::before {
   .hero-indicators {
     bottom: 30px;
     left: 20px;
+  }
+
+  /* on small viewports consider collapsing sidebar by default */
+  .dash-sidebar {
+    width: var(--sidebar-collapsed-width);
+    min-width: var(--sidebar-collapsed-width);
+    max-width: var(--sidebar-collapsed-width);
+    align-items: center;
+    padding: 18px 8px;
+  }
+
+  .dash-player {
+    left: var(--sidebar-collapsed-width);
+  }
+
+  .dash-sidebar + .dash-main {
+    margin-left: var(--sidebar-collapsed-width);
+    width: calc(100% - var(--sidebar-collapsed-width));
   }
 }
 
@@ -1159,25 +1321,50 @@ body::before {
     justify-content: center;
   }
 }
+
+/* ========== PURCHASE HISTORY PAGE IMPROVEMENTS ========== */
 .purchase-history-page {
-  padding: 20px;
+  padding: 24px;
+  min-height: calc(100vh - 72px); /* Account for mini player if present */
+  display: flex;
+  flex-direction: column;
 }
 
 .purchases-list {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  margin-top: 20px;
+  margin: 24px 0;
 }
 
 .purchase-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
+  padding: 20px;
   background: var(--panel);
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.purchase-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -10px rgba(255, 61, 112, 0.3);
+  border-color: var(--accent);
 }
 
 .purchase-info {
@@ -1187,7 +1374,8 @@ body::before {
 .purchase-title {
   font-size: 18px;
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  color: #fff;
 }
 
 .purchase-meta {
@@ -1197,14 +1385,31 @@ body::before {
 
 .purchase-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
+}
+
+.purchase-actions .ctrl {
+  padding: 8px 16px;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.purchase-actions .ctrl:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Footer stays at bottom */
+.dash-footer {
+  margin-top: auto;
 }
 
 @media (max-width: 600px) {
   .purchase-item {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 16px;
   }
   .purchase-actions {
     width: 100%;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom'; // added useLocation
 import { useAudio } from '../context/AudioContext';
 import PublicSeriesService from '../services/PublicSeriesService';
 import PublicEpisodeService from '../services/PublicEpisodeService';
@@ -9,8 +9,9 @@ import RippleButton from '../components/common/RippleButton';
 
 const SeriesDetailPage = () => {
   const { id } = useParams(); // series id from route
+  const location = useLocation(); // to read query params
   const navigate = useNavigate();
-  const { player, play} = useAudio();
+  const { player, play } = useAudio();
 
   const [series, setSeries] = useState(null);
   const [episodes, setEpisodes] = useState([]);
@@ -29,6 +30,26 @@ const SeriesDetailPage = () => {
     if (!id) return;
     loadSeriesAndEpisodes(id);
   }, [id]);
+
+  // After episodes are loaded, check for episode query param
+  useEffect(() => {
+    if (!episodes.length) return;
+
+    const params = new URLSearchParams(location.search);
+    const episodeId = params.get('episode');
+    if (episodeId) {
+      const foundRaw = episodes.find(e => 
+        (e.id === episodeId) || (e.episodeId === episodeId) || (e.uuid === episodeId)
+      );
+      if (foundRaw) {
+        // Find index for proper mapping (mapEpisode uses index for title fallback)
+        const index = episodes.findIndex(e => 
+          (e.id === episodeId) || (e.episodeId === episodeId) || (e.uuid === episodeId)
+        );
+        setSelectedEpisode(mapEpisode(foundRaw, index));
+      }
+    }
+  }, [episodes, location.search]);
 
   useEffect(() => {
     updateOverlayFade();
@@ -77,7 +98,7 @@ const SeriesDetailPage = () => {
     setShowBottomFade(scrollTop + clientHeight < scrollHeight - 6);
   };
 
-  // Access & purchase helpers
+  // Access & purchase helpers (unchanged)
   const checkAccess = async (epRaw) => {
     try {
       const id = epRaw.id || epRaw.episodeId || epRaw.uuid;
@@ -176,7 +197,6 @@ const SeriesDetailPage = () => {
         }
       }
 
-      // Get stream URL
       let url = await PublicEpisodeService.getStreamUrl(id);
       if (!url || !/^https?:\/\//i.test(url)) throw new Error('No playable url');
 
@@ -214,7 +234,6 @@ const SeriesDetailPage = () => {
   const goHome = () => navigate('/user');
 
   if (error) return <div className="error-message">Error: {error.message}</div>;
-
   if (!series) return <div className="loading-indicator">Loading series...</div>;
 
   return (
