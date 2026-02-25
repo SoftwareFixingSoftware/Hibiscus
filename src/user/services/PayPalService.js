@@ -23,6 +23,12 @@ const PayPalService = {
     const response = await api.get(`${BASE_PATH}/coins`);
     return response.data;
   },
+
+  // NEW: Get user's coin purchase history
+  getUserCoinPurchaseHistory: async () => {
+    const response = await api.get(`${BASE_PATH}/coin-purchases/history`);
+    return response.data;
+  },
 };
 
 export default PayPalService;

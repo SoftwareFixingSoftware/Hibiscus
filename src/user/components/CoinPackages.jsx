@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { FaCoins } from 'react-icons/fa';
 import PayPalService from '../services/PayPalService';
 import '../styles/PayPalStyles.css';
 
@@ -13,7 +14,6 @@ const CoinPackages = ({ onBuy }) => {
 
   const [selectedPackage, setSelectedPackage] = useState(null);
 
-  // load packages
   useEffect(() => {
     let mounted = true;
     const loadPackages = async () => {
@@ -23,7 +23,6 @@ const CoinPackages = ({ onBuy }) => {
         if (!mounted) return;
         setPackages(data);
       } catch (err) {
-        console.error(err);
         if (!mounted) return;
         setPackagesError('Failed to load coin packages');
       } finally {
@@ -31,12 +30,10 @@ const CoinPackages = ({ onBuy }) => {
         setLoadingPackages(false);
       }
     };
-
     loadPackages();
     return () => { mounted = false; };
   }, []);
 
-  // load user coins
   useEffect(() => {
     let mounted = true;
     const loadCoins = async () => {
@@ -46,7 +43,6 @@ const CoinPackages = ({ onBuy }) => {
         if (!mounted) return;
         setUserCoins(data);
       } catch (err) {
-        console.error(err);
         if (!mounted) return;
         setCoinsError('Failed to load your coin balance');
       } finally {
@@ -54,12 +50,10 @@ const CoinPackages = ({ onBuy }) => {
         setLoadingCoins(false);
       }
     };
-
     loadCoins();
     return () => { mounted = false; };
   }, []);
 
-  // helper to refresh balance manually (or after buy completes)
   const refreshBalance = async () => {
     try {
       setLoadingCoins(true);
@@ -67,7 +61,6 @@ const CoinPackages = ({ onBuy }) => {
       setUserCoins(data);
       setCoinsError(null);
     } catch (err) {
-      console.error(err);
       setCoinsError('Failed to refresh coin balance');
     } finally {
       setLoadingCoins(false);
@@ -92,23 +85,29 @@ const CoinPackages = ({ onBuy }) => {
 
   return (
     <div className="coin-packages-container">
-      <div className="balance-row">
-        <h2>Choose a Coin Package</h2>
-        <div className="user-balance">
+      {/* Classic Balance Card with React Icon */}
+      <div className="balance-card">
+        <div className="balance-icon"><FaCoins /></div>
+        <div className="balance-details">
+          <span className="balance-label">Your Balance</span>
           {loadingCoins ? (
-            <span className="small-loading">Loading balance…</span>
+            <span className="balance-value loading">Loading...</span>
           ) : coinsError ? (
-            <span className="error-message small">{coinsError}</span>
+            <span className="balance-value error">{coinsError}</span>
           ) : userCoins ? (
-            <div>
-              <strong>{userCoins.coins}</strong> coins
-              <div className="balance-updated">Updated: {userCoins.updatedAt ? new Date(userCoins.updatedAt).toLocaleString() : '—'}</div>
+            <div className="balance-value">
+              <strong>{userCoins.coins.toLocaleString()}</strong> coins
+              <button className="refresh-btn" onClick={refreshBalance} title="Refresh balance">
+                ↻
+              </button>
             </div>
           ) : (
-            <span className="small-muted">No balance info</span>
+            <span className="balance-value">—</span>
           )}
         </div>
       </div>
+
+      <h2 className="packages-title">Choose a Coin Package</h2>
 
       <div className="packages-grid">
         {packages.map((pkg) => (
@@ -131,14 +130,6 @@ const CoinPackages = ({ onBuy }) => {
           disabled={!selectedPackage}
         >
           Buy with PayPal
-        </button>
-
-        <button
-          className="secondary-button"
-          onClick={refreshBalance}
-          title="Refresh balance"
-        >
-          Refresh Balance
         </button>
       </div>
     </div>

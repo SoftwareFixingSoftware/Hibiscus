@@ -1418,3 +1418,711 @@ body::before {
     flex: 1;
   }
 }
+
+/* Existing styles... then append: */
+
+/* ---------- Buy Coins Page with Tabs ---------- */
+.buy-coins-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.tabs-header {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+}
+
+.tab-btn.active {
+  color: var(--accent);
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+}
+
+.tab-btn:hover {
+  color: #fff;
+}
+
+/* Payment Methods */
+.payment-methods {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: var(--panel);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.payment-methods h3 {
+  margin-bottom: 1rem;
+  color: #fff;
+  font-size: 18px;
+}
+
+.payment-methods-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.payment-method-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 140px;
+  position: relative;
+}
+
+.payment-method-btn.active {
+  border-color: var(--accent);
+  background: rgba(255,61,112,0.1);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.payment-method-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.payment-icon {
+  font-size: 24px;
+}
+
+.coming-soon {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--accent);
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+/* Transaction History */
+.history-tab h2 {
+  margin-bottom: 1.5rem;
+  color: #fff;
+}
+
+.transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background: var(--panel);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: slideIn 0.3s ease-out;
+}
+
+.transaction-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -10px rgba(255,61,112,0.3);
+  border-color: var(--accent);
+}
+
+.tx-icon {
+  font-size: 32px;
+  margin-right: 16px;
+}
+
+.tx-details {
+  flex: 1;
+}
+
+.tx-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.tx-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.status-badge.status-completed {
+  background: rgba(16,185,129,0.2);
+  color: #10b981;
+}
+
+.status-badge.status-pending {
+  background: rgba(245,158,11,0.2);
+  color: #f59e0b;
+}
+
+.status-badge.status-failed {
+  background: rgba(239,68,68,0.2);
+  color: #ef4444;
+}
+
+.status-badge.status-refunded {
+  background: rgba(107,114,128,0.2);
+  color: #9ca3af;
+}
+
+.tx-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-left: 16px;
+}
+
+.no-history {
+  text-align: center;
+  color: var(--muted);
+  padding: 40px;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}/* Classic Balance Card */
+.balance-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(135deg, rgba(255,61,112,0.1), rgba(18,18,18,0.8));
+  border: 1px solid var(--accent-glow);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 30px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+}
+
+.balance-icon {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.balance-details {
+  flex: 1;
+}
+
+.balance-label {
+  display: block;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.balance-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.balance-value strong {
+  color: var(--accent);
+  font-size: 32px;
+}
+
+.refresh-btn {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 18px;
+}
+
+.refresh-btn:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  transform: rotate(180deg);
+}
+
+.packages-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 20px;
+  letter-spacing: -0.5px;
+}
+
+/* Adjust actions row */
+.actions-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.buy-button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 14px 40px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 15px var(--accent-glow);
+}
+
+.buy-button:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px var(--accent-glow);
+}
+
+.buy-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Ensure footer spacing */
+.buy-coins-page {
+  min-height: calc(100vh - 72px); /* account for mini player if present */
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-content {
+  flex: 1;
+}
+
+.buy-tab, .history-tab {
+  margin-bottom: 40px;
+}
+/* Payment ID styling */
+.tx-payment-id {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  font-family: monospace;
+}
+
+.payment-id-icon {
+  font-size: 10px;
+  color: var(--accent);
+  opacity: 0.7;
+}
+/* Support button on transaction */
+.support-btn {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--muted);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 10px;
+  flex-shrink: 0;
+}
+
+.support-btn:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  transform: scale(1.1);
+}
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Support modal */
+.support-modal {
+  background: var(--panel);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 20px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+}
+
+.support-modal h3 {
+  font-size: 22px;
+  margin-bottom: 16px;
+  color: #fff;
+}
+
+.transaction-ref {
+  background: rgba(255,255,255,0.03);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  border: 1px solid rgba(255,255,255,0.05);
+  word-break: break-all;
+}
+
+.transaction-ref .tx-id {
+  color: var(--accent);
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.transaction-summary {
+  background: rgba(255,61,112,0.05);
+  border: 1px solid var(--accent-glow);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.support-modal label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.support-modal textarea {
+  width: 100%;
+  padding: 12px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  resize: vertical;
+  margin-bottom: 20px;
+  font-family: inherit;
+}
+
+.support-modal textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.modal-actions button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.cancel-btn {
+  background: transparent;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--muted);
+}
+
+.cancel-btn:hover {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+}
+
+.submit-btn {
+  background: var(--accent);
+  color: white;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: #ff1f5c;
+  transform: scale(1.02);
+}
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* ========== PROFILE PAGE & CARD STYLES ========== */
+
+/* Make the page container a flex column to push footer down */
+.profile-page {
+  min-height: calc(100vh - 72px); /* adjust if you have a mini player (72px) */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Let the main content grow to fill space */
+.profile-page .page-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Footer automatically moves to bottom when content is short */
+.profile-page .dash-footer {
+  margin-top: auto;
+}
+
+/* Profile card – modern, dark, centered */
+.profile-card {
+  max-width: 600px;
+  margin: 0 auto 40px;
+  width: 100%;
+  background: var(--panel);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.6);
+}
+
+.profile-card .card-body {
+  padding: 28px 32px;
+}
+
+.profile-card .card-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+
+/* Form groups */
+.profile-card .form-group {
+  margin-bottom: 20px;
+}
+
+.profile-card label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.3px;
+}
+
+/* Inputs & select */
+.profile-card input,
+.profile-card select {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 15px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.profile-card input:focus,
+.profile-card select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.profile-card input:disabled,
+.profile-card select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.profile-card input[readonly],
+.profile-card input:disabled {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.05);
+  color: var(--muted);
+}
+
+/* Select dropdown options */
+.profile-card select option {
+  background: var(--panel);
+  color: #fff;
+}
+
+/* Primary button */
+.profile-card .btn-primary {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+  width: 100%;
+  margin-top: 8px;
+  box-shadow: 0 4px 15px var(--accent-glow);
+}
+
+.profile-card .btn-primary:hover:not(:disabled) {
+  background: #ff1f5c;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px var(--accent-glow);
+}
+
+.profile-card .btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.profile-card .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Error alert */
+.profile-card .alert-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+/* Hint text */
+.profile-card .muted.small {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .profile-card .card-body {
+    padding: 20px;
+  }
+}
