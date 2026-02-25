@@ -23,6 +23,9 @@ const Sidebar = () => {
         <RippleButton className={`nav-item ${isActive('/user/buy-coins') ? 'active' : ''}`} onClick={() => navigate('/user/buy-coins')}>
           Store
         </RippleButton>
+        <RippleButton className={`nav-item ${isActive('/user/purchases') ? 'active' : ''}`} onClick={() => navigate('/user/purchases')}>
+          Purchases
+        </RippleButton>
         <RippleButton className="nav-item" onClick={() => navigate('/user/studio')}>
           Studio
         </RippleButton>

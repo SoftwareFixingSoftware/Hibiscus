@@ -26,6 +26,7 @@ import BuyCoinsPage from './user/pages/BuyCoinsPage';
 import SuccessPage from './user/pages/SuccessPage';
 import CancelPage from './user/pages/CancelPage';
 import UserProtectedRoute from './user/UserProtectedRoute';
+import PurchaseHistoryPage from './user/pages/PurchaseHistoryPage';
 
 // Common Components (guards) - admin guard unchanged
 import ProtectedRoute from './admin/components/ProtectedRoute';
@@ -107,6 +108,7 @@ function App() {
               <Route path="dashboard" element={<Navigate to="/user" replace />} />
               <Route path="payments/paypal/success" element={<Navigate to="/user/success" replace />} />
               <Route path="payments/paypal/cancel" element={<Navigate to="/user/cancel" replace />} />
+              <Route path="purchases" element={<PurchaseHistoryPage />} />
             </Route>
           </Route>
         </Route>

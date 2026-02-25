@@ -85,6 +85,11 @@ const PublicEpisodeService = {
     if (!episodeId) throw new Error('episodeId required');
     const res = await api.post(`${basePath}/${episodeId}/purchase/paypal`);
     return res.data;
+  },
+  // In PublicEpisodeService.js, add:
+  getUserPurchasedEpisodes: async () => {
+    const res = await api.get(`${basePath}/purchased`);
+    return res.data;
   }
 };
 
