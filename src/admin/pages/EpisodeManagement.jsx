@@ -1,4 +1,3 @@
-// src/pages/EpisodeManagement.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -113,15 +112,15 @@ const EpisodeManagement = () => {
       });
       const raw = unwrapResponse(res) || {};
       const pageContent = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.content) ? raw.content : []);
-      
+
       // Process episodes - use audioUrl first, then audioStorageKey
       const processedEpisodes = (pageContent || []).map((ep) => {
         const durationSeconds = ep.durationSeconds ?? ep.duration ?? ep.duration_in_seconds ?? null;
         const fileSizeBytes = ep.fileSizeBytes ?? ep.fileSize ?? ep.file_size ?? null;
-        
+
         // Check all possible audio URL fields
         let audioKey = ep.audioUrl || ep.audioStorageKey || ep.audioFileUrl || ep.audioKey || null;
-        
+
         // If it's a relative path (starts with series/), convert to absolute URL
         if (audioKey && !audioKey.startsWith('http') && !audioKey.startsWith('blob:')) {
           if (audioKey.startsWith('series/')) {
@@ -131,12 +130,17 @@ const EpisodeManagement = () => {
             audioKey = `http://localhost:9019/api/secure/files/${audioKey}`;
           }
         }
-        
+
         // Clean URL - remove any existing cache busting parameters
         if (audioKey && audioKey.includes('?')) {
           audioKey = audioKey.split('?')[0];
         }
-        
+
+        // Pricing fallbacks:
+        const priceInCoins = ep.priceInCoins ?? ep.price_in_coins ?? ep.price_in_coins_amount ?? null;
+        const priceCents = ep.priceCents ?? ep.price_cents ?? ep.amount_cents ?? null;
+        const currency = ep.currency ?? ep.currency_code ?? 'USD';
+
         return {
           ...ep,
           duration: durationSeconds,
@@ -144,10 +148,13 @@ const EpisodeManagement = () => {
           fileSize: fileSizeBytes,
           fileSizeBytes,
           audioKey, // Store the clean URL
-          hasAudio: !!audioKey
+          hasAudio: !!audioKey,
+          priceInCoins,
+          priceCents,
+          currency
         };
       });
-      
+
       setEpisodes(processedEpisodes);
       const rawTotalPages = (raw && typeof raw.totalPages === 'number') ? raw.totalPages : (processedEpisodes.length ? 1 : 0);
       const rawTotalElements = (raw && typeof raw.totalElements === 'number') ? raw.totalElements : (Array.isArray(pageContent) ? pageContent.length : processedEpisodes.length);
@@ -178,8 +185,8 @@ const EpisodeManagement = () => {
   const pauseAllExcept = (keepId = null) => {
     audioRefs.current.forEach((audioEl, id) => {
       if (id !== keepId && audioEl && !audioEl.paused) {
-        try { 
-          audioEl.pause(); 
+        try {
+          audioEl.pause();
           audioEl.currentTime = 0;
         } catch (e) {}
       }
@@ -199,7 +206,7 @@ const EpisodeManagement = () => {
   const clearAudioCache = (episodeId) => {
     // Clear object URL if exists
     revokeObjectUrl(episodeId);
-    
+
     // Clear audio element source
     const audioEl = audioRefs.current.get(episodeId);
     if (audioEl) {
@@ -207,7 +214,7 @@ const EpisodeManagement = () => {
       audioEl.currentTime = 0;
       audioEl.src = '';
     }
-    
+
     // Update audio version tracker to force reload
     setAudioVersionTracker(prev => ({
       ...prev,
@@ -219,7 +226,7 @@ const EpisodeManagement = () => {
   const handlePlayClick = async (episode) => {
     const id = episode.id;
     const audioEl = audioRefs.current.get(id);
-    
+
     if (!audioEl) {
       console.error('Audio element not found for episode:', id);
       return;
@@ -245,34 +252,34 @@ const EpisodeManagement = () => {
     try {
       // Clean up previous object URL
       revokeObjectUrl(id);
-      
+
       // CRITICAL: Add cache busting query parameter with version
       let audioUrl = episode.audioKey;
-      
+
       // Always add cache busting parameters
       const separator = audioUrl.includes('?') ? '&' : '?';
       const version = audioVersionTracker[id] || 0;
       audioUrl = `${audioUrl}${separator}v=${version}&t=${Date.now()}`;
-      
+
       // Reset the audio element completely
       audioEl.pause();
       audioEl.currentTime = 0;
       audioEl.src = audioUrl;
-      
+
       // Load the new source
       await new Promise((resolve, reject) => {
         audioEl.oncanplay = resolve;
         audioEl.onerror = reject;
         audioEl.load();
       });
-      
+
       // Try to play
       await audioEl.play();
       setCurrentPlayingId(id);
-      
+
     } catch (err) {
       console.error('Playback error:', err);
-      
+
       // Handle specific errors
       if (err.name === 'NotAllowedError') {
         alert('Autoplay was blocked. Please click the play button again.');
@@ -283,7 +290,7 @@ const EpisodeManagement = () => {
       } else {
         alert('Unable to play audio. The audio file may not be accessible.');
       }
-      
+
       // Reset audio element
       audioEl.src = '';
     } finally {
@@ -295,7 +302,7 @@ const EpisodeManagement = () => {
   const handleAudioUploadSuccess = (episodeId) => {
     // Clear audio cache for this episode
     clearAudioCache(episodeId);
-    
+
     // Fetch fresh episode data
     fetchEpisodes();
   };
@@ -362,6 +369,17 @@ const EpisodeManagement = () => {
     if (!bytes && bytes !== 0) return '--';
     const mb = bytes / (1024 * 1024);
     return `${mb.toFixed(2)} MB`;
+  };
+
+  // format money from cents
+  const formatMoneyFromCents = (cents, currency = 'USD') => {
+    if (cents == null) return null;
+    const value = (Number(cents) / 100).toFixed(2);
+    try {
+      return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(value);
+    } catch (e) {
+      return `${currency} ${value}`;
+    }
   };
 
   const handlePrevPage = () => setPage((p) => Math.max(0, p - 1));
@@ -524,9 +542,23 @@ const EpisodeManagement = () => {
           episodes.map((episode) => (
             <div key={episode.id} className="episode-card">
               <div className="episode-header">
-                <div className="episode-number">
-                  <span>Episode {episode.episodeNumber}</span>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <div className="episode-number">
+                    <span>Episode {episode.episodeNumber}</span>
+                  </div>
+
+                  {/* Price badge */}
+                  <div>
+                    {episode.isFree ? (
+                      <span className="status-badge free">Free</span>
+                    ) : episode.priceInCoins ? (
+                      <span className="status-badge coins">{episode.priceInCoins} coins</span>
+                    ) : (episode.priceCents && episode.priceCents > 0) ? (
+                      <span className="status-badge money">{formatMoneyFromCents(episode.priceCents, episode.currency)}</span>
+                    ) : null}
+                  </div>
                 </div>
+
                 <span className={`status-badge ${episode.isPublished ? 'published' : 'draft'}`}>
                   {episode.isPublished ? 'Published' : 'Draft'}
                 </span>
@@ -571,30 +603,30 @@ const EpisodeManagement = () => {
                     Your browser does not support the audio element.
                   </audio>
 
-                 <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                      <button
-                        className="btn-secondary"
-                        onClick={() => handlePlayClick(episode)}
-                        disabled={loadingAudioId === episode.id}
-                        title={currentPlayingId === episode.id ? 'Pause' : 'Play'}
-                      >
-                        {loadingAudioId === episode.id ? 'Loading…' : (currentPlayingId === episode.id ? <><FiPauseCircle/> Pause</> : <><FiPlayCircle/> Play</>)}
-                      </button>
+                  <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => handlePlayClick(episode)}
+                      disabled={loadingAudioId === episode.id}
+                      title={currentPlayingId === episode.id ? 'Pause' : 'Play'}
+                    >
+                      {loadingAudioId === episode.id ? 'Loading…' : (currentPlayingId === episode.id ? <><FiPauseCircle/> Pause</> : <><FiPlayCircle/> Play</>)}
+                    </button>
 
-                      {/* Upload/Replace button */}
-                      <button
-                        className="btn-secondary"
-                        onClick={() => handleUploadAudio(episode)}
-                        title={episode.hasAudio ? "Replace Audio" : "Upload Audio"}
-                        style={{ 
-                          backgroundColor: episode.hasAudio ? '#f59e0b' : '#6b7280',
-                          color: 'white',
-                          border: 'none'
-                        }}
-                      >
-                        <FiUpload /> {episode.hasAudio ? 'Replace' : 'Upload'}
-                      </button>
-                    </div>
+                    {/* Upload/Replace button */}
+                    <button
+                      className="btn-secondary"
+                      onClick={() => handleUploadAudio(episode)}
+                      title={episode.hasAudio ? "Replace Audio" : "Upload Audio"}
+                      style={{
+                        backgroundColor: episode.hasAudio ? '#f59e0b' : '#6b7280',
+                        color: 'white',
+                        border: 'none'
+                      }}
+                    >
+                      <FiUpload /> {episode.hasAudio ? 'Replace' : 'Upload'}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -623,7 +655,7 @@ const EpisodeManagement = () => {
                     className="action-btn secondary"
                     onClick={() => handleUploadAudio(episode)}
                     title={episode.hasAudio ? "Replace Audio" : "Upload Audio"}
-                    style={{ 
+                    style={{
                       backgroundColor: episode.hasAudio ? '#f59e0b' : '#6b7280',
                       color: 'white'
                     }}

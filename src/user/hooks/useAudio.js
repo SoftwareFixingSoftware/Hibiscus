@@ -1,0 +1,1 @@
+export { useAudio } from '../context/AudioContext';

@@ -1,0 +1,120 @@
+/* src/payments/paypal/styles/PayPalStyles.css */
+
+/* General page container */
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Coin packages component */
+.coin-packages-container {
+  text-align: center;
+  padding: 2rem;
+}
+
+.packages-grid {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin: 2rem 0;
+  flex-wrap: wrap;
+}
+
+.package-card {
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 150px;
+}
+
+.package-card:hover {
+  border-color: #0070ba;
+  transform: translateY(-2px);
+}
+
+.package-card.selected {
+  border-color: #0070ba;
+  background-color: #f0f8ff;
+}
+
+.price {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.buy-button {
+  background-color: #0070ba;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.buy-button:hover:not(:disabled) {
+  background-color: #005c9e;
+}
+
+.buy-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Error and loading states */
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+}
+
+.loading-indicator {
+  font-size: 1.2rem;
+  color: #555;
+  margin: 2rem 0;
+}
+
+/* Success and cancel pages */
+.success-page h1 {
+  color: #2e7d32;
+}
+
+.cancel-page h1 {
+  color: #b71c1c;
+}
+
+.home-link,
+.try-again-link {
+  display: inline-block;
+  margin: 1rem 0.5rem;
+  padding: 0.75rem 2rem;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.try-again-link {
+  background-color: #0070ba;
+  color: white;
+}
+
+.try-again-link:hover {
+  background-color: #005c9e;
+}
+
+.home-link {
+  background-color: #ccc;
+  color: #333;
+}
+
+.home-link:hover {
+  background-color: #bbb;
+}

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import api from '../service/api'; // adjust path if needed
-import '../styles/loading.css';
+import api from './services/api';
+import './styles/loading.css';
 
 const UserProtectedRoute = () => {
   const [loading, setLoading] = useState(true);
@@ -11,22 +11,15 @@ const UserProtectedRoute = () => {
   useEffect(() => {
     const verifyAuth = async () => {
       setLoading(true);
-
       try {
         const response = await api.get('/auth/verify');
-
-        if (response) {
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-        }
+        setIsAuthenticated(!!response);
       } catch (error) {
         setIsAuthenticated(false);
       } finally {
         setLoading(false);
       }
     };
-
     verifyAuth();
   }, [location.pathname]);
 

@@ -26,6 +26,7 @@ const Sidebar = () => {
     { name: 'Episodes', icon: FiMusic, path: '/admin/episodes' },
     { name: 'Users', icon: FiUsers, path: '/admin/users' },
     { name: 'Analytics', icon: FiBarChart2, path: '/admin/analytics' },
+    { name: 'Analytics', icon: FiBarChart2, path: '/admin/analytics' },
     { name: 'Settings', icon: FiSettings, path: '/admin/settings' },
   ];
 

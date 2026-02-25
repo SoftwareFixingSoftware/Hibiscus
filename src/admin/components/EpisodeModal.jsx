@@ -13,16 +13,16 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
     releaseDate: new Date().toISOString().split('T')[0],
     isPublished: false,
     durationSeconds: 0,
-    isFree: false
+    isFree: false,
+    priceInCoins: 0
   });
 
   useEffect(() => {
     if (episode) {
-      // For edit mode
-      const releaseDate = episode.releaseDate ? 
-        new Date(episode.releaseDate).toISOString().split('T')[0] : 
-        new Date().toISOString().split('T')[0];
-      
+      const releaseDate = episode.releaseDate
+        ? new Date(episode.releaseDate).toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0];
+
       setFormData({
         title: episode.title || '',
         description: episode.description || '',
@@ -30,10 +30,10 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
         releaseDate: releaseDate,
         isPublished: episode.isPublished || false,
         durationSeconds: episode.durationSeconds || episode.duration || 0,
-        isFree: episode.isFree || false
+        isFree: episode.isFree || false,
+        priceInCoins: episode.priceInCoins || 0
       });
     } else {
-      // For create mode
       setFormData({
         title: '',
         description: '',
@@ -41,34 +41,37 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
         releaseDate: new Date().toISOString().split('T')[0],
         isPublished: false,
         durationSeconds: 0,
-        isFree: false
+        isFree: false,
+        priceInCoins: 0
       });
     }
   }, [episode]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
-    const newValue = type === 'checkbox' ? checked : 
-                    (type === 'number' ? parseInt(value) || 0 : value);
-    
-    setFormData(prev => ({
+
+    let newValue =
+      type === 'checkbox'
+        ? checked
+        : type === 'number'
+        ? parseInt(value) || 0
+        : value;
+
+    setFormData((prev) => ({
       ...prev,
       [name]: newValue
     }));
-    
-    // Clear error for this field
+
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
-  // Special handler for duration (minutes to seconds)
   const handleDurationMinutesChange = (e) => {
     const minutes = parseFloat(e.target.value) || 0;
     const seconds = Math.round(minutes * 60);
-    
-    setFormData(prev => ({
+
+    setFormData((prev) => ({
       ...prev,
       durationSeconds: seconds
     }));
@@ -76,43 +79,47 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.title.trim()) {
       newErrors.title = 'Title is required';
     }
-    
+
     if (!formData.description.trim()) {
       newErrors.description = 'Description is required';
     }
-    
+
     if (formData.episodeNumber <= 0) {
       newErrors.episodeNumber = 'Episode number must be positive';
     }
-    
+
     if (formData.durationSeconds <= 0) {
       newErrors.durationSeconds = 'Duration must be greater than 0';
     }
-    
-    // Only check seriesId for new episodes, not when editing
-    if (!isEditMode && !seriesId) {
-      newErrors.seriesId = 'Series ID is required. Please make sure you are creating an episode within a series.';
+
+    if (!formData.isFree && formData.priceInCoins <= 0) {
+      newErrors.priceInCoins =
+        'Price in coins must be greater than 0 for paid episodes';
     }
-    
+
+    if (!isEditMode && !seriesId) {
+      newErrors.seriesId =
+        'Series ID is required. Please make sure you are creating an episode within a series.';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setLoading(true);
-    
+
     try {
-      // Prepare the episode data
       const episodeData = {
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -120,66 +127,44 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
         releaseDate: new Date(formData.releaseDate).toISOString(),
         isPublished: formData.isPublished,
         durationSeconds: formData.durationSeconds,
-        isFree: formData.isFree
+        isFree: formData.isFree,
+        priceInCoins: formData.isFree ? 0 : formData.priceInCoins
       };
-      
-      console.log('Sending episode data:', episodeData);
-      
+
       let result;
       if (isEditMode) {
-        console.log('Updating episode:', episode.id);
-        result = await EpisodeService.updateEpisode(episode.id, episodeData);
+        result = await EpisodeService.updateEpisode(
+          episode.id,
+          episodeData
+        );
       } else {
-        console.log('Creating episode for series:', seriesId);
         if (!seriesId) {
-          throw new Error('Cannot create episode without a series ID');
+          throw new Error(
+            'Cannot create episode without a series ID'
+          );
         }
-        result = await EpisodeService.createEpisodeInSeries(seriesId, episodeData);
+        result = await EpisodeService.createEpisodeInSeries(
+          seriesId,
+          episodeData
+        );
       }
-      
-      console.log('Episode saved successfully:', result.data);
+
       onSubmit(result.data);
     } catch (error) {
-      console.error('Error saving episode:', error);
-      
       let errorMessage = 'Failed to save episode';
-      
-      if (error.response) {
-        console.error('Response error:', error.response.data);
-        if (error.response.data) {
-          if (error.response.data.message) {
-            errorMessage = error.response.data.message;
-          } else if (error.response.data.errors) {
-            const validationErrors = error.response.data.errors;
-            const fieldErrors = validationErrors.map(err => 
-              `${err.field}: ${err.defaultMessage}`
-            ).join(', ');
-            errorMessage = `Validation errors: ${fieldErrors}`;
-          } else if (typeof error.response.data === 'string') {
-            errorMessage = error.response.data;
-          }
-        }
-      } else if (error.request) {
-        console.error('Request error:', error.request);
-        errorMessage = 'No response from server. Please check your connection.';
-      } else {
-        errorMessage = error.message || 'Unknown error occurred';
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
       }
-      
-      // Handle specific error messages
-      if (errorMessage.includes('durationSeconds')) {
-        errorMessage = 'Duration is required. Please enter a valid duration in minutes.';
-      } else if (errorMessage.includes('already exists')) {
-        errorMessage = `Episode ${formData.episodeNumber} already exists for this series. Please choose a different episode number.`;
-      }
-      
+
       setErrors({ submit: errorMessage });
     } finally {
       setLoading(false);
     }
   };
 
-  // Get duration display
   const getDurationDisplay = () => {
     const minutes = Math.floor(formData.durationSeconds / 60);
     const seconds = formData.durationSeconds % 60;
@@ -192,37 +177,14 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
         <div className="modal-header">
           <h3 className="modal-title">
             {isEditMode ? 'Edit Episode' : 'Create New Episode'}
-            {seriesId && !isEditMode && (
-              <span className="modal-subtitle"> (for current series)</span>
-            )}
           </h3>
           <button className="modal-close" onClick={onClose}>
             <FiX />
           </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="modal-form">
-          {/* Show series info */}
-          {seriesId && !isEditMode && (
-            <div className="form-info">
-              <div className="info-badge">
-                Creating episode for Series ID: {seriesId.substring(0, 12)}...
-              </div>
-            </div>
-          )}
-          
-          {errors.seriesId && (
-            <div className="alert alert-error">
-              <FiAlertCircle />
-              <div style={{ marginLeft: '8px' }}>
-                <strong>Error:</strong> {errors.seriesId}
-                <div style={{ marginTop: '8px' }}>
-                  Please navigate to a specific series first, or go to the Series page and click "View Details" to manage episodes.
-                </div>
-              </div>
-            </div>
-          )}
-          
+
           {errors.submit && (
             <div className="alert alert-error">
               <FiAlertCircle />
@@ -231,128 +193,137 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
               </div>
             </div>
           )}
-          
+
+          {/* TITLE */}
           <div className="form-group">
-            <label className="form-label" htmlFor="title">
-              Episode Title *
-            </label>
+            <label className="form-label">Episode Title *</label>
             <input
               type="text"
-              id="title"
               name="title"
               value={formData.title}
               onChange={handleChange}
               className={`form-input ${errors.title ? 'error' : ''}`}
-              placeholder="Enter episode title"
               disabled={loading}
             />
             {errors.title && (
               <span className="form-error">{errors.title}</span>
             )}
           </div>
-          
+
+          {/* DESCRIPTION */}
           <div className="form-group">
-            <label className="form-label" htmlFor="description">
-              Description *
-            </label>
+            <label className="form-label">Description *</label>
             <textarea
-              id="description"
               name="description"
               value={formData.description}
               onChange={handleChange}
               className={`form-input ${errors.description ? 'error' : ''}`}
-              placeholder="Enter episode description"
               rows="4"
               disabled={loading}
             />
             {errors.description && (
-              <span className="form-error">{errors.description}</span>
+              <span className="form-error">
+                {errors.description}
+              </span>
             )}
           </div>
-          
+
+          {/* EPISODE NUMBER + DURATION */}
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label" htmlFor="episodeNumber">
-                Episode Number *
-              </label>
+              <label className="form-label">Episode Number *</label>
               <input
                 type="number"
-                id="episodeNumber"
                 name="episodeNumber"
                 value={formData.episodeNumber}
                 onChange={handleChange}
-                className={`form-input ${errors.episodeNumber ? 'error' : ''}`}
                 min="1"
+                className={`form-input ${
+                  errors.episodeNumber ? 'error' : ''
+                }`}
                 disabled={loading}
               />
-              {errors.episodeNumber && (
-                <span className="form-error">{errors.episodeNumber}</span>
-              )}
             </div>
-            
+
             <div className="form-group">
-              <label className="form-label" htmlFor="durationMinutes">
+              <label className="form-label">
                 Duration (minutes) *
               </label>
               <div className="input-with-icon">
                 <FiClock className="input-icon" />
                 <input
                   type="number"
-                  id="durationMinutes"
-                  name="durationMinutes"
-                  value={(formData.durationSeconds / 60).toFixed(1)}
+                  value={(formData.durationSeconds / 60).toFixed(
+                    1
+                  )}
                   onChange={handleDurationMinutesChange}
-                  className={`form-input ${errors.durationSeconds ? 'error' : ''}`}
-                  placeholder="e.g., 45.5"
                   min="0.1"
                   step="0.1"
+                  className={`form-input ${
+                    errors.durationSeconds ? 'error' : ''
+                  }`}
                   disabled={loading}
                 />
               </div>
-              {errors.durationSeconds && (
-                <span className="form-error">{errors.durationSeconds}</span>
-              )}
               <div className="form-hint">
-                Current duration: {getDurationDisplay()} (MM:SS)
+                Current duration: {getDurationDisplay()}
               </div>
             </div>
           </div>
-          
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label" htmlFor="releaseDate">
-                Release Date
-              </label>
-              <div className="date-input-group">
-                <FiCalendar className="date-icon" />
-                <input
-                  type="date"
-                  id="releaseDate"
-                  name="releaseDate"
-                  value={formData.releaseDate}
-                  onChange={handleChange}
-                  className="form-input"
-                  disabled={loading}
-                />
-              </div>
-            </div>
+
+          {/* RELEASE DATE */}
+          <div className="form-group">
+            <label className="form-label">Release Date</label>
+            <input
+              type="date"
+              name="releaseDate"
+              value={formData.releaseDate}
+              onChange={handleChange}
+              className="form-input"
+              disabled={loading}
+            />
           </div>
-          
-          <div className="form-group checkbox-group" style={{ marginBottom: '15px' }}>
+
+          {/* FREE CHECKBOX */}
+          <div className="form-group checkbox-group">
             <label className="checkbox-label">
               <input
                 type="checkbox"
                 name="isFree"
                 checked={formData.isFree}
                 onChange={handleChange}
-                className="checkbox-input"
                 disabled={loading}
               />
-              <span className="checkbox-custom"></span>
-              <span className="checkbox-text">Free Episode (no purchase required)</span>
+              Free Episode
             </label>
           </div>
-          
+
+          {/* PRICE IN COINS */}
+          {!formData.isFree && (
+            <div className="form-group">
+              <label className="form-label">
+                Price (Coins) *
+              </label>
+              <input
+                type="number"
+                name="priceInCoins"
+                value={formData.priceInCoins}
+                onChange={handleChange}
+                min="1"
+                className={`form-input ${
+                  errors.priceInCoins ? 'error' : ''
+                }`}
+                disabled={loading}
+              />
+              {errors.priceInCoins && (
+                <span className="form-error">
+                  {errors.priceInCoins}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* PUBLISH */}
           <div className="form-group checkbox-group">
             <label className="checkbox-label">
               <input
@@ -360,19 +331,13 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
                 name="isPublished"
                 checked={formData.isPublished}
                 onChange={handleChange}
-                className="checkbox-input"
                 disabled={loading}
               />
-              <span className="checkbox-custom"></span>
-              <span className="checkbox-text">Publish immediately</span>
+              Publish immediately
             </label>
-            <div className="form-hint" style={{ marginLeft: '30px', marginTop: '5px' }}>
-              {isEditMode && episode?.hasAudio ? 
-                'Episode has audio and can be published' : 
-                'Note: Episode needs audio before it can be published'}
-            </div>
           </div>
-          
+
+          {/* FOOTER */}
           <div className="modal-footer">
             <button
               type="button"
@@ -385,9 +350,13 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
             <button
               type="submit"
               className="btn-primary"
-              disabled={loading || (!seriesId && !isEditMode)}
+              disabled={loading}
             >
-              {loading ? 'Saving...' : (isEditMode ? 'Update Episode' : 'Create Episode')}
+              {loading
+                ? 'Saving...'
+                : isEditMode
+                ? 'Update Episode'
+                : 'Create Episode'}
             </button>
           </div>
         </form>

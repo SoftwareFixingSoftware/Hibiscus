@@ -1,27 +1,41 @@
-// src/api.jsx (or App.jsx) - drop-in replacement
+// src/App.jsx - Updated with new user modular structure
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
- 
-// Admin Components
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+
+// Admin Components (unchanged)
 import AdminLayout from './admin/layouts/AdminLayout';
 import Dashboard from './admin/pages/Dashboard';
 import SeriesManagement from './admin/pages/SeriesManagement';
 import EpisodeManagement from './admin/pages/EpisodeManagement';
 import SeriesDetail from './admin/pages/SeriesDetail';
-import AdminUsers from './admin/pages/AdminUsers'
-// Auth Components
+import AdminUsers from './admin/pages/AdminUsers';
+
+// Auth Components (unchanged)
 import ForgotPassword from './auth/ForgotPassword';
 import ResetPassword from './auth/ResetPassword';
 import SignUp from './auth/SignUp';
 import SignUpAdmin from './auth/SignUpAdmin';
 import SignIn from './auth/SignIn';
 
-// User items
-import UserDashboard from './user/Dashboard'
+// ===== NEW USER MODULE IMPORTS (user) =====
+import { AudioProvider } from './user/context/AudioContext';
+import UserLayout from './user/layouts/UserLayout';
+import HomePage from './user/pages/HomePage';
+import SeriesDetailPage from './user/pages/SeriesDetailPage';
+import BuyCoinsPage from './user/pages/BuyCoinsPage';
+import SuccessPage from './user/pages/SuccessPage';
+import CancelPage from './user/pages/CancelPage';
+import UserProtectedRoute from './user/UserProtectedRoute';
 
-// Common Components (guards)
+// Common Components (guards) - admin guard unchanged
 import ProtectedRoute from './admin/components/ProtectedRoute';
-import UserProtectedRoute from './user/components/ProtectedRoute';
+
+// Optional: Redirect wrapper for legacy series routes
+const LegacySeriesRedirect = ({ to }) => {
+  // This component reads the old params and redirects to new URL structure
+  // It's used below for /series/:seriesId and /series/:seriesId/episode/:episodeId
+  return <Navigate to={to} replace />;
+};
 
 function App() {
   return (
@@ -48,18 +62,16 @@ function App() {
           <Route path="series" element={<SeriesManagement />} />
           <Route path="series/:id" element={<SeriesDetail />} />
           <Route path="episodes" element={<EpisodeManagement />} />
-          <Route path="users" element={<AdminUsers/>} />
+          <Route path="users" element={<AdminUsers />} />
           <Route path="episodes/series/:seriesId" element={<EpisodeManagement />} />
         </Route>
 
-        {/* ========== USER-FACING SERIES ROUTES (protected) ==========
-            These make /series/:seriesId and
-            /series/:seriesId/episode/:episodeId reachable directly. */}
+        {/* ========== LEGACY SERIES ROUTES (redirect to new /user paths) ========== */}
         <Route
           path="/series/:seriesId"
           element={
             <UserProtectedRoute>
-              <UserDashboard />
+              <Navigate to={`/user/series/${window.location.pathname.split('/')[2]}`} replace />
             </UserProtectedRoute>
           }
         />
@@ -67,20 +79,40 @@ function App() {
           path="/series/:seriesId/episode/:episodeId"
           element={
             <UserProtectedRoute>
-              <UserDashboard />
+              {({ params }) => {
+                // Use params from route; but Navigate doesn't have access to params directly,
+                // so we use a wrapper that reads the URL.
+                // Simpler: use a component that reads window.location.
+                // We'll use a small inline component.
+                const pathParts = window.location.pathname.split('/');
+                const seriesId = pathParts[2];
+                const episodeId = pathParts[4];
+                return <Navigate to={`/user/series/${seriesId}?episode=${episodeId}`} replace />;
+              }}
             </UserProtectedRoute>
           }
         />
 
-        {/* ========== USER ROUTES (Protected, legacy /user/ namespace) ========== */}
-        <Route path="/user/*" element={<UserProtectedRoute />}>
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<UserDashboard />} />
-          {/* add more /user/* child routes here if needed */}
+        {/* ========== USER ROUTES (Protected, new modular structure under /user) ========== */}
+        <Route element={<UserProtectedRoute />}>
+          <Route element={<AudioProvider><UserLayout /></AudioProvider>}>
+            <Route path="/user" element={<Outlet />}>
+              <Route index element={<HomePage />} />
+              <Route path="series/:id" element={<SeriesDetailPage />} />
+              <Route path="buy-coins" element={<BuyCoinsPage />} />
+              <Route path="success" element={<SuccessPage />} />
+              <Route path="cancel" element={<CancelPage />} />
+              
+              {/* Legacy redirects within /user namespace */}
+              <Route path="dashboard" element={<Navigate to="/user" replace />} />
+              <Route path="payments/paypal/success" element={<Navigate to="/user/success" replace />} />
+              <Route path="payments/paypal/cancel" element={<Navigate to="/user/cancel" replace />} />
+            </Route>
+          </Route>
         </Route>
 
-        {/* Redirect root to user dashboard (optional) */}
-        <Route index element={<Navigate to="/user/dashboard" replace />} />
+        {/* Redirect root to /user (new home) */}
+        <Route index element={<Navigate to="/user" replace />} />
 
         {/* ========== 404 - NOT FOUND ========== */}
         <Route
@@ -89,7 +121,7 @@ function App() {
             <div className="error-container" style={{ padding: 32, textAlign: 'center' }}>
               <h2>Page Not Found</h2>
               <p>The page you're looking for doesn't exist.</p>
-              <button onClick={() => (window.location.href = '/user/dashboard')}>Go Home</button>
+              <button onClick={() => (window.location.href = '/user')}>Go Home</button>
             </div>
           }
         />
