@@ -2127,3 +2127,63 @@ body::before {
 .saved-series-card .remove-button:hover {
   background: rgba(255, 107, 107, 0.2);
 }
+.logout-modal {
+  background: var(--panel);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+}
+
+.logout-modal h3 {
+  font-size: 22px;
+  margin-bottom: 12px;
+  color: #fff;
+}
+
+.logout-modal p {
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+.logout-modal .modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.logout-modal .cancel-btn {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--muted);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logout-modal .cancel-btn:hover {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+}
+
+.logout-modal .confirm-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logout-modal .confirm-btn:hover {
+  background: #ff1f5c;
+  transform: scale(1.02);
+}
