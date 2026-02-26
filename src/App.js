@@ -27,7 +27,8 @@ import SuccessPage from './user/pages/SuccessPage';
 import CancelPage from './user/pages/CancelPage';
 import UserProtectedRoute from './user/UserProtectedRoute';
 import PurchaseHistoryPage from './user/pages/PurchaseHistoryPage';
-import UserProfile from './user/pages/ProfilePage'
+import UserProfile from './user/pages/ProfilePage';
+import SavedSeries from './user/pages/SavedSeriesPage';
 
 // Common Components (guards) - admin guard unchanged
 import ProtectedRoute from './admin/components/ProtectedRoute';
@@ -111,7 +112,7 @@ function App() {
               <Route path="payments/paypal/cancel" element={<Navigate to="/user/cancel" replace />} />
               <Route path="purchases" element={<PurchaseHistoryPage />} />
               <Route path="profile" element={<UserProfile />} />
-
+              <Route path="saved-series" element={<SavedSeries />} />
             </Route>
           </Route>
         </Route>

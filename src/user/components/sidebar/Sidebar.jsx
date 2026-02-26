@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import RippleButton from '../common/RippleButton';
-import { FaHome, FaStore, FaFilm, FaUser, FaHistory, FaBars, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import {
+  FaHome,
+  FaStore,
+  FaFilm,
+  FaUser,
+  FaHistory,
+  FaHeart,
+  FaBars,
+  FaChevronLeft,
+  FaChevronRight
+} from 'react-icons/fa';
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -21,6 +31,7 @@ const Sidebar = () => {
     { path: '/user/studio', label: 'Studio', icon: <FaFilm /> },
     { path: '/user/profile', label: 'Profile', icon: <FaUser /> },
     { path: '/user/purchases', label: 'Purchases', icon: <FaHistory /> },
+    { path: '/user/saved-series', label: 'Favorites', icon: <FaHeart /> }, // NEW
   ];
 
   return (

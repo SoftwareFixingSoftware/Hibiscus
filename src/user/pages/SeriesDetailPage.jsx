@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom'; // added useLocation
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAudio } from '../context/AudioContext';
 import PublicSeriesService from '../services/PublicSeriesService';
 import PublicEpisodeService from '../services/PublicEpisodeService';
+import UserSavedSeriesService from '../services/UserSavedSeriesService';
 import { mapSeries, mapEpisode, formatDuration, relativeDate, formatMoneyFromCents } from '../utils/episodeHelpers';
 import EpisodeCard from '../components/cards/EpisodeCard';
 import RippleButton from '../components/common/RippleButton';
 
 const SeriesDetailPage = () => {
-  const { id } = useParams(); // series id from route
-  const location = useLocation(); // to read query params
+  const { id } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const { player, play } = useAudio();
 
@@ -19,6 +20,11 @@ const SeriesDetailPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [purchasingEpisodeId, setPurchasingEpisodeId] = useState(null);
+
+  // Saved series state
+  const [isSaved, setIsSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   // Overlay scroll fade
   const overlayRef = useRef(null);
@@ -42,7 +48,6 @@ const SeriesDetailPage = () => {
         (e.id === episodeId) || (e.episodeId === episodeId) || (e.uuid === episodeId)
       );
       if (foundRaw) {
-        // Find index for proper mapping (mapEpisode uses index for title fallback)
         const index = episodes.findIndex(e => 
           (e.id === episodeId) || (e.episodeId === episodeId) || (e.uuid === episodeId)
         );
@@ -51,6 +56,32 @@ const SeriesDetailPage = () => {
     }
   }, [episodes, location.search]);
 
+  // After series is loaded, check if it's saved by the user
+  useEffect(() => {
+    if (!series || !series.id) return;
+
+    const checkSavedStatus = async () => {
+      try {
+        const savedList = await UserSavedSeriesService.getSavedSeries();
+        const found = savedList.some(item => item.seriesId === series.id);
+        setIsSaved(found);
+      } catch (err) {
+        // Treat 401 or 403 as "not logged in" – user is not authenticated
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          setIsSaved(false);
+        } else {
+          console.warn('Failed to fetch saved series', err);
+          setIsSaved(false);
+        }
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+
+    checkSavedStatus();
+  }, [series]);
+
+  // Overlay scroll fade logic
   useEffect(() => {
     updateOverlayFade();
     const el = overlayRef.current;
@@ -96,6 +127,32 @@ const SeriesDetailPage = () => {
     const { scrollTop, scrollHeight, clientHeight } = el;
     setShowTopFade(scrollTop > 6);
     setShowBottomFade(scrollTop + clientHeight < scrollHeight - 6);
+  };
+
+  // Toggle save/unsave series
+  const toggleSave = async () => {
+    if (!series || !series.id) return;
+    setSaving(true);
+    try {
+      if (isSaved) {
+        await UserSavedSeriesService.removeSavedSeries(series.id);
+        setIsSaved(false);
+      } else {
+        await UserSavedSeriesService.saveSeries(series.id);
+        setIsSaved(true);
+      }
+    } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        alert('Please log in to save series.');
+        // Optionally redirect to login page
+        // navigate('/login');
+      } else {
+        console.error('Toggle save failed', err);
+        alert('Failed to update saved series. Please try again.');
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Access & purchase helpers (unchanged)
@@ -262,6 +319,18 @@ const SeriesDetailPage = () => {
           <div className="badges-row">
             <span className="badge genre">#{series.category?.toUpperCase() || 'ROMANCE'}</span>
             {series.completed && <span className="badge completed">COMPLETED SERIES</span>}
+            
+            {/* Save button – only shown after we know authentication state */}
+            {authChecked && (
+              <RippleButton
+                className={`badge save-button ${isSaved ? 'saved' : ''}`}
+                onClick={toggleSave}
+                disabled={saving}
+                style={{ marginLeft: 'auto' }}
+              >
+                {saving ? 'Saving...' : isSaved ? 'Remove from favorite' : 'Add to favorite'}
+              </RippleButton>
+            )}
           </div>
 
           <h2 className="series-title">{series.title}</h2>
