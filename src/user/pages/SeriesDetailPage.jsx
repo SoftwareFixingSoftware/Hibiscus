@@ -1,12 +1,14 @@
+// src/pages/SeriesDetailPage.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAudio } from '../context/AudioContext';
 import PublicSeriesService from '../services/PublicSeriesService';
 import PublicEpisodeService from '../services/PublicEpisodeService';
-import UserSavedSeriesService from '../services/UserSavedSeriesService';
+import UserFollowedSeriesService from '../services/UserFollowedSeriesService';
 import { mapSeries, mapEpisode, formatDuration, relativeDate, formatMoneyFromCents } from '../utils/episodeHelpers';
 import EpisodeCard from '../components/cards/EpisodeCard';
 import RippleButton from '../components/common/RippleButton';
+import { FaBell, FaBellSlash } from 'react-icons/fa';
 
 const SeriesDetailPage = () => {
   const { id } = useParams();
@@ -21,15 +23,28 @@ const SeriesDetailPage = () => {
   const [error, setError] = useState(null);
   const [purchasingEpisodeId, setPurchasingEpisodeId] = useState(null);
 
-  // Saved series state
-  const [isSaved, setIsSaved] = useState(false);
-  const [saving, setSaving] = useState(false);
+  // Follow/notification state
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [notificationEnabled, setNotificationEnabled] = useState(false);
+  const [followActionLoading, setFollowActionLoading] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
 
   // Overlay scroll fade
   const overlayRef = useRef(null);
   const [showTopFade, setShowTopFade] = useState(false);
   const [showBottomFade, setShowBottomFade] = useState(false);
+
+  // Helper: coerce a variety of server truthy/format into boolean
+  const toBool = (v) => {
+    if (v === undefined || v === null) return false;
+    if (typeof v === 'boolean') return v;
+    if (typeof v === 'string') {
+      const lower = v.trim().toLowerCase();
+      return lower === 'true' || lower === '1' || lower === 'yes' || lower === 'on';
+    }
+    if (typeof v === 'number') return v === 1;
+    return Boolean(v);
+  };
 
   // Load series and episodes on mount or id change
   useEffect(() => {
@@ -44,11 +59,11 @@ const SeriesDetailPage = () => {
     const params = new URLSearchParams(location.search);
     const episodeId = params.get('episode');
     if (episodeId) {
-      const foundRaw = episodes.find(e => 
+      const foundRaw = episodes.find(e =>
         (e.id === episodeId) || (e.episodeId === episodeId) || (e.uuid === episodeId)
       );
       if (foundRaw) {
-        const index = episodes.findIndex(e => 
+        const index = episodes.findIndex(e =>
           (e.id === episodeId) || (e.episodeId === episodeId) || (e.uuid === episodeId)
         );
         setSelectedEpisode(mapEpisode(foundRaw, index));
@@ -56,29 +71,45 @@ const SeriesDetailPage = () => {
     }
   }, [episodes, location.search]);
 
-  // After series is loaded, check if it's saved by the user
+  // After series is loaded, fetch follow status
   useEffect(() => {
     if (!series || !series.id) return;
 
-    const checkSavedStatus = async () => {
+    let cancelled = false;
+    const fetchFollowStatus = async () => {
       try {
-        const savedList = await UserSavedSeriesService.getSavedSeries();
-        const found = savedList.some(item => item.seriesId === series.id);
-        setIsSaved(found);
+        const status = await UserFollowedSeriesService.getFollowStatus(series.id);
+        if (cancelled) return;
+
+        // server shape may vary; look for likely fields
+        const serverEnabled = toBool(
+          status?.notificationEnabled ??
+          status?.notificationsEnabled ??
+          status?.enabled ??
+          status?.notifications_on ??
+          status?.notificationsOn
+        );
+
+        setIsFollowing(true);
+        setNotificationEnabled(serverEnabled);
       } catch (err) {
-        // Treat 401 or 403 as "not logged in" – user is not authenticated
-        if (err.response?.status === 401 || err.response?.status === 403) {
-          setIsSaved(false);
+        if (cancelled) return;
+        if (err.response?.status === 404) {
+          setIsFollowing(false);
+          setNotificationEnabled(false);
+        } else if (err.response?.status === 401 || err.response?.status === 403) {
+          setIsFollowing(false);
+          setNotificationEnabled(false);
         } else {
-          console.warn('Failed to fetch saved series', err);
-          setIsSaved(false);
+          console.warn('Failed to fetch follow status', err);
         }
       } finally {
-        setAuthChecked(true);
+        if (!cancelled) setAuthChecked(true);
       }
     };
 
-    checkSavedStatus();
+    fetchFollowStatus();
+    return () => { cancelled = true; };
   }, [series]);
 
   // Overlay scroll fade logic
@@ -129,29 +160,110 @@ const SeriesDetailPage = () => {
     setShowBottomFade(scrollTop + clientHeight < scrollHeight - 6);
   };
 
-  // Toggle save/unsave series
-  const toggleSave = async () => {
+  // Toggle follow/unfollow
+  const toggleFollow = async () => {
     if (!series || !series.id) return;
-    setSaving(true);
+    setFollowActionLoading(true);
     try {
-      if (isSaved) {
-        await UserSavedSeriesService.removeSavedSeries(series.id);
-        setIsSaved(false);
+      if (isFollowing) {
+        await UserFollowedSeriesService.unfollowSeries(series.id);
+        setIsFollowing(false);
+        setNotificationEnabled(false);
       } else {
-        await UserSavedSeriesService.saveSeries(series.id);
-        setIsSaved(true);
+        const followed = await UserFollowedSeriesService.followSeries(series.id);
+        // coerce server response
+        const serverEnabled = toBool(
+          followed?.notificationEnabled ??
+          followed?.notificationsEnabled ??
+          followed?.enabled ??
+          followed?.notifications_on
+        );
+        setIsFollowing(true);
+        setNotificationEnabled(serverEnabled);
       }
     } catch (err) {
       if (err.response?.status === 401 || err.response?.status === 403) {
-        alert('Please log in to save series.');
-        // Optionally redirect to login page
-        // navigate('/login');
+        alert('Please log in to follow series.');
       } else {
-        console.error('Toggle save failed', err);
-        alert('Failed to update saved series. Please try again.');
+        console.error('Toggle follow failed', err);
+        alert('Failed to update follow status. Please try again.');
       }
     } finally {
-      setSaving(false);
+      setFollowActionLoading(false);
+    }
+  };
+
+  // Toggle notifications – robust + optimistic
+  const toggleNotification = async () => {
+    if (!series || !series.id) return;
+
+    // optimistic update values to make the UI feel snappy
+    const previousFollowing = isFollowing;
+    const previousEnabled = notificationEnabled;
+
+    // If not following: we'll optimistically follow + enable notifications
+    if (!isFollowing) {
+      setFollowActionLoading(true);
+      setIsFollowing(true);
+      setNotificationEnabled(true);
+      try {
+        // create follow
+        const followed = await UserFollowedSeriesService.followSeries(series.id);
+        const serverFollowEnabled = toBool(
+          followed?.notificationEnabled ??
+          followed?.notificationsEnabled ??
+          followed?.enabled ??
+          followed?.notifications_on
+        );
+
+        // if server follow already has notifications enabled, use server value
+        if (!serverFollowEnabled) {
+          // otherwise enable notifications explicitly
+          const updated = await UserFollowedSeriesService.updateNotification(series.id, true);
+          const serverEnabled = toBool(
+            updated?.notificationEnabled ??
+            updated?.notificationsEnabled ??
+            updated?.enabled ??
+            updated?.notifications_on
+          );
+          setNotificationEnabled(serverEnabled);
+        } else {
+          setNotificationEnabled(serverFollowEnabled);
+        }
+      } catch (err) {
+        console.error('Failed to follow+enable notifications', err);
+        alert('Could not enable notifications. Please try again.');
+        // revert optimistic
+        setIsFollowing(previousFollowing);
+        setNotificationEnabled(previousEnabled);
+      } finally {
+        setFollowActionLoading(false);
+      }
+      return;
+    }
+
+    // If already following, just toggle notification preference
+    const newState = !notificationEnabled;
+    // optimistic flip
+    setNotificationEnabled(newState);
+    setFollowActionLoading(true);
+
+    try {
+      const updated = await UserFollowedSeriesService.updateNotification(series.id, newState);
+      const serverEnabled = toBool(
+        updated?.notificationEnabled ??
+        updated?.notificationsEnabled ??
+        updated?.enabled ??
+        updated?.notifications_on
+      );
+      setNotificationEnabled(serverEnabled);
+    } catch (err) {
+      console.error('Failed to update notification', err);
+      alert('Could not update notification preference.');
+      // revert optimistic
+      setNotificationEnabled(previousEnabled);
+    } finally {
+      setFollowActionLoading(false);
     }
   };
 
@@ -290,7 +402,7 @@ const SeriesDetailPage = () => {
 
   const goHome = () => navigate('/user');
 
-  if (error) return <div className="error-message">Error: {error.message}</div>;
+  if (error) return <div className="error-message">Error: {error?.message ?? String(error)}</div>;
   if (!series) return <div className="loading-indicator">Loading series...</div>;
 
   return (
@@ -316,20 +428,33 @@ const SeriesDetailPage = () => {
             <button className="crumb" onClick={goHome}>Series</button> / <strong>{series.title}</strong>
           </div>
 
+          {/* Badges row with follow & notification buttons */}
           <div className="badges-row">
             <span className="badge genre">#{series.category?.toUpperCase() || 'ROMANCE'}</span>
             {series.completed && <span className="badge completed">COMPLETED SERIES</span>}
-            
-            {/* Save button – only shown after we know authentication state */}
+
             {authChecked && (
-              <RippleButton
-                className={`badge save-button ${isSaved ? 'saved' : ''}`}
-                onClick={toggleSave}
-                disabled={saving}
-                style={{ marginLeft: 'auto' }}
-              >
-                {saving ? 'Saving...' : isSaved ? 'Remove from favorite' : 'Add to favorite'}
-              </RippleButton>
+              <>
+                <RippleButton
+                  className={`badge follow-button ${isFollowing ? 'following' : ''}`}
+                  onClick={toggleFollow}
+                  disabled={followActionLoading}
+                  style={{ marginLeft: 'auto', marginRight: '8px' }}
+                >
+                  {followActionLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
+                </RippleButton>
+
+                {isFollowing && (
+                  <RippleButton
+                    className={`badge notification-button ${notificationEnabled ? 'enabled' : ''}`}
+                    onClick={toggleNotification}
+                    disabled={followActionLoading}
+                    title={notificationEnabled ? 'Disable notifications' : 'Enable notifications'}
+                  >
+                    {notificationEnabled ? <FaBell /> : <FaBellSlash />}
+                  </RippleButton>
+                )}
+              </>
             )}
           </div>
 

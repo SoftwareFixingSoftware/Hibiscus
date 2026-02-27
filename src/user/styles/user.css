@@ -2187,3 +2187,93 @@ body::before {
   background: #ff1f5c;
   transform: scale(1.02);
 }
+/* Follow button (badge style) */
+.badge.follow-button {
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: background 0.2s, border-color 0.2s;
+  margin-left: auto;
+  margin-right: 8px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.badge.follow-button.following {
+  background: #4caf50;
+  border-color: #4caf50;
+  color: white;
+}
+.badge.follow-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Notification button (badge style) */
+.badge.notification-button {
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: background 0.2s, border-color 0.2s;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.badge.notification-button.enabled {
+  background: #ffaa00;
+  border-color: #ffaa00;
+  color: #000;
+}
+.badge.notification-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Notification badge on cards */
+.notification-badge {
+  font-size: 0.75rem;
+  background: #4caf50;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+
+/* Card actions container */
+.card-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+.notification-toggle,
+.remove-button {
+  background: rgba(0,0,0,0.6);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.notification-toggle.active {
+  background: #ffaa00;
+  color: #000;
+}
+.notification-toggle:hover,
+.remove-button:hover {
+  background: rgba(0,0,0,0.8);
+}
