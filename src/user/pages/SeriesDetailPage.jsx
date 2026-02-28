@@ -5,10 +5,14 @@ import { useAudio } from '../context/AudioContext';
 import PublicSeriesService from '../services/PublicSeriesService';
 import PublicEpisodeService from '../services/PublicEpisodeService';
 import UserFollowedSeriesService from '../services/UserFollowedSeriesService';
+import UserSavedSeriesService from '../services/UserSavedSeriesService';
+import SeriesReviewService from '../services/SeriesReviewService';
 import { mapSeries, mapEpisode, formatDuration, relativeDate, formatMoneyFromCents } from '../utils/episodeHelpers';
 import EpisodeCard from '../components/cards/EpisodeCard';
+import ReviewCard from '../components/cards/ReviewCard';
+import RatingInput from '../components/cards/RatingInput';
 import RippleButton from '../components/common/RippleButton';
-import { FaBell, FaBellSlash } from 'react-icons/fa';
+import { FaBell, FaBellSlash, FaHeart, FaRegHeart } from 'react-icons/fa';
 
 const SeriesDetailPage = () => {
   const { id } = useParams();
@@ -29,12 +33,38 @@ const SeriesDetailPage = () => {
   const [followActionLoading, setFollowActionLoading] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
 
+  // Save (favorites) state
+  const [isSaved, setIsSaved] = useState(false);
+  const [saveActionLoading, setSaveActionLoading] = useState(false);
+
+  // Reviews tab state
+  const [activeTab, setActiveTab] = useState('episodes');
+  const [reviews, setReviews] = useState([]);
+  const [myReview, setMyReview] = useState(null);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [reviewError, setReviewError] = useState(null);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [formRating, setFormRating] = useState(5);
+  const [formText, setFormText] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+
   // Overlay scroll fade
   const overlayRef = useRef(null);
   const [showTopFade, setShowTopFade] = useState(false);
   const [showBottomFade, setShowBottomFade] = useState(false);
 
-  // Helper: coerce a variety of server truthy/format into boolean
+  // Helper: extract reviews array from various API response shapes
+  const extractReviewsArray = (data) => {
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === 'object') {
+      if (Array.isArray(data.content)) return data.content;
+      if (Array.isArray(data.data)) return data.data;
+      if (Array.isArray(data.items)) return data.items;
+      if (Array.isArray(data.results)) return data.results;
+    }
+    return [];
+  };
+
   const toBool = (v) => {
     if (v === undefined || v === null) return false;
     if (typeof v === 'boolean') return v;
@@ -52,10 +82,63 @@ const SeriesDetailPage = () => {
     loadSeriesAndEpisodes(id);
   }, [id]);
 
+  // After series loads, check saved status and follow status
+  useEffect(() => {
+    if (!series || !series.id) return;
+    let cancelled = false;
+
+    const fetchSavedStatus = async () => {
+      try {
+        const savedList = await UserSavedSeriesService.getSavedSeries();
+        if (cancelled) return;
+        const found = (Array.isArray(savedList) && savedList.some(s =>
+          s.seriesId === series.id || s.seriesId === series.seriesId || s.id === series.id
+        ));
+        setIsSaved(Boolean(found));
+      } catch (err) {
+        if (err?.response?.status === 401 || err?.response?.status === 403) {
+          setIsSaved(false);
+        } else {
+          console.warn('Failed to check saved status', err);
+        }
+      }
+    };
+
+    const fetchFollowStatus = async () => {
+      try {
+        const status = await UserFollowedSeriesService.getFollowStatus(series.id);
+        const serverEnabled = toBool(
+          status?.notificationEnabled ??
+          status?.notificationsEnabled ??
+          status?.enabled ??
+          status?.notifications_on ??
+          status?.notificationsOn
+        );
+        setIsFollowing(true);
+        setNotificationEnabled(serverEnabled);
+      } catch (err) {
+        if (err.response?.status === 404) {
+          setIsFollowing(false);
+          setNotificationEnabled(false);
+        } else if (err.response?.status === 401 || err.response?.status === 403) {
+          setIsFollowing(false);
+          setNotificationEnabled(false);
+        } else {
+          console.warn('Failed to fetch follow status', err);
+        }
+      } finally {
+        if (!cancelled) setAuthChecked(true);
+      }
+    };
+
+    fetchSavedStatus();
+    fetchFollowStatus();
+    return () => { cancelled = true; };
+  }, [series]);
+
   // After episodes are loaded, check for episode query param
   useEffect(() => {
     if (!episodes.length) return;
-
     const params = new URLSearchParams(location.search);
     const episodeId = params.get('episode');
     if (episodeId) {
@@ -71,46 +154,51 @@ const SeriesDetailPage = () => {
     }
   }, [episodes, location.search]);
 
-  // After series is loaded, fetch follow status
+  // Fetch reviews when tab changes to 'reviews'
   useEffect(() => {
-    if (!series || !series.id) return;
+    if (activeTab === 'reviews' && series?.id) {
+      loadReviews();
+    }
+  }, [activeTab, series?.id]);
 
-    let cancelled = false;
-    const fetchFollowStatus = async () => {
-      try {
-        const status = await UserFollowedSeriesService.getFollowStatus(series.id);
-        if (cancelled) return;
+  const loadReviews = async () => {
+    setLoadingReviews(true);
+    setReviewError(null);
+    try {
+      const [allReviews, myReviewRes] = await Promise.allSettled([
+        SeriesReviewService.getReviewsForSeries(series.id),
+        SeriesReviewService.getMyReviewForSeries(series.id),
+      ]);
 
-        // server shape may vary; look for likely fields
-        const serverEnabled = toBool(
-          status?.notificationEnabled ??
-          status?.notificationsEnabled ??
-          status?.enabled ??
-          status?.notifications_on ??
-          status?.notificationsOn
-        );
-
-        setIsFollowing(true);
-        setNotificationEnabled(serverEnabled);
-      } catch (err) {
-        if (cancelled) return;
-        if (err.response?.status === 404) {
-          setIsFollowing(false);
-          setNotificationEnabled(false);
-        } else if (err.response?.status === 401 || err.response?.status === 403) {
-          setIsFollowing(false);
-          setNotificationEnabled(false);
+      if (allReviews.status === 'fulfilled') {
+        setReviews(extractReviewsArray(allReviews.value));
+      } else {
+        if (allReviews.reason?.response?.status === 401) {
+          setReviewError('Please log in to see reviews.');
         } else {
-          console.warn('Failed to fetch follow status', err);
+          console.warn('Failed to fetch all reviews', allReviews.reason);
         }
-      } finally {
-        if (!cancelled) setAuthChecked(true);
+        setReviews([]);
       }
-    };
 
-    fetchFollowStatus();
-    return () => { cancelled = true; };
-  }, [series]);
+      if (myReviewRes.status === 'fulfilled') {
+        setMyReview(myReviewRes.value);
+      } else {
+        if (myReviewRes.reason?.response?.status === 404) {
+          setMyReview(null);
+        } else if (myReviewRes.reason?.response?.status === 401) {
+          setMyReview(null);
+        } else {
+          console.warn('Failed to fetch my review', myReviewRes.reason);
+        }
+      }
+    } catch (err) {
+      setReviewError('Failed to load reviews.');
+      setReviews([]);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
 
   // Overlay scroll fade logic
   useEffect(() => {
@@ -171,7 +259,6 @@ const SeriesDetailPage = () => {
         setNotificationEnabled(false);
       } else {
         const followed = await UserFollowedSeriesService.followSeries(series.id);
-        // coerce server response
         const serverEnabled = toBool(
           followed?.notificationEnabled ??
           followed?.notificationsEnabled ??
@@ -193,21 +280,17 @@ const SeriesDetailPage = () => {
     }
   };
 
-  // Toggle notifications – robust + optimistic
+  // Toggle notifications
   const toggleNotification = async () => {
     if (!series || !series.id) return;
-
-    // optimistic update values to make the UI feel snappy
     const previousFollowing = isFollowing;
     const previousEnabled = notificationEnabled;
 
-    // If not following: we'll optimistically follow + enable notifications
     if (!isFollowing) {
       setFollowActionLoading(true);
       setIsFollowing(true);
       setNotificationEnabled(true);
       try {
-        // create follow
         const followed = await UserFollowedSeriesService.followSeries(series.id);
         const serverFollowEnabled = toBool(
           followed?.notificationEnabled ??
@@ -215,10 +298,7 @@ const SeriesDetailPage = () => {
           followed?.enabled ??
           followed?.notifications_on
         );
-
-        // if server follow already has notifications enabled, use server value
         if (!serverFollowEnabled) {
-          // otherwise enable notifications explicitly
           const updated = await UserFollowedSeriesService.updateNotification(series.id, true);
           const serverEnabled = toBool(
             updated?.notificationEnabled ??
@@ -233,7 +313,6 @@ const SeriesDetailPage = () => {
       } catch (err) {
         console.error('Failed to follow+enable notifications', err);
         alert('Could not enable notifications. Please try again.');
-        // revert optimistic
         setIsFollowing(previousFollowing);
         setNotificationEnabled(previousEnabled);
       } finally {
@@ -242,12 +321,9 @@ const SeriesDetailPage = () => {
       return;
     }
 
-    // If already following, just toggle notification preference
     const newState = !notificationEnabled;
-    // optimistic flip
     setNotificationEnabled(newState);
     setFollowActionLoading(true);
-
     try {
       const updated = await UserFollowedSeriesService.updateNotification(series.id, newState);
       const serverEnabled = toBool(
@@ -260,14 +336,106 @@ const SeriesDetailPage = () => {
     } catch (err) {
       console.error('Failed to update notification', err);
       alert('Could not update notification preference.');
-      // revert optimistic
       setNotificationEnabled(previousEnabled);
     } finally {
       setFollowActionLoading(false);
     }
   };
 
-  // Access & purchase helpers (unchanged)
+  // Toggle save (favorites)
+  const toggleSave = async () => {
+    if (!series || !series.id) return;
+    const previous = isSaved;
+    setIsSaved(!previous);
+    setSaveActionLoading(true);
+    try {
+      if (previous) {
+        await UserSavedSeriesService.removeSavedSeries(series.id);
+        setIsSaved(false);
+      } else {
+        await UserSavedSeriesService.saveSeries(series.id);
+        setIsSaved(true);
+      }
+    } catch (err) {
+      console.error('Failed to toggle save', err);
+      alert('Could not update your favorites. Please try again.');
+      setIsSaved(previous);
+    } finally {
+      setSaveActionLoading(false);
+    }
+  };
+
+  // Review form handlers
+  const handleOpenReviewForm = () => {
+    if (myReview) {
+      setFormRating(myReview.rating);
+      setFormText(myReview.reviewText || '');
+    } else {
+      setFormRating(5);
+      setFormText('');
+    }
+    setShowReviewForm(true);
+  };
+
+  const handleCloseReviewForm = () => {
+    setShowReviewForm(false);
+    setFormRating(5);
+    setFormText('');
+  };
+
+  const handleSubmitReview = async () => {
+    if (!formRating) {
+      alert('Please select a rating');
+      return;
+    }
+    setSubmittingReview(true);
+    try {
+      const reviewData = {
+        rating: formRating,
+        reviewText: formText.trim() || undefined,
+      };
+      let updated;
+      if (myReview) {
+        updated = await SeriesReviewService.updateMyReview(series.id, reviewData);
+      } else {
+        updated = await SeriesReviewService.createReview(series.id, reviewData);
+      }
+      setMyReview(updated);
+      const allReviews = await SeriesReviewService.getReviewsForSeries(series.id);
+      setReviews(extractReviewsArray(allReviews));
+      handleCloseReviewForm();
+      
+      // Refresh series to get updated average rating
+      await loadSeriesAndEpisodes(series.id);
+    } catch (err) {
+      console.error('Failed to save review', err);
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        alert('Please log in to write a review.');
+      } else {
+        alert('Could not save review. Please try again.');
+      }
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const handleDeleteReview = async () => {
+    if (!window.confirm('Are you sure you want to delete your review?')) return;
+    try {
+      await SeriesReviewService.deleteMyReview(series.id);
+      setMyReview(null);
+      const allReviews = await SeriesReviewService.getReviewsForSeries(series.id);
+      setReviews(extractReviewsArray(allReviews));
+      
+      // Refresh series to get updated average rating
+      await loadSeriesAndEpisodes(series.id);
+    } catch (err) {
+      console.error('Failed to delete review', err);
+      alert('Could not delete review.');
+    }
+  };
+
+  // Access & purchase helpers
   const checkAccess = async (epRaw) => {
     try {
       const id = epRaw.id || epRaw.episodeId || epRaw.uuid;
@@ -428,7 +596,7 @@ const SeriesDetailPage = () => {
             <button className="crumb" onClick={goHome}>Series</button> / <strong>{series.title}</strong>
           </div>
 
-          {/* Badges row with follow & notification buttons */}
+          {/* Badges row with follow / save / notification buttons */}
           <div className="badges-row">
             <span className="badge genre">#{series.category?.toUpperCase() || 'ROMANCE'}</span>
             {series.completed && <span className="badge completed">COMPLETED SERIES</span>}
@@ -442,6 +610,16 @@ const SeriesDetailPage = () => {
                   style={{ marginLeft: 'auto', marginRight: '8px' }}
                 >
                   {followActionLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
+                </RippleButton>
+
+                <RippleButton
+                  className={`badge save-button ${isSaved ? 'saved' : ''}`}
+                  onClick={toggleSave}
+                  disabled={saveActionLoading}
+                  title={isSaved ? 'Remove from favorites' : 'Add to favorites'}
+                  style={{ marginRight: '8px' }}
+                >
+                  {isSaved ? <FaHeart /> : <FaRegHeart />} {saveActionLoading ? '...' : ''}
                 </RippleButton>
 
                 {isFollowing && (
@@ -462,7 +640,9 @@ const SeriesDetailPage = () => {
 
           <div className="series-meta-row">
             <span className="muted">{series.plays || '—'} PLAYS</span>
-            <span className="muted">• ★ {series.averageRating ?? 4.6}</span>
+            {series.averageRating != null && (
+              <span className="muted">• ★ {series.averageRating.toFixed(1)}</span>
+            )}
             <span className="muted">• {series.category || 'ROMANCE'}</span>
           </div>
 
@@ -525,35 +705,138 @@ const SeriesDetailPage = () => {
       </div>
 
       <aside className="series-right">
-        <div className="episodes-header top">
+        {/* Tab switcher */}
+        <div className="episodes-header top" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <h3 className="section-title small">Episodes</h3>
-            <div className="muted small">All {episodes.length} episodes</div>
+            <h3 className="section-title small">
+              {activeTab === 'episodes' ? 'Episodes' : 'Reviews'}
+            </h3>
+            <div className="muted small">
+              {activeTab === 'episodes'
+                ? `All ${episodes.length} episodes`
+                : `${Array.isArray(reviews) ? reviews.length : 0} review${Array.isArray(reviews) && reviews.length !== 1 ? 's' : ''}`}
+            </div>
+          </div>
+          <div className="tab-buttons" style={{ display: 'flex', gap: '8px' }}>
+            <button
+              className={`tab-button ${activeTab === 'episodes' ? 'active' : ''}`}
+              onClick={() => setActiveTab('episodes')}
+            >
+              Episodes
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'reviews' ? 'active' : ''}`}
+              onClick={() => setActiveTab('reviews')}
+            >
+              Reviews
+            </button>
           </div>
         </div>
-        <div className="episodes-list">
-          {loading
-            ? Array.from({ length: 8 }).map((_, i) => <div key={i} className="episode-row skeleton" style={{ height: '68px' }} />)
-            : episodes.map((eRaw, idx) => {
-                const e = mapEpisode(eRaw, idx);
-                const isPlaying = player.episodeId === e.id;
-                const isSelected = selectedEpisode && selectedEpisode.id === e.id;
-                return (
-                  <EpisodeCard
-                    key={e.id || idx}
-                    episode={e}
-                    rawEpisode={eRaw}
-                    index={idx}
-                    isPlaying={isPlaying}
-                    isSelected={isSelected}
-                    onSelect={selectEpisodeWithoutPlay}
-                    onPlay={playEpisode}
-                    onBuy={handleBuyClick}
-                    purchasingId={purchasingEpisodeId}
-                  />
-                );
-              })}
-        </div>
+
+        {/* Conditional content */}
+        {activeTab === 'episodes' ? (
+          <div className="episodes-list">
+            {loading
+              ? Array.from({ length: 8 }).map((_, i) => <div key={i} className="episode-row skeleton" style={{ height: '68px' }} />)
+              : episodes.map((eRaw, idx) => {
+                  const e = mapEpisode(eRaw, idx);
+                  const isPlaying = player.episodeId === e.id;
+                  const isSelected = selectedEpisode && selectedEpisode.id === e.id;
+                  return (
+                    <EpisodeCard
+                      key={e.id || idx}
+                      episode={e}
+                      rawEpisode={eRaw}
+                      index={idx}
+                      isPlaying={isPlaying}
+                      isSelected={isSelected}
+                      onSelect={selectEpisodeWithoutPlay}
+                      onPlay={playEpisode}
+                      onBuy={handleBuyClick}
+                      purchasingId={purchasingEpisodeId}
+                    />
+                  );
+                })}
+          </div>
+        ) : (
+          <div className="reviews-list">
+            {loadingReviews ? (
+              <div className="loading-reviews">Loading reviews...</div>
+            ) : reviewError ? (
+              <div className="error">{reviewError}</div>
+            ) : (
+              <>
+                {/* User's own review area */}
+                <div className="my-review-area" style={{ marginBottom: '20px' }}>
+                  {myReview ? (
+                    <div className="my-review">
+                      <h4>Your Review</h4>
+                      <ReviewCard review={myReview} isOwn={true} />
+                      <div className="my-review-actions" style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
+                        <button className="small-button" onClick={handleOpenReviewForm}>Edit</button>
+                        <button className="small-button" onClick={handleDeleteReview}>Delete</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="no-review">
+                      <p>You haven't reviewed this series yet.</p>
+                      <button className="small-button" onClick={handleOpenReviewForm}>Write a Review</button>
+                    </div>
+                  )}
+                </div>
+
+                {/* All reviews */}
+                <div className="all-reviews">
+                  <h4>Community Reviews</h4>
+                  {!Array.isArray(reviews) ? (
+                    <p>Error loading reviews.</p>
+                  ) : reviews.length === 0 ? (
+                    <p>No reviews yet. Be the first to review!</p>
+                  ) : (
+                    reviews.map((review) => (
+                      <ReviewCard
+                        key={review.reviewId}
+                        review={review}
+                        isOwn={myReview?.reviewId === review.reviewId}
+                      />
+                    ))
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* Review form modal */}
+            {showReviewForm && (
+              <div className="review-form-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                <div className="review-form" style={{ background: 'white', padding: '20px', borderRadius: '8px', width: '90%', maxWidth: '500px' }}>
+                  <h3>{myReview ? 'Edit Your Review' : 'Write a Review'}</h3>
+                  <div className="form-group" style={{ marginBottom: '15px' }}>
+                    <label>Rating:</label>
+                    <RatingInput value={formRating} onChange={setFormRating} />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: '15px' }}>
+                    <label>Review (optional):</label>
+                    <textarea
+                      rows="4"
+                      value={formText}
+                      onChange={(e) => setFormText(e.target.value)}
+                      placeholder="Share your thoughts..."
+                      style={{ width: '100%', padding: '8px' }}
+                    />
+                  </div>
+                  <div className="form-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                    <button onClick={handleCloseReviewForm} disabled={submittingReview}>
+                      Cancel
+                    </button>
+                    <button onClick={handleSubmitReview} disabled={submittingReview}>
+                      {submittingReview ? 'Saving...' : myReview ? 'Update' : 'Submit'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </aside>
     </section>
   );

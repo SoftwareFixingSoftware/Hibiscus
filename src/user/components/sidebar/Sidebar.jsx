@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import RippleButton from '../common/RippleButton';
 import AuthService from '../../services/AuthService';
-import LogoutModal from '../../components/LogoutModal';  
+import LogoutModal from '../../components/LogoutModal';
+
 import {
   FaHome,
   FaStore,
@@ -12,12 +13,14 @@ import {
   FaHeart,
   FaSignOutAlt,
   FaChevronLeft,
-  FaChevronRight
+  FaChevronRight,
+  FaBell
 } from 'react-icons/fa';
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -31,7 +34,7 @@ const Sidebar = () => {
   const handleLogout = async () => {
     try {
       await AuthService.logout();
-      navigate('/'); // or '/login'
+      navigate('/');
     } catch (err) {
       console.error('Logout failed', err);
       alert('Logout failed. Please try again.');
@@ -42,8 +45,10 @@ const Sidebar = () => {
 
   const menuItems = [
     { path: '/user', label: 'Home', icon: <FaHome /> },
+
+     { path: '/user/notifications', label: 'Notifications', icon: <FaBell /> },
+
     { path: '/user/buy-coins', label: 'Store', icon: <FaStore /> },
-    { path: '/user/studio', label: 'Studio', icon: <FaFilm /> },
     { path: '/user/profile', label: 'Profile', icon: <FaUser /> },
     { path: '/user/purchases', label: 'Purchases', icon: <FaHistory /> },
     { path: '/user/saved-series', label: 'Favorites', icon: <FaHeart /> },
@@ -53,10 +58,19 @@ const Sidebar = () => {
     <>
       <aside className={`dash-sidebar ${collapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
-          <div className="dash-logo" onClick={() => navigate('/user')} style={{ cursor: 'pointer' }}>
+          <div
+            className="dash-logo"
+            onClick={() => navigate('/user')}
+            style={{ cursor: 'pointer' }}
+          >
             {collapsed ? 'PF' : 'PodFlow'}
           </div>
-          <button className="sidebar-toggle" onClick={toggleSidebar} aria-label="Toggle sidebar">
+
+          <button
+            className="sidebar-toggle"
+            onClick={toggleSidebar}
+            aria-label="Toggle sidebar"
+          >
             {collapsed ? <FaChevronRight /> : <FaChevronLeft />}
           </button>
         </div>
@@ -70,18 +84,24 @@ const Sidebar = () => {
               title={collapsed ? item.label : ''}
             >
               <span className="nav-icon">{item.icon}</span>
-              {!collapsed && <span className="nav-label">{item.label}</span>}
+              {!collapsed && (
+                <span className="nav-label">{item.label}</span>
+              )}
             </RippleButton>
           ))}
 
-          {/* Logout button – separate because it doesn't navigate */}
+          {/* Logout */}
           <RippleButton
             className="nav-item"
             onClick={() => setShowLogoutModal(true)}
             title={collapsed ? 'Logout' : ''}
           >
-            <span className="nav-icon"><FaSignOutAlt /></span>
-            {!collapsed && <span className="nav-label">Logout</span>}
+            <span className="nav-icon">
+              <FaSignOutAlt />
+            </span>
+            {!collapsed && (
+              <span className="nav-label">Logout</span>
+            )}
           </RippleButton>
         </div>
       </aside>

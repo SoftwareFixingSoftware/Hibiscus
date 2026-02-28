@@ -5,8 +5,8 @@ import { mapSeries } from '../utils/episodeHelpers';
 import HeroCarousel from '../components/hero/HeroCarousel';
 import SearchBar from '../components/search/SearchBar';
 import SeriesCard from '../components/cards/SeriesCard';
-// Footer is part of the main page content, so we include it here
-import Footer from '../components/common/Footer'; // we'll create Footer separately
+import NotificationBell from '../components/NotificationBell';  
+import Footer from '../components/common/Footer';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -98,6 +98,12 @@ const HomePage = () => {
 
   return (
     <>
+      {/* Header with app name and notification bell */}
+      <header className="app-header">
+        <div className="logo" onClick={() => navigate('/')}>Hibiscus</div>
+        <NotificationBell />
+      </header>
+
       <SearchBar
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
@@ -106,6 +112,7 @@ const HomePage = () => {
         mode={mode}
       />
 
+      {/* ... rest of the content as before ... */}
       {loading && displaySeries.length === 0 ? (
         <>
           {mode === 'browse' && <div className="hero-carousel skeleton" style={{ height: '460px' }} />}

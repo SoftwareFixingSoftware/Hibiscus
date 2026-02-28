@@ -2277,3 +2277,119 @@ body::before {
 .remove-button:hover {
   background: rgba(0,0,0,0.8);
 }
+/* SeriesDetailPage.css */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.tab {
+  padding: 10px 20px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-size: 16px;
+  border-bottom: 3px solid transparent;
+}
+
+.tab.active {
+  border-bottom-color: #007bff;
+  font-weight: bold;
+}
+
+/* Review form overlay */
+.review-form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.review-form {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-group textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* RatingInput.css */
+.rating-input .star {
+  font-size: 24px;
+  cursor: pointer;
+  color: #ccc;
+  transition: color 0.2s;
+}
+
+.rating-input .star.filled {
+  color: #f5b301;
+}
+
+/* ReviewCard.css */
+.review-card {
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.review-card.own-review {
+  border-color: #007bff;
+  background-color: #f0f7ff;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.reviewer-name {
+  font-weight: bold;
+}
+
+.review-rating {
+  color: #f5b301;
+}
+
+.review-date {
+  color: #666;
+}
+
+.review-text {
+  margin: 0;
+  line-height: 1.5;
+}

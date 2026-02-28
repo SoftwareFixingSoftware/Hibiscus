@@ -1,12 +1,16 @@
+// src/utils/episodeHelpers.js
+
 export const mapSeries = (s) => ({
   id: s.id || s.uuid,
   title: s.title || s.name,
   description: s.description || s.summary || '',
-  cover: s.coverImageUrl || s.thumbnail || s.imageUrl || null,
+  cover: s.coverImageUrl || s.thumbnail || s.imageUrl || null,       // for home page cards
+  coverImageUrl: s.coverImageUrl || s.thumbnail || s.imageUrl || null, // for series detail page
   completed: s.isCompleted || s.completed || false,
   plays: s.playsDisplay || s.plays || '—',
   category: s.category || 'Uncategorized',
   author: s.authorName || s.author || s.creator || 'Unknown',
+  averageRating: s.averageRating, // may be null (no reviews)
   createdAt: s.createdAt,
   raw: s,
 });
@@ -15,7 +19,8 @@ export const mapEpisode = (e, idx = 0) => {
   const priceInCoins = e.priceInCoins ?? e.price_in_coins ?? e.price_in_coins_amount ?? null;
   const priceCents = e.priceCents ?? e.price_cents ?? e.amount_cents ?? null;
   const currency = e.currency ?? e.currency_code ?? 'USD';
-  const isFree = (e.isFree === true) || (e.is_free === true) || (priceInCoins === 0) || (priceCents === 0);
+  // ✅ isFree only from server flag – zero prices do NOT automatically mean free
+  const isFree = (e.isFree === true) || (e.is_free === true);
 
   return {
     id: e.id || e.episodeId || e.uuid,
