@@ -9,7 +9,7 @@ import SeriesManagement from './admin/pages/SeriesManagement';
 import EpisodeManagement from './admin/pages/EpisodeManagement';
 import SeriesDetail from './admin/pages/SeriesDetail';
 import AdminUsers from './admin/pages/AdminUsers';
-
+import AdminAnalytics from './admin/pages/AdminAnalytics';
 // Auth Components (unchanged)
 import ForgotPassword from './auth/ForgotPassword';
 import ResetPassword from './auth/ResetPassword';
@@ -75,6 +75,7 @@ function App() {
           <Route path="coin-packages" element={<AdminCoinPackagesPage />} />
           <Route path="payments" element={<AdminPayments />} />
           <Route path="purchases" element={<AdminEpisodePurchases />} />
+          <Route path="analytics" element={<AdminAnalytics />} />
 
 
         </Route>
