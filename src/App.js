@@ -30,9 +30,13 @@ import PurchaseHistoryPage from './user/pages/PurchaseHistoryPage';
 import UserProfile from './user/pages/ProfilePage';
 import SavedSeries from './user/pages/SavedSeriesPage';
 import NotificationsPage from './user/pages/NotificationsPage';
-
+ 
 // Common Components (guards) - admin guard unchanged
 import ProtectedRoute from './admin/components/ProtectedRoute';
+import AdminCoinPackagesPage from './admin/pages/AdminCoinPackagesPage';
+import AdminPayments from './admin/pages/AdminPayments';
+import AdminEpisodePurchases from './admin/pages/AdminEpisodePurchases';
+import AdminPaymentService from './admin/services/adminPaymentService';
 
 // Optional: Redirect wrapper for legacy series routes
 const LegacySeriesRedirect = ({ to }) => {
@@ -68,6 +72,11 @@ function App() {
           <Route path="episodes" element={<EpisodeManagement />} />
           <Route path="users" element={<AdminUsers />} />
           <Route path="episodes/series/:seriesId" element={<EpisodeManagement />} />
+          <Route path="coin-packages" element={<AdminCoinPackagesPage />} />
+          <Route path="payments" element={<AdminPayments />} />
+          <Route path="purchases" element={<AdminEpisodePurchases />} />
+
+
         </Route>
 
         {/* ========== LEGACY SERIES ROUTES (redirect to new /user paths) ========== */}

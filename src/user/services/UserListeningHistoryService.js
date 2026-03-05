@@ -2,119 +2,257 @@
 import api from './api';
 
 const basePath = '/secure/user/history';
-const DEFAULT_FLUSH_INTERVAL_MS = 15000; // 15s - tune as needed
+const DEFAULT_FLUSH_INTERVAL_MS = 15000;   // 15 seconds
+const MAX_RETRY_DELAY_MS = 5 * 60 * 1000;  // 5 minutes
+const STORAGE_KEY = 'listeningHistoryPending';
 
-// Internal buffer keyed by episodeId -> { episodeId, progressSeconds, completed, lastUpdated }
-const progressBuffer = new Map();
+// Internal queue: Map<episodeId, Entry>
+// Entry: { episodeId, progressSeconds?, type: 'progress'|'complete', retryCount, lastAttemptMs, requestId, updatedAtMs }
+const pendingMap = new Map();
 let flushTimer = null;
 let flushInterval = DEFAULT_FLUSH_INTERVAL_MS;
 let isShuttingDown = false;
 
-/** Internal: send a single progress update to server (fire-and-forget) */
-async function sendProgress(payload) {
+// ----------------------------- Persistence helpers -----------------------------
+function loadFromStorage() {
   try {
-    // payload: { episodeId, progressSeconds, completed? }
-    await api.post(`${basePath}/progress`, payload);
-    // no UI notifications — just fire & forget
-  } catch (err) {
-    // Log for diagnostics, but don't throw to UI
-    console.warn('UserListeningHistoryService: failed to send progress', { payload, err });
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const entries = JSON.parse(stored);
+      entries.forEach(entry => {
+        if (entry && entry.episodeId) {
+          pendingMap.set(entry.episodeId, {
+            ...entry,
+            // ensure numeric timestamps
+            lastAttemptMs: entry.lastAttemptMs ? Number(entry.lastAttemptMs) : null,
+            updatedAtMs: entry.updatedAtMs ? Number(entry.updatedAtMs) : Date.now(),
+            retryCount: entry.retryCount || 0,
+            requestId: entry.requestId || `${Date.now()}_${Math.random().toString(36).slice(2)}`,
+          });
+        }
+      });
+    }
+  } catch (e) {
+    console.warn('Failed to load pending history from storage', e);
   }
 }
 
-/** Internal: send mark-as-completed call (fire-and-forget) */
-async function sendMarkCompleted(episodeId) {
+function saveToStorage() {
+  try {
+    const entries = Array.from(pendingMap.values()).map(entry => ({
+      episodeId: entry.episodeId,
+      progressSeconds: entry.progressSeconds,
+      type: entry.type,
+      retryCount: entry.retryCount,
+      lastAttemptMs: entry.lastAttemptMs || null,
+      requestId: entry.requestId,
+      updatedAtMs: entry.updatedAtMs || Date.now(),
+    }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  } catch (e) {
+    console.warn('Failed to save pending history to storage', e);
+  }
+}
+
+// ----------------------------- Send helpers (with simple success handling) -----------------------------
+async function sendProgress(entry) {
+  const { episodeId, progressSeconds } = entry;
+  try {
+    await api.post(`${basePath}/progress`, {
+      episodeId,
+      progressSeconds,
+    });
+    // On success remove only if same requestId (ensures we don't remove newer updates)
+    const current = pendingMap.get(episodeId);
+    if (current && current.requestId === entry.requestId && current.type === 'progress') {
+      pendingMap.delete(episodeId);
+      saveToStorage();
+    }
+    return true;
+  } catch (err) {
+    console.warn(`Failed to send progress for episode ${episodeId}`, err);
+    return false;
+  }
+}
+
+async function sendComplete(entry) {
+  const { episodeId } = entry;
   try {
     await api.post(`${basePath}/episodes/${episodeId}/complete`);
+    const current = pendingMap.get(episodeId);
+    if (current && current.requestId === entry.requestId && current.type === 'complete') {
+      pendingMap.delete(episodeId);
+      saveToStorage();
+    }
+    return true;
   } catch (err) {
-    console.warn('UserListeningHistoryService: failed to mark completed', { episodeId, err });
+    console.warn(`Failed to mark completed for episode ${episodeId}`, err);
+    return false;
   }
 }
 
-/** Flush the buffer: send the latest progress for each episode and clear the buffer. */
-export async function flush() {
-  if (!progressBuffer.size) return;
-  // snapshot and clear to avoid races where new updates come in during sending
-  const entries = Array.from(progressBuffer.values());
-  progressBuffer.clear();
+// ----------------------------- Retry / scheduling -----------------------------
+function scheduleRetry(entry) {
+  const retryCount = entry.retryCount || 0;
+  const delay = Math.min(Math.pow(2, retryCount) * 1000, MAX_RETRY_DELAY_MS);
+  setTimeout(() => {
+    const current = pendingMap.get(entry.episodeId);
+    if (!current || current.requestId !== entry.requestId) return;
 
-  // send each entry (parallel)
-  await Promise.all(entries.map(entry => sendProgress({
-    episodeId: entry.episodeId,
-    progressSeconds: entry.progressSeconds,
-    completed: entry.completed,
-  })));
+    const attemptAndReschedule = (fn, type) => {
+      fn(current).then(success => {
+        if (!success) {
+          // bump retry and set lastAttemptMs and new requestId so future updates are distinguishable
+          const updated = {
+            ...current,
+            retryCount: (current.retryCount || 0) + 1,
+            lastAttemptMs: Date.now(),
+            requestId: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
+            updatedAtMs: Date.now(),
+          };
+          pendingMap.set(entry.episodeId, updated);
+          saveToStorage();
+          scheduleRetry(updated);
+        }
+      });
+    };
+
+    if (current.type === 'progress') attemptAndReschedule(sendProgress, 'progress');
+    else if (current.type === 'complete') attemptAndReschedule(sendComplete, 'complete');
+  }, delay);
 }
 
-/** Queue a progress update — will be debounced/batched automatically.
- * Call this frequently (e.g., every timeplayer timeupdate fires). The service will only
- * send the latest update for an episode at flush time.
- *
- * episodeId: string
- * progressSeconds: number
- * completed: boolean (optional)
- */
-export function queueProgress(episodeId, progressSeconds, completed) {
-  if (!episodeId) return;
-  if (isNaN(Number(progressSeconds))) return;
+// ----------------------------- Flush (attempt send of everything) -----------------------------
+export async function flush() {
+  if (pendingMap.size === 0) return;
 
-  const now = Date.now();
-  progressBuffer.set(episodeId, {
-    episodeId,
-    progressSeconds: Math.floor(Number(progressSeconds)),
-    completed: typeof completed === 'boolean' ? completed : undefined,
-    lastUpdated: now,
+  const entries = Array.from(pendingMap.values());
+  // try all in parallel
+  const results = await Promise.allSettled(entries.map(entry => {
+    if (entry.type === 'progress') return sendProgress(entry);
+    return sendComplete(entry);
+  }));
+
+  results.forEach((res, idx) => {
+    const entry = entries[idx];
+    const failed = (res.status === 'rejected') || (res.status === 'fulfilled' && res.value === false);
+    if (failed) {
+      const updated = {
+        ...entry,
+        retryCount: (entry.retryCount || 0) + 1,
+        lastAttemptMs: Date.now(),
+        requestId: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        updatedAtMs: Date.now(),
+      };
+      pendingMap.set(entry.episodeId, updated);
+      scheduleRetry(updated);
+    }
   });
 
-  // ensure flush timer is running
+  saveToStorage();
+}
+
+// ----------------------------- Public API (queue-only for progress; complete creates entry) -----------------------------
+export function queueProgress(episodeId, progressSeconds) {
+  if (!episodeId || isNaN(Number(progressSeconds))) return;
+
+  const existing = pendingMap.get(episodeId);
+  // If there's a pending completion, the user is listening again – discard it
+  if (existing && existing.type === 'complete') {
+    pendingMap.delete(episodeId);
+  }
+
+  const nowMs = Date.now();
+  const requestId = `${nowMs}_${Math.random().toString(36).slice(2)}`;
+
+  // new entry replaces any existing progress entry (latest wins)
+  pendingMap.set(episodeId, {
+    episodeId,
+    progressSeconds: Math.floor(Number(progressSeconds)),
+    type: 'progress',
+    retryCount: 0,
+    lastAttemptMs: existing ? (existing.lastAttemptMs || null) : null,
+    requestId,
+    updatedAtMs: nowMs,
+  });
+
+  saveToStorage();
   ensureFlushTimer();
 }
 
-/** Send a single progress update immediately (no buffering). Use sparingly. */
-export function updateProgressImmediate({ episodeId, progressSeconds, completed } = {}) {
+export function updateProgressImmediate({ episodeId, progressSeconds }) {
   if (!episodeId) throw new Error('episodeId required');
   if (isNaN(Number(progressSeconds))) throw new Error('progressSeconds required (number)');
-  return sendProgress({ episodeId, progressSeconds: Math.floor(Number(progressSeconds)), completed });
+
+  // immediate fire (no retry). Keep for rare cases but prefer queueProgress.
+  return api.post(`${basePath}/progress`, {
+    episodeId,
+    progressSeconds: Math.floor(Number(progressSeconds)),
+  });
 }
 
-/** Mark an episode as completed immediately. */
 export function markCompleted(episodeId) {
   if (!episodeId) throw new Error('episodeId required');
-  // If there's a buffered progress for this episode, send it first (best-effort)
-  const buffered = progressBuffer.get(episodeId);
-  if (buffered) {
-    // send buffered progress then mark completed
-    // do not await here (fire & forget), but attempt both
-    sendProgress({
-      episodeId: buffered.episodeId,
-      progressSeconds: buffered.progressSeconds,
-      completed: true,
-    }).catch(() => {});
-    progressBuffer.delete(episodeId);
-  }
-  return sendMarkCompleted(episodeId);
+
+  // remove any pending progress entry; completed overrides
+  pendingMap.delete(episodeId);
+
+  const nowMs = Date.now();
+  const requestId = `${nowMs}_${Math.random().toString(36).slice(2)}`;
+  const entry = {
+    episodeId,
+    type: 'complete',
+    retryCount: 0,
+    lastAttemptMs: null,
+    requestId,
+    updatedAtMs: nowMs,
+  };
+
+  pendingMap.set(episodeId, entry);
+  saveToStorage();
+
+  // attempt immediate send; if fails schedule retry
+  sendComplete(entry).then(success => {
+    if (!success) {
+      const updated = {
+        ...entry,
+        retryCount: 1,
+        lastAttemptMs: Date.now(),
+        requestId: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        updatedAtMs: Date.now(),
+      };
+      pendingMap.set(episodeId, updated);
+      saveToStorage();
+      scheduleRetry(updated);
+    }
+  });
+
+  ensureFlushTimer();
 }
 
-/** Internal: ensure the periodic flush timer is started */
+// ----------------------------- Flush timer management -----------------------------
 function ensureFlushTimer() {
   if (flushTimer || isShuttingDown) return;
-  flushTimer = setInterval(() => {
-    // don't await here; call flush but handle errors internally
-    flush().catch(err => {
-      console.warn('UserListeningHistoryService: periodic flush error', err);
-    });
-  }, flushInterval);
+  const tick = async () => {
+    try {
+      await flush();
+    } catch (err) {
+      console.warn('Periodic flush error', err);
+    }
+    if (!isShuttingDown) {
+      flushTimer = setTimeout(tick, flushInterval);
+    }
+  };
+  flushTimer = setTimeout(tick, flushInterval);
 }
 
-/** Stop the flush timer (used on cleanup) */
 function stopFlushTimer() {
   if (flushTimer) {
-    clearInterval(flushTimer);
+    clearTimeout(flushTimer);
     flushTimer = null;
   }
 }
 
-/** Configure flush interval (ms). Call before using service if you need custom timing) */
 export function configure({ intervalMs = DEFAULT_FLUSH_INTERVAL_MS } = {}) {
   flushInterval = Number(intervalMs) || DEFAULT_FLUSH_INTERVAL_MS;
   if (flushTimer) {
@@ -123,74 +261,99 @@ export function configure({ intervalMs = DEFAULT_FLUSH_INTERVAL_MS } = {}) {
   }
 }
 
-/** Graceful shutdown: flush pending updates and stop timer. Call on page unload. */
+// ----------------------------- Unload/sendBeacon fallback -----------------------------
 export async function shutdown({ timeoutMs = 3000 } = {}) {
   if (isShuttingDown) return;
   isShuttingDown = true;
   stopFlushTimer();
-
-  // Attempt a final flush; if it doesn't complete within timeout, continue
-  const p = flush();
-  let finished = false;
-  p.then(() => { finished = true; }).catch(() => { finished = true; });
-  const start = Date.now();
-  while (!finished && Date.now() - start < timeoutMs) {
-    // spin-wait short periods to allow flush to finish — minimal blocking
-    // eslint-disable-next-line no-await-in-loop
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  // If not finished, give up — we intentionally don't block the page long.
+  const flushPromise = flush();
+  const timeoutPromise = new Promise(resolve => setTimeout(resolve, timeoutMs));
+  await Promise.race([flushPromise, timeoutPromise]);
 }
 
-/** Attach unload handlers so buffered progress is attempted to be flushed on page leave.
- * This is optional but recommended for best-effort delivery.
- */
-if (typeof window !== 'undefined') {
-  // Try to flush on page hide/unload/visibilitychange
-  const tryFlushBeforeUnload = () => {
-    // Best-effort synchronous delivery: use navigator.sendBeacon for a tiny payload if available
-    if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function' && progressBuffer.size) {
-      // send each buffered entry via sendBeacon as a fallback
-      for (const entry of progressBuffer.values()) {
-        try {
+function tryUnloadSend() {
+  if (pendingMap.size === 0) return;
+
+  // Prefer navigator.sendBeacon (best for unload)
+  if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+    const entries = Array.from(pendingMap.values());
+    for (const entry of entries) {
+      try {
+        if (entry.type === 'progress') {
           const url = `${basePath}/progress`;
           const body = JSON.stringify({
             episodeId: entry.episodeId,
             progressSeconds: entry.progressSeconds,
-            completed: entry.completed,
           });
-          // sendBeacon uses absolute URL if needed by your proxy; relative should be fine in same-origin setups
-          navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }));
-        } catch (e) {
-          // ignore
+          const blob = new Blob([body], { type: 'application/json' });
+          navigator.sendBeacon(url, blob);
+        } else {
+          const url = `${basePath}/episodes/${entry.episodeId}/complete`;
+          const body = JSON.stringify({}); // send non-empty JSON for safety
+          const blob = new Blob([body], { type: 'application/json' });
+          navigator.sendBeacon(url, blob);
         }
+      } catch (e) {
+        // ignore beacon errors
       }
-      // clear buffer after attempting sendBeacon
-      progressBuffer.clear();
-      return;
     }
+    pendingMap.clear();
+    localStorage.removeItem(STORAGE_KEY);
+    return;
+  }
 
-    // Otherwise try the async flush (best-effort)
-    // we don't await here because unload/visibility may cancel promises
-    flush().catch(() => {});
-  };
-
-  window.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') {
-      tryFlushBeforeUnload();
+  // Fallback: fetch with keepalive (best-effort)
+  const entries = Array.from(pendingMap.values());
+  for (const entry of entries) {
+    try {
+      if (entry.type === 'progress') {
+        fetch(`${basePath}/progress`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ episodeId: entry.episodeId, progressSeconds: entry.progressSeconds }),
+          keepalive: true,
+        }).catch(() => {});
+      } else {
+        fetch(`${basePath}/episodes/${entry.episodeId}/complete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+          keepalive: true,
+        }).catch(() => {});
+      }
+    } catch (e) {
+      // swallow
     }
+  }
+  pendingMap.clear();
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+// ----------------------------- Initialization -----------------------------
+if (typeof window !== 'undefined') {
+  loadFromStorage();
+
+  // On online, try flush immediately
+  window.addEventListener('online', () => {
+    try {
+      flush().catch(() => {});
+    } catch (_) {}
   }, { passive: true });
 
-  window.addEventListener('pagehide', tryFlushBeforeUnload, { passive: true });
-  window.addEventListener('beforeunload', tryFlushBeforeUnload, { passive: true });
+  // Best-effort send on unload/visibility change
+  const unloadHandler = () => tryUnloadSend();
+  window.addEventListener('pagehide', unloadHandler, { passive: true });
+  window.addEventListener('beforeunload', unloadHandler, { passive: true });
+  window.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') tryUnloadSend();
+  }, { passive: true });
 }
 
 export default {
-  // insert-only API surface
-  queueProgress,            // buffered; call often (player timeupdate)
-  updateProgressImmediate,  // immediate single write
-  markCompleted,            // immediate completed write
-  flush,                    // force sending buffered progress
-  shutdown,                 // flush + stop (for app-level lifecycle)
-  configure,                // optional tuning
+  queueProgress,
+  updateProgressImmediate, // rare use only; prefer queueProgress
+  markCompleted,
+  flush,
+  shutdown,
+  configure,
 };

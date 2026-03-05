@@ -10,7 +10,11 @@ import {
   FiBarChart2,
   FiMenu,
   FiX,
-  FiLogOut
+  FiPackage,
+  FiLogOut,
+  FiCreditCard,
+  FiShoppingCart,
+  FiHelpCircle
 } from 'react-icons/fi';
 
 const Sidebar = () => {
@@ -26,7 +30,12 @@ const Sidebar = () => {
     { name: 'Episodes', icon: FiMusic, path: '/admin/episodes' },
     { name: 'Users', icon: FiUsers, path: '/admin/users' },
     { name: 'Analytics', icon: FiBarChart2, path: '/admin/analytics' },
-    { name: 'Analytics', icon: FiBarChart2, path: '/admin/analytics' },
+    { name: 'Coin Packages', icon: FiPackage, path: '/admin/coin-packages' },
+
+    { name: 'Payments', icon: FiCreditCard, path: '/admin/payments' },
+    { name: 'Purchases', icon: FiShoppingCart, path: '/admin/purchases' },
+
+    { name: 'Support', icon: FiHelpCircle, path: '/admin/support' },
     { name: 'Settings', icon: FiSettings, path: '/admin/settings' },
   ];
 
@@ -42,6 +51,7 @@ const Sidebar = () => {
           <div className="brand-logo">
             <span className="logo-text">H</span>
           </div>
+
           {sidebarOpen && (
             <div className="brand-text">
               <h2 className="brand-title">Hibiscus</h2>
@@ -49,6 +59,7 @@ const Sidebar = () => {
             </div>
           )}
         </div>
+
         <button 
           className="sidebar-toggle" 
           onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -78,10 +89,12 @@ const Sidebar = () => {
             <div className="user-avatar">
               {user?.username?.charAt(0).toUpperCase() || 'A'}
             </div>
+
             <div className="user-details">
               <h4 className="user-name">{user.username}</h4>
               <p className="user-role">{user.role}</p>
             </div>
+
             <button 
               className="logout-btn"
               onClick={handleLogout}
