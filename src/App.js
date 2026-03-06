@@ -30,6 +30,7 @@ import PurchaseHistoryPage from './user/pages/PurchaseHistoryPage';
 import UserProfile from './user/pages/ProfilePage';
 import SavedSeries from './user/pages/SavedSeriesPage';
 import NotificationsPage from './user/pages/NotificationsPage';
+import UserSupport from './user/pages/SupportCenterPage';
  
 // Common Components (guards) - admin guard unchanged
 import ProtectedRoute from './admin/components/ProtectedRoute';
@@ -124,7 +125,9 @@ function App() {
               <Route path="purchases" element={<PurchaseHistoryPage />} />
               <Route path="profile" element={<UserProfile />} />
               <Route path="saved-series" element={<SavedSeries />} />
-              <Route path="/user/notifications" element={<NotificationsPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="support" element={<UserSupport />} />
+
             </Route>
           </Route>
         </Route>

@@ -14,7 +14,8 @@ import {
   FaSignOutAlt,
   FaChevronLeft,
   FaChevronRight,
-  FaBell
+  FaBell,
+  FaHeadset
 } from 'react-icons/fa';
 
 const Sidebar = () => {
@@ -24,6 +25,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // check if menu item is active
   const isActive = (path) => {
     if (path === '/user') return location.pathname === '/user';
     return location.pathname.startsWith(path);
@@ -45,11 +47,10 @@ const Sidebar = () => {
 
   const menuItems = [
     { path: '/user', label: 'Home', icon: <FaHome /> },
-
-     { path: '/user/notifications', label: 'Notifications', icon: <FaBell /> },
-
+    { path: '/user/notifications', label: 'Notifications', icon: <FaBell /> },
     { path: '/user/buy-coins', label: 'Store', icon: <FaStore /> },
     { path: '/user/profile', label: 'Profile', icon: <FaUser /> },
+    { path: '/user/support', label: 'Support', icon: <FaHeadset /> }, // added support
     { path: '/user/purchases', label: 'Purchases', icon: <FaHistory /> },
     { path: '/user/saved-series', label: 'Favorites', icon: <FaHeart /> },
   ];
