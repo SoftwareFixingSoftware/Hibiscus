@@ -14,58 +14,70 @@ import {
   FaTimes
 } from 'react-icons/fa';
 import PayPalService from '../services/PayPalService';
+import SupportService from '../services/SupportService';
 import CoinPackages from '../components/CoinPackages';
 import Footer from '../components/common/Footer';
 import '../styles/PayPalStyles.css';
 
-const PAYMENT_METHODS = [
-  { id: 'paypal', name: 'PayPal', icon: <FaPaypal />, active: true },
-  { id: 'card', name: 'Credit Card', icon: <FaCreditCard />, active: false },
-  { id: 'crypto', name: 'Crypto', icon: <FaBitcoin />, active: false },
-  { id: 'googlepay', name: 'Google Pay', icon: <FaGoogle />, active: false },
-];
-
-// Support Modal Component
+/**
+ * Support Modal Component (integrated with backend via onSubmit prop)
+ */
 const SupportModal = ({ transaction, onClose, onSubmit }) => {
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  if (!transaction) return null;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!message.trim()) {
+      alert('Please describe your issue.');
+      return;
+    }
     setSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
-      onSubmit(transaction, message);
+    try {
+      await onSubmit(transaction, message.trim());
       setSubmitting(false);
       onClose();
-    }, 1000);
+    } catch (err) {
+      console.error('Support request failed', err);
+      setSubmitting(false);
+      alert(err?.response?.data?.message || err?.message || 'Failed to submit support request. Try again later.');
+    }
   };
-
-  if (!transaction) return null;
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="support-modal" onClick={e => e.stopPropagation()}>
+      <div className="support-modal" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose}><FaTimes /></button>
         <h3>Request Support</h3>
+
         <div className="transaction-ref">
-          <FaHashtag /> Transaction ID: <span className="tx-id">{transaction.coinPurchaseId}</span>
+          <FaHashtag /> Transaction ID:&nbsp;
+          <span className="tx-id">
+            {transaction.coinPurchaseId || transaction.paymentId || transaction.txId || '—'}
+          </span>
         </div>
+
         <div className="transaction-summary">
-          {transaction.coinsAmount} coins • ${(transaction.amountCents/100).toFixed(2)} {transaction.currency} • {formatStatus(transaction.status)}
+          {(transaction.coinsAmount != null) ? `${transaction.coinsAmount} coins • ` : ''}
+          {transaction.amountCents != null ? `$${(transaction.amountCents / 100).toFixed(2)}` : '—'}
+          {transaction.currency ? ` ${transaction.currency}` : ''}
+          &nbsp;•&nbsp;{formatStatus(transaction.status)}
         </div>
+
         <form onSubmit={handleSubmit}>
           <label htmlFor="support-message">Describe your issue:</label>
           <textarea
             id="support-message"
-            rows="4"
+            rows="5"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Please provide details about your problem..."
+            placeholder="Please provide details (what happened, when, any screenshots or order ids)..."
             required
           />
           <div className="modal-actions">
-            <button type="button" className="cancel-btn" onClick={onClose}>Cancel</button>
+            <button type="button" className="cancel-btn" onClick={onClose} disabled={submitting}>Cancel</button>
             <button type="submit" className="submit-btn" disabled={submitting}>
               {submitting ? 'Submitting...' : 'Submit Request'}
             </button>
@@ -76,7 +88,7 @@ const SupportModal = ({ transaction, onClose, onSubmit }) => {
   );
 };
 
-// Helper for status (same as before)
+// Helper for status rendering
 const formatStatus = (status) => {
   const statusMap = {
     PENDING: { label: 'Pending', class: 'status-pending' },
@@ -84,7 +96,7 @@ const formatStatus = (status) => {
     FAILED: { label: 'Failed', class: 'status-failed' },
     REFUNDED: { label: 'Refunded', class: 'status-refunded' },
   };
-  const s = statusMap[status] || { label: status, class: '' };
+  const s = statusMap[status] || { label: status || 'Unknown', class: '' };
   return <span className={`status-badge ${s.class}`}>{s.label}</span>;
 };
 
@@ -104,15 +116,27 @@ const BuyCoinsPage = () => {
     if (activeTab === 'history') {
       loadHistory();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const loadHistory = async () => {
     setHistoryLoading(true);
     try {
       const data = await PayPalService.getUserCoinPurchaseHistory();
-      setHistory(data);
+      // normalize expected fields if needed
+      const normalized = (Array.isArray(data) ? data : data || []).map(tx => ({
+        coinPurchaseId: tx.coinPurchaseId || tx.coin_purchase_id || tx.coin_purchase_uuid,
+        paymentId: tx.paymentId || tx.payment_id || tx.payment_uuid,
+        coinsAmount: tx.coinsAmount != null ? tx.coinsAmount : tx.coins_amount,
+        amountCents: tx.amountCents != null ? tx.amountCents : tx.amount_cents,
+        currency: tx.currency || tx.currency_code || 'USD',
+        status: tx.status || 'PENDING',
+        purchasedAt: tx.purchasedAt || tx.purchased_at || tx.createdAt || tx.created_at
+      }));
+      setHistory(normalized);
     } catch (err) {
       console.error('Failed to load purchase history', err);
+      setError('Failed to load purchase history');
     } finally {
       setHistoryLoading(false);
     }
@@ -137,6 +161,7 @@ const BuyCoinsPage = () => {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return '—';
     try {
       const date = new Date(dateString);
       return formatDistanceToNow(date, { addSuffix: true });
@@ -147,7 +172,8 @@ const BuyCoinsPage = () => {
 
   const formatPaymentId = (id) => {
     if (!id) return '—';
-    return id.substring(0, 8) + '...';
+    const s = String(id);
+    return s.length > 10 ? `${s.substring(0, 8)}...` : s;
   };
 
   const handleSupportClick = (transaction) => {
@@ -155,11 +181,19 @@ const BuyCoinsPage = () => {
     setModalOpen(true);
   };
 
-  const handleSupportSubmit = (transaction, message) => {
-    // Here you would send to your support API
-    console.log('Support request for transaction:', transaction.coinPurchaseId, 'Message:', message);
-    alert('Support request submitted. Our team will contact you soon.');
-    // Could also refresh history or show a notification
+  // wired to backend
+  const handleSupportSubmit = async (transaction, message) => {
+    try {
+      await SupportService.createTicket({ transaction, message });
+      // success UX
+      // Consider using toasts for a smoother UX; simple alert for demonstration
+      alert('Support request submitted. Our team will contact you soon.');
+      // refresh history in case anything changed
+      await loadHistory();
+    } catch (err) {
+      console.error('Failed to submit support request', err);
+      throw err; // let modal handle the error
+    }
   };
 
   return (
@@ -180,15 +214,19 @@ const BuyCoinsPage = () => {
         </button>
       </div>
 
-      {/* Tab Content */}
+      {/* Content */}
       <div className="tab-content">
         {activeTab === 'buy' && (
           <div className="buy-tab">
-            {/* Payment Method Selection */}
             <div className="payment-methods">
               <h3>Select Payment Method</h3>
               <div className="payment-methods-grid">
-                {PAYMENT_METHODS.map(method => (
+                {[
+                  { id: 'paypal', name: 'PayPal', icon: <FaPaypal />, active: true },
+                  { id: 'card', name: 'Credit Card', icon: <FaCreditCard />, active: false },
+                  { id: 'crypto', name: 'Crypto', icon: <FaBitcoin />, active: false },
+                  { id: 'googlepay', name: 'Google Pay', icon: <FaGoogle />, active: false },
+                ].map(method => (
                   <button
                     key={method.id}
                     className={`payment-method-btn ${selectedPaymentMethod === method.id ? 'active' : ''} ${!method.active ? 'disabled' : ''}`}
@@ -204,14 +242,16 @@ const BuyCoinsPage = () => {
               </div>
             </div>
 
-            {/* Coin Packages */}
             <CoinPackages onBuy={handleBuy} />
+            {loading && <div className="loading-indicator">Processing purchase...</div>}
+            {error && <div className="error-message">{error}</div>}
           </div>
         )}
 
         {activeTab === 'history' && (
           <div className="history-tab">
             <h2>Your Coin Purchase History</h2>
+
             {historyLoading ? (
               <div className="loading-indicator">Loading history...</div>
             ) : history.length === 0 ? (
@@ -219,11 +259,12 @@ const BuyCoinsPage = () => {
             ) : (
               <div className="transactions-list">
                 {history.map((tx) => (
-                  <div key={tx.coinPurchaseId} className="transaction-item">
+                  <div key={tx.coinPurchaseId || tx.paymentId || tx.txId || Math.random()} className="transaction-item">
                     <div className="tx-icon"><FaCoins /></div>
+
                     <div className="tx-details">
                       <div className="tx-title">
-                        {tx.coinsAmount} Coins
+                        {tx.coinsAmount != null ? `${tx.coinsAmount} Coins` : 'Coins'}
                       </div>
                       <div className="tx-meta">
                         {formatStatus(tx.status)} • {formatDate(tx.purchasedAt)}
@@ -233,9 +274,11 @@ const BuyCoinsPage = () => {
                         Payment ID: {formatPaymentId(tx.paymentId)}
                       </div>
                     </div>
+
                     <div className="tx-amount">
-                      ${(tx.amountCents / 100).toFixed(2)} {tx.currency}
+                      {tx.amountCents != null ? `$${(tx.amountCents / 100).toFixed(2)}` : '—'} {tx.currency || ''}
                     </div>
+
                     <button
                       className="support-btn"
                       onClick={() => handleSupportClick(tx)}
