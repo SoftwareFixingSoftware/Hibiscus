@@ -37,7 +37,8 @@ import ProtectedRoute from './admin/components/ProtectedRoute';
 import AdminCoinPackagesPage from './admin/pages/AdminCoinPackagesPage';
 import AdminPayments from './admin/pages/AdminPayments';
 import AdminEpisodePurchases from './admin/pages/AdminEpisodePurchases';
-import AdminPaymentService from './admin/services/adminPaymentService';
+import AdminSupport from './admin/pages/AdminSupportPage'
+import AdminPaymentDetail from './admin/pages/AdminPaymentDetail';
 
 // Optional: Redirect wrapper for legacy series routes
 const LegacySeriesRedirect = ({ to }) => {
@@ -77,6 +78,9 @@ function App() {
           <Route path="payments" element={<AdminPayments />} />
           <Route path="purchases" element={<AdminEpisodePurchases />} />
           <Route path="analytics" element={<AdminAnalytics />} />
+          <Route path="support" element={<AdminSupport />} />
+          <Route path="payments/:paymentId" element={<AdminPaymentDetail />} />
+
 
 
         </Route>

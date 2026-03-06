@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom'; // add this import
 import AdminPaymentService from '../services/adminPaymentService';
 import './AdminPurchases.css';
 
@@ -116,7 +117,9 @@ const AdminPayments = () => {
         <tbody>
           {payments.map(payment => (
             <tr key={payment.paymentId}>
-              <td>{payment.paymentId}</td>
+              <td>
+                <Link to={`/admin/payments/${payment.paymentId}`}>{payment.paymentId}</Link>
+              </td>
               <td>{payment.userEmail || payment.userId}</td>
               <td>{payment.provider}</td>
               <td>{payment.paypalOrderId || '-'}</td>

@@ -15,6 +15,7 @@ import {
   FiCreditCard,
   FiShoppingCart,
   FiHelpCircle
+  
 } from 'react-icons/fi';
 
 const Sidebar = () => {

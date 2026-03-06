@@ -16,6 +16,15 @@ const AdminPaymentService = {
    */
   getPaymentStatistics: () => {
     return api.get('/secure/admin/payments/statistics');
+  },
+
+  /**
+   * Get a single payment by ID (admin only)
+   * @param {string} paymentId
+   * @returns {Promise}
+   */
+  getPayment: (paymentId) => {
+    return api.get(`/secure/admin/payments/${paymentId}`);
   }
 };
 
