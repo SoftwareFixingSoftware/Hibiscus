@@ -1,6 +1,11 @@
+// src/services/PublicEpisodeService.js
 import api from './api';
+import { isAuthenticatedByPath } from './authHelper';
 
-const basePath = '/secure/public/episodes';
+const SECURE_BASE = '/secure/public/episodes';
+const PUBLIC_BASE = '/public/episodes';
+
+const getBasePath = () => (isAuthenticatedByPath() ? SECURE_BASE : PUBLIC_BASE);
 
 const normalizeAccessResponse = (data) => {
   if (data === true) return true;
@@ -13,17 +18,16 @@ const normalizeAccessResponse = (data) => {
 };
 
 const PublicEpisodeService = {
-
   getLatestEpisodes: async ({ page = 0, size = 12, freeOnly } = {}) => {
     const params = { page, size };
     if (freeOnly !== undefined) params.freeOnly = freeOnly;
-    const res = await api.get(`${basePath}/latest`, { params });
+    const res = await api.get(`${getBasePath()}/latest`, { params });
     return res.data;
   },
 
   getEpisodeById: async (id) => {
     if (!id) throw new Error('id required');
-    const res = await api.get(`${basePath}/${id}`);
+    const res = await api.get(`${getBasePath()}/${id}`);
     return res.data;
   },
 
@@ -33,22 +37,20 @@ const PublicEpisodeService = {
   ) => {
     if (!seriesId) throw new Error('seriesId required');
     const params = { page, size, sortBy, sortDirection };
-    const res = await api.get(`${basePath}/series/${seriesId}`, { params });
+    const res = await api.get(`${getBasePath()}/series/${seriesId}`, { params });
     return res.data;
   },
 
-        getStreamUrl: async (id) => {
-        if (!id) throw new Error('id required');
-
-        const res = await api.get(`${basePath}/${id}/stream-url`);
-
-        return res.data;
-        },
+  getStreamUrl: async (id) => {
+    if (!id) throw new Error('id required');
+    const res = await api.get(`${getBasePath()}/${id}/stream-url`);
+    return res.data;
+  },
 
   checkAccess: async (episodeId) => {
     if (!episodeId) throw new Error('episodeId required');
     try {
-      const res = await api.get(`${basePath}/${episodeId}/access`);
+      const res = await api.get(`${getBasePath()}/${episodeId}/access`);
       return normalizeAccessResponse(res.data);
     } catch (err) {
       if (err?.response?.status === 401 || err?.response?.status === 403) {
@@ -62,7 +64,7 @@ const PublicEpisodeService = {
     if (!episodeId) throw new Error('episodeId required');
     const body = idempotencyKey ? { idempotencyKey } : {};
     try {
-      const res = await api.post(`${basePath}/${episodeId}/purchase`, body);
+      const res = await api.post(`${getBasePath()}/${episodeId}/purchase`, body);
       if (res?.data?.purchased === true) {
         return res.data;
       }
@@ -83,14 +85,14 @@ const PublicEpisodeService = {
 
   createOrderForEpisode: async (episodeId) => {
     if (!episodeId) throw new Error('episodeId required');
-    const res = await api.post(`${basePath}/${episodeId}/purchase/paypal`);
+    const res = await api.post(`${getBasePath()}/${episodeId}/purchase/paypal`);
     return res.data;
   },
-  // In PublicEpisodeService.js, add:
+
   getUserPurchasedEpisodes: async () => {
-    const res = await api.get(`${basePath}/purchased`);
+    const res = await api.get(`${getBasePath()}/purchased`);
     return res.data;
-  }
+  },
 };
 
 export default PublicEpisodeService;

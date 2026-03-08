@@ -1,4 +1,4 @@
-// src/pages/SeriesDetailPage.jsx
+// src/user/pages/SeriesDetailPage.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAudio } from '../context/AudioContext';
@@ -20,6 +20,9 @@ const SeriesDetailPage = () => {
   const navigate = useNavigate();
   const { player, play } = useAudio();
 
+  // Determine if user is logged in based on path
+  const isLoggedIn = location.pathname.startsWith('/user');
+
   const [series, setSeries] = useState(null);
   const [episodes, setEpisodes] = useState([]);
   const [selectedEpisode, setSelectedEpisode] = useState(null);
@@ -27,7 +30,7 @@ const SeriesDetailPage = () => {
   const [error, setError] = useState(null);
   const [purchasingEpisodeId, setPurchasingEpisodeId] = useState(null);
 
-  // Follow/notification state
+  // Follow/notification state (only relevant when logged in)
   const [isFollowing, setIsFollowing] = useState(false);
   const [notificationEnabled, setNotificationEnabled] = useState(false);
   const [followActionLoading, setFollowActionLoading] = useState(false);
@@ -76,65 +79,80 @@ const SeriesDetailPage = () => {
     return Boolean(v);
   };
 
+  // Redirect to login with return URL
+  const requireLogin = () => {
+    localStorage.setItem('redirectAfterLogin', location.pathname);
+    navigate('/login');
+  };
+
   // Load series and episodes on mount or id change
   useEffect(() => {
     if (!id) return;
     loadSeriesAndEpisodes(id);
   }, [id]);
 
-  // After series loads, check saved status and follow status
+  // After series loads, check saved status and follow status (only if logged in)
   useEffect(() => {
     if (!series || !series.id) return;
     let cancelled = false;
 
-    const fetchSavedStatus = async () => {
-      try {
-        const savedList = await UserSavedSeriesService.getSavedSeries();
-        if (cancelled) return;
-        const found = (Array.isArray(savedList) && savedList.some(s =>
-          s.seriesId === series.id || s.seriesId === series.seriesId || s.id === series.id
-        ));
-        setIsSaved(Boolean(found));
-      } catch (err) {
-        if (err?.response?.status === 401 || err?.response?.status === 403) {
-          setIsSaved(false);
-        } else {
-          console.warn('Failed to check saved status', err);
+    if (isLoggedIn) {
+      const fetchSavedStatus = async () => {
+        try {
+          const savedList = await UserSavedSeriesService.getSavedSeries();
+          if (cancelled) return;
+          const found = (Array.isArray(savedList) && savedList.some(s =>
+            s.seriesId === series.id || s.seriesId === series.seriesId || s.id === series.id
+          ));
+          setIsSaved(Boolean(found));
+        } catch (err) {
+          if (err?.response?.status === 401 || err?.response?.status === 403) {
+            setIsSaved(false);
+          } else {
+            console.warn('Failed to check saved status', err);
+          }
         }
-      }
-    };
+      };
 
-    const fetchFollowStatus = async () => {
-      try {
-        const status = await UserFollowedSeriesService.getFollowStatus(series.id);
-        const serverEnabled = toBool(
-          status?.notificationEnabled ??
-          status?.notificationsEnabled ??
-          status?.enabled ??
-          status?.notifications_on ??
-          status?.notificationsOn
-        );
-        setIsFollowing(true);
-        setNotificationEnabled(serverEnabled);
-      } catch (err) {
-        if (err.response?.status === 404) {
-          setIsFollowing(false);
-          setNotificationEnabled(false);
-        } else if (err.response?.status === 401 || err.response?.status === 403) {
-          setIsFollowing(false);
-          setNotificationEnabled(false);
-        } else {
-          console.warn('Failed to fetch follow status', err);
+      const fetchFollowStatus = async () => {
+        try {
+          const status = await UserFollowedSeriesService.getFollowStatus(series.id);
+          const serverEnabled = toBool(
+            status?.notificationEnabled ??
+            status?.notificationsEnabled ??
+            status?.enabled ??
+            status?.notifications_on ??
+            status?.notificationsOn
+          );
+          setIsFollowing(true);
+          setNotificationEnabled(serverEnabled);
+        } catch (err) {
+          if (err.response?.status === 404) {
+            setIsFollowing(false);
+            setNotificationEnabled(false);
+          } else if (err.response?.status === 401 || err.response?.status === 403) {
+            setIsFollowing(false);
+            setNotificationEnabled(false);
+          } else {
+            console.warn('Failed to fetch follow status', err);
+          }
+        } finally {
+          if (!cancelled) setAuthChecked(true);
         }
-      } finally {
-        if (!cancelled) setAuthChecked(true);
-      }
-    };
+      };
 
-    fetchSavedStatus();
-    fetchFollowStatus();
+      fetchSavedStatus();
+      fetchFollowStatus();
+    } else {
+      // Not logged in – reset states
+      setIsFollowing(false);
+      setNotificationEnabled(false);
+      setIsSaved(false);
+      setAuthChecked(true);
+    }
+
     return () => { cancelled = true; };
-  }, [series]);
+  }, [series, isLoggedIn]);
 
   // After episodes are loaded, check for episode query param
   useEffect(() => {
@@ -154,7 +172,7 @@ const SeriesDetailPage = () => {
     }
   }, [episodes, location.search]);
 
-  // Fetch reviews when tab changes to 'reviews'
+  // Fetch reviews when tab changes to 'reviews' (public reviews are readable)
   useEffect(() => {
     if (activeTab === 'reviews' && series?.id) {
       loadReviews();
@@ -167,7 +185,7 @@ const SeriesDetailPage = () => {
     try {
       const [allReviews, myReviewRes] = await Promise.allSettled([
         SeriesReviewService.getReviewsForSeries(series.id),
-        SeriesReviewService.getMyReviewForSeries(series.id),
+        isLoggedIn ? SeriesReviewService.getMyReviewForSeries(series.id) : Promise.reject({ status: 401 })
       ]);
 
       if (allReviews.status === 'fulfilled') {
@@ -248,8 +266,9 @@ const SeriesDetailPage = () => {
     setShowBottomFade(scrollTop + clientHeight < scrollHeight - 6);
   };
 
-  // Toggle follow/unfollow
+  // Interactive handlers – require login if not logged in
   const toggleFollow = async () => {
+    if (!isLoggedIn) return requireLogin();
     if (!series || !series.id) return;
     setFollowActionLoading(true);
     try {
@@ -270,7 +289,7 @@ const SeriesDetailPage = () => {
       }
     } catch (err) {
       if (err.response?.status === 401 || err.response?.status === 403) {
-        alert('Please log in to follow series.');
+        requireLogin();
       } else {
         console.error('Toggle follow failed', err);
         alert('Failed to update follow status. Please try again.');
@@ -280,8 +299,8 @@ const SeriesDetailPage = () => {
     }
   };
 
-  // Toggle notifications
   const toggleNotification = async () => {
+    if (!isLoggedIn) return requireLogin();
     if (!series || !series.id) return;
     const previousFollowing = isFollowing;
     const previousEnabled = notificationEnabled;
@@ -342,8 +361,8 @@ const SeriesDetailPage = () => {
     }
   };
 
-  // Toggle save (favorites)
   const toggleSave = async () => {
+    if (!isLoggedIn) return requireLogin();
     if (!series || !series.id) return;
     const previous = isSaved;
     setIsSaved(!previous);
@@ -365,8 +384,9 @@ const SeriesDetailPage = () => {
     }
   };
 
-  // Review form handlers
+  // Review form handlers – require login
   const handleOpenReviewForm = () => {
+    if (!isLoggedIn) return requireLogin();
     if (myReview) {
       setFormRating(myReview.rating);
       setFormText(myReview.reviewText || '');
@@ -384,6 +404,7 @@ const SeriesDetailPage = () => {
   };
 
   const handleSubmitReview = async () => {
+    if (!isLoggedIn) return requireLogin();
     if (!formRating) {
       alert('Please select a rating');
       return;
@@ -404,13 +425,13 @@ const SeriesDetailPage = () => {
       const allReviews = await SeriesReviewService.getReviewsForSeries(series.id);
       setReviews(extractReviewsArray(allReviews));
       handleCloseReviewForm();
-      
+
       // Refresh series to get updated average rating
       await loadSeriesAndEpisodes(series.id);
     } catch (err) {
       console.error('Failed to save review', err);
       if (err.response?.status === 401 || err.response?.status === 403) {
-        alert('Please log in to write a review.');
+        requireLogin();
       } else {
         alert('Could not save review. Please try again.');
       }
@@ -420,14 +441,14 @@ const SeriesDetailPage = () => {
   };
 
   const handleDeleteReview = async () => {
+    if (!isLoggedIn) return requireLogin();
     if (!window.confirm('Are you sure you want to delete your review?')) return;
     try {
       await SeriesReviewService.deleteMyReview(series.id);
       setMyReview(null);
       const allReviews = await SeriesReviewService.getReviewsForSeries(series.id);
       setReviews(extractReviewsArray(allReviews));
-      
-      // Refresh series to get updated average rating
+
       await loadSeriesAndEpisodes(series.id);
     } catch (err) {
       console.error('Failed to delete review', err);
@@ -435,8 +456,9 @@ const SeriesDetailPage = () => {
     }
   };
 
-  // Access & purchase helpers
+  // Access & purchase helpers – require login
   const checkAccess = async (epRaw) => {
+    if (!isLoggedIn) return false;
     try {
       const id = epRaw.id || epRaw.episodeId || epRaw.uuid;
       if (!id) return false;
@@ -451,6 +473,7 @@ const SeriesDetailPage = () => {
   };
 
   const purchaseWithCoins = async (epRaw) => {
+    if (!isLoggedIn) { requireLogin(); return false; }
     try {
       const id = epRaw.id || epRaw.episodeId || epRaw.uuid;
       if (!id) throw new Error('episode id missing');
@@ -483,6 +506,7 @@ const SeriesDetailPage = () => {
   };
 
   const purchaseWithMoney = async (epRaw) => {
+    if (!isLoggedIn) { requireLogin(); return false; }
     try {
       const id = epRaw.id || epRaw.episodeId || epRaw.uuid;
       if (!id) throw new Error('episode id missing');
@@ -504,6 +528,7 @@ const SeriesDetailPage = () => {
   };
 
   const playEpisode = async (epRaw) => {
+    if (!isLoggedIn) { requireLogin(); return; }
     try {
       const id = epRaw.id || epRaw.episodeId || epRaw.uuid;
       if (!id) throw new Error('episode id missing');
@@ -555,6 +580,7 @@ const SeriesDetailPage = () => {
   };
 
   const handleBuyClick = async (epRaw) => {
+    if (!isLoggedIn) { requireLogin(); return; }
     const mapped = mapEpisode(epRaw);
     if (mapped.priceInCoins) {
       const ok = await purchaseWithCoins(epRaw);
@@ -568,7 +594,7 @@ const SeriesDetailPage = () => {
     }
   };
 
-  const goHome = () => navigate('/user');
+  const goHome = () => navigate(isLoggedIn ? '/user' : '/');
 
   if (error) return <div className="error-message">Error: {error?.message ?? String(error)}</div>;
   if (!series) return <div className="loading-indicator">Loading series...</div>;
@@ -596,12 +622,12 @@ const SeriesDetailPage = () => {
             <button className="crumb" onClick={goHome}>Series</button> / <strong>{series.title}</strong>
           </div>
 
-          {/* Badges row with follow / save / notification buttons */}
+          {/* Badges row – conditionally show interactive buttons only if logged in */}
           <div className="badges-row">
             <span className="badge genre">#{series.category?.toUpperCase() || 'ROMANCE'}</span>
             {series.completed && <span className="badge completed">COMPLETED SERIES</span>}
 
-            {authChecked && (
+            {isLoggedIn && authChecked ? (
               <>
                 <RippleButton
                   className={`badge follow-button ${isFollowing ? 'following' : ''}`}
@@ -633,6 +659,10 @@ const SeriesDetailPage = () => {
                   </RippleButton>
                 )}
               </>
+            ) : !isLoggedIn && (
+              <button className="badge" onClick={requireLogin} style={{ marginLeft: 'auto' }}>
+                Log in to interact
+              </button>
             )}
           </div>
 
@@ -673,22 +703,30 @@ const SeriesDetailPage = () => {
                       ) : selectedEpisode.priceCents ? (
                         <div className="price-badge">{formatMoneyFromCents(selectedEpisode.priceCents, selectedEpisode.currency)}</div>
                       ) : null}
-                      <RippleButton
-                        className="ctrl buy small"
-                        onClick={() => handleBuyClick(selectedEpisode.raw)}
-                        disabled={!!purchasingEpisodeId}
-                      >
-                        {purchasingEpisodeId === selectedEpisode.id ? 'Buying...' : 'Buy'}
-                      </RippleButton>
+                      {isLoggedIn ? (
+                        <RippleButton
+                          className="ctrl buy small"
+                          onClick={() => handleBuyClick(selectedEpisode.raw)}
+                          disabled={!!purchasingEpisodeId}
+                        >
+                          {purchasingEpisodeId === selectedEpisode.id ? 'Buying...' : 'Buy'}
+                        </RippleButton>
+                      ) : (
+                        <button className="ctrl buy small" onClick={requireLogin}>Buy (Login)</button>
+                      )}
                     </>
                   )}
-                  <RippleButton
-                    className="ctrl play small"
-                    onClick={() => playEpisode(selectedEpisode.raw)}
-                    aria-label="Play selected episode"
-                  >
-                    ► Play
-                  </RippleButton>
+                  {isLoggedIn ? (
+                    <RippleButton
+                      className="ctrl play small"
+                      onClick={() => playEpisode(selectedEpisode.raw)}
+                      aria-label="Play selected episode"
+                    >
+                      ► Play
+                    </RippleButton>
+                  ) : (
+                    <button className="ctrl play small" onClick={requireLogin}>► Play (Login)</button>
+                  )}
                   <RippleButton className="ctrl" onClick={() => setSelectedEpisode(null)}>
                     Close
                   </RippleButton>
@@ -751,8 +789,8 @@ const SeriesDetailPage = () => {
                       isPlaying={isPlaying}
                       isSelected={isSelected}
                       onSelect={selectEpisodeWithoutPlay}
-                      onPlay={playEpisode}
-                      onBuy={handleBuyClick}
+                      onPlay={isLoggedIn ? playEpisode : requireLogin}
+                      onBuy={isLoggedIn ? handleBuyClick : requireLogin}
                       purchasingId={purchasingEpisodeId}
                     />
                   );
@@ -766,38 +804,40 @@ const SeriesDetailPage = () => {
               <div className="error">{reviewError}</div>
             ) : (
               <>
-                {/* User's own review area */}
-                <div className="my-review-area" style={{ marginBottom: '20px' }}>
-                  {myReview ? (
-                    <div className="my-review">
-                      <h4>Your Review</h4>
-                      <ReviewCard review={myReview} isOwn={true} />
-                      <div className="my-review-actions" style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
-                        <button className="small-button" onClick={handleOpenReviewForm}>Edit</button>
-                        <button className="small-button" onClick={handleDeleteReview}>Delete</button>
+                {/* User's own review area – only show if logged in */}
+                {isLoggedIn && (
+                  <div className="my-review-area" style={{ marginBottom: '20px' }}>
+                    {myReview ? (
+                      <div className="my-review">
+                        <h4>Your Review</h4>
+                        <ReviewCard review={myReview} isOwn={true} />
+                        <div className="my-review-actions" style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
+                          <button className="small-button" onClick={handleOpenReviewForm}>Edit</button>
+                          <button className="small-button" onClick={handleDeleteReview}>Delete</button>
+                        </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="no-review">
-                      <p>You haven't reviewed this series yet.</p>
-                      <button className="small-button" onClick={handleOpenReviewForm}>Write a Review</button>
-                    </div>
-                  )}
-                </div>
+                    ) : (
+                      <div className="no-review">
+                        <p>You haven't reviewed this series yet.</p>
+                        <button className="small-button" onClick={handleOpenReviewForm}>Write a Review</button>
+                      </div>
+                    )}
+                  </div>
+                )}
 
-                {/* All reviews */}
+                {/* All reviews (public) */}
                 <div className="all-reviews">
                   <h4>Community Reviews</h4>
                   {!Array.isArray(reviews) ? (
                     <p>Error loading reviews.</p>
                   ) : reviews.length === 0 ? (
-                    <p>No reviews yet. Be the first to review!</p>
+                    <p>No reviews yet. {isLoggedIn ? 'Be the first to review!' : 'Log in to be the first to review.'}</p>
                   ) : (
                     reviews.map((review) => (
                       <ReviewCard
                         key={review.reviewId}
                         review={review}
-                        isOwn={myReview?.reviewId === review.reviewId}
+                        isOwn={isLoggedIn && myReview?.reviewId === review.reviewId}
                       />
                     ))
                   )}
@@ -805,8 +845,8 @@ const SeriesDetailPage = () => {
               </>
             )}
 
-            {/* Review form modal */}
-            {showReviewForm && (
+            {/* Review form modal – only shown if logged in */}
+            {showReviewForm && isLoggedIn && (
               <div className="review-form-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
                 <div className="review-form" style={{ background: 'white', padding: '20px', borderRadius: '8px', width: '90%', maxWidth: '500px' }}>
                   <h3>{myReview ? 'Edit Your Review' : 'Write a Review'}</h3>

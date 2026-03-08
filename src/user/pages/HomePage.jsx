@@ -1,15 +1,20 @@
+// src/pages/HomePage.jsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';          // <-- added useLocation
 import PublicSeriesService from '../services/PublicSeriesService';
 import { mapSeries } from '../utils/episodeHelpers';
 import HeroCarousel from '../components/hero/HeroCarousel';
 import SearchBar from '../components/search/SearchBar';
 import SeriesCard from '../components/cards/SeriesCard';
-import NotificationBell from '../components/NotificationBell';  
+import NotificationBell from '../components/NotificationBell';
 import Footer from '../components/common/Footer';
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const location = useLocation();                                      // <-- new
+
+  // Determine if user is logged in based on the current path
+  const isLoggedIn = location.pathname.startsWith('/user');           // <-- new
 
   const [allSeries, setAllSeries] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
@@ -91,17 +96,30 @@ const HomePage = () => {
 
   const openSeries = (seriesRaw) => {
     const id = seriesRaw.id || seriesRaw.uuid;
-    if (id) navigate(`/user/series/${id}`);
+    if (!id) return;
+    // Navigate to the correct detail page based on authentication
+    if (isLoggedIn) {
+      navigate(`/user/series/${id}`);
+    } else {
+      navigate(`/series/${id}`);
+    }
   };
 
   const displaySeries = mode === 'search' ? searchResults : allSeries;
 
   return (
     <>
-      {/* Header with app name and notification bell */}
+      {/* Header – conditionally show NotificationBell or auth buttons */}
       <header className="app-header">
         <div className="logo" onClick={() => navigate('/')}>Hibiscus</div>
-        <NotificationBell />
+        {isLoggedIn ? (
+          <NotificationBell />
+        ) : (
+          <div className="auth-buttons">
+            <button onClick={() => navigate('/login')}>Log In</button>
+            <button onClick={() => navigate('/signup')}>Sign Up</button>
+          </div>
+        )}
       </header>
 
       <SearchBar
@@ -112,7 +130,6 @@ const HomePage = () => {
         mode={mode}
       />
 
-      {/* ... rest of the content as before ... */}
       {loading && displaySeries.length === 0 ? (
         <>
           {mode === 'browse' && <div className="hero-carousel skeleton" style={{ height: '460px' }} />}

@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import RippleButton from '../common/RippleButton';
 
+// Local SVG placeholder as data URI (no external dependency)
+const PLACEHOLDER_IMAGE = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'1200\' height=\'600\' viewBox=\'0 0 1200 600\'%3E%3Crect width=\'1200\' height=\'600\' fill=\'%23f0f0f0\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' font-family=\'sans-serif\' font-size=\'24\' fill=\'%23999\'%3ENo Image%3C/text%3E%3C/svg%3E';
+
 const HeroCarousel = ({ series, onSelectSeries }) => {
   const [heroIndex, setHeroIndex] = useState(0);
   const autoPlayRef = useRef(null);
@@ -35,10 +38,10 @@ const HeroCarousel = ({ series, onSelectSeries }) => {
       {series.map((s, idx) => (
         <div key={s.id} className={`hero-slide ${idx === heroIndex ? 'active' : ''}`}>
           <img
-            src={s.cover || 'https://via.placeholder.com/1200x600?text=No+Image'}
+            src={s.cover || PLACEHOLDER_IMAGE}
             alt={s.title}
             className="hero-image"
-            onError={(e) => (e.target.src = 'https://via.placeholder.com/1200x600?text=No+Image')}
+            onError={(e) => { e.target.src = PLACEHOLDER_IMAGE; }}
           />
           <div className="hero-overlay">
             <div className="hero-meta">

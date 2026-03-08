@@ -1,3 +1,4 @@
+// src/components/sidebar/Sidebar.jsx
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import RippleButton from '../common/RippleButton';
@@ -7,25 +8,25 @@ import LogoutModal from '../../components/LogoutModal';
 import {
   FaHome,
   FaStore,
-  FaFilm,
   FaUser,
   FaHistory,
   FaHeart,
   FaSignOutAlt,
+  FaSignInAlt,        // added login icon
   FaChevronLeft,
   FaChevronRight,
   FaBell,
-  FaHeadset
+  FaHeadset,
+  FaExchangeAlt
 } from 'react-icons/fa';
 
-const Sidebar = () => {
+const Sidebar = ({ public: isPublic = false }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  // check if menu item is active
   const isActive = (path) => {
     if (path === '/user') return location.pathname === '/user';
     return location.pathname.startsWith(path);
@@ -45,14 +46,31 @@ const Sidebar = () => {
     }
   };
 
+  // For public mode, redirect to login instead of navigating
+  const handleNavClick = (path) => {
+    if (isPublic) {
+      localStorage.setItem('redirectAfterLogin', path);
+      navigate('/login');
+    } else {
+      navigate(path);
+    }
+  };
+
+  // Special handler for login button (public only)
+  const handleLoginClick = () => {
+    localStorage.setItem('redirectAfterLogin', location.pathname);
+    navigate('/login');
+  };
+
   const menuItems = [
     { path: '/user', label: 'Home', icon: <FaHome /> },
     { path: '/user/notifications', label: 'Notifications', icon: <FaBell /> },
     { path: '/user/buy-coins', label: 'Store', icon: <FaStore /> },
     { path: '/user/profile', label: 'Profile', icon: <FaUser /> },
-    { path: '/user/support', label: 'Support', icon: <FaHeadset /> }, // added support
+    { path: '/user/support', label: 'Support', icon: <FaHeadset /> },
     { path: '/user/purchases', label: 'Purchases', icon: <FaHistory /> },
     { path: '/user/saved-series', label: 'Favorites', icon: <FaHeart /> },
+    { path: '/admin/dashboard', label: 'Switch Roles', icon: <FaExchangeAlt /> }
   ];
 
   return (
@@ -61,7 +79,7 @@ const Sidebar = () => {
         <div className="sidebar-header">
           <div
             className="dash-logo"
-            onClick={() => navigate('/user')}
+            onClick={() => isPublic ? navigate('/') : navigate('/user')}
             style={{ cursor: 'pointer' }}
           >
             {collapsed ? 'PF' : 'PodFlow'}
@@ -81,7 +99,7 @@ const Sidebar = () => {
             <RippleButton
               key={item.path}
               className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
-              onClick={() => navigate(item.path)}
+              onClick={() => handleNavClick(item.path)}
               title={collapsed ? item.label : ''}
             >
               <span className="nav-icon">{item.icon}</span>
@@ -91,27 +109,44 @@ const Sidebar = () => {
             </RippleButton>
           ))}
 
-          {/* Logout */}
-          <RippleButton
-            className="nav-item"
-            onClick={() => setShowLogoutModal(true)}
-            title={collapsed ? 'Logout' : ''}
-          >
-            <span className="nav-icon">
-              <FaSignOutAlt />
-            </span>
-            {!collapsed && (
-              <span className="nav-label">Logout</span>
-            )}
-          </RippleButton>
+          {/* Conditional bottom button: Logout for private, Login for public */}
+          {isPublic ? (
+            <RippleButton
+              className="nav-item"
+              onClick={handleLoginClick}
+              title={collapsed ? 'Login' : ''}
+            >
+              <span className="nav-icon">
+                <FaSignInAlt />
+              </span>
+              {!collapsed && (
+                <span className="nav-label">Login</span>
+              )}
+            </RippleButton>
+          ) : (
+            <RippleButton
+              className="nav-item"
+              onClick={() => setShowLogoutModal(true)}
+              title={collapsed ? 'Logout' : ''}
+            >
+              <span className="nav-icon">
+                <FaSignOutAlt />
+              </span>
+              {!collapsed && (
+                <span className="nav-label">Logout</span>
+              )}
+            </RippleButton>
+          )}
         </div>
       </aside>
 
-      <LogoutModal
-        isOpen={showLogoutModal}
-        onClose={() => setShowLogoutModal(false)}
-        onConfirm={handleLogout}
-      />
+      {!isPublic && (
+        <LogoutModal
+          isOpen={showLogoutModal}
+          onClose={() => setShowLogoutModal(false)}
+          onConfirm={handleLogout}
+        />
+      )}
     </>
   );
 };

@@ -5,7 +5,6 @@ import {
   FiHome, 
   FiVideo, 
   FiMusic, 
-  FiSettings, 
   FiUsers, 
   FiBarChart2,
   FiMenu,
@@ -14,8 +13,8 @@ import {
   FiLogOut,
   FiCreditCard,
   FiShoppingCart,
-  FiHelpCircle
-  
+  FiHelpCircle,
+  FiRepeat
 } from 'react-icons/fi';
 
 const Sidebar = () => {
@@ -32,12 +31,12 @@ const Sidebar = () => {
     { name: 'Users', icon: FiUsers, path: '/admin/users' },
     { name: 'Analytics', icon: FiBarChart2, path: '/admin/analytics' },
     { name: 'Coin Packages', icon: FiPackage, path: '/admin/coin-packages' },
-
     { name: 'Payments', icon: FiCreditCard, path: '/admin/payments' },
     { name: 'Purchases', icon: FiShoppingCart, path: '/admin/purchases' },
-
     { name: 'Support', icon: FiHelpCircle, path: '/admin/support' },
-    { name: 'Settings', icon: FiSettings, path: '/admin/settings' },
+
+    // NEW ITEM
+    { name: 'Switch Role', icon: FiRepeat, path: '/user' }
   ];
 
   const handleLogout = () => {
@@ -47,6 +46,7 @@ const Sidebar = () => {
 
   return (
     <aside className={`admin-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
+      
       <div className="sidebar-header">
         <div className="brand">
           <div className="brand-logo">
