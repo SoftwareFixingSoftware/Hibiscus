@@ -3042,3 +3042,82 @@ button:focus-visible {
   color: #dc2626;
   margin-bottom: 1rem;
 }
+/* Seasons section */
+.seasons-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.seasons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.season-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 1rem;
+  background: #f9f9f9;
+}
+
+.season-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.season-number {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.season-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #666;
+}
+
+.icon-btn.delete:hover {
+  color: #dc3545;
+}
+
+.season-title {
+  font-size: 1rem;
+  margin: 0.25rem 0;
+}
+
+.season-description {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.season-meta {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+/* Episode card season badge */
+.season-badge {
+  background: #6c757d;
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-left: 0.5rem;
+}

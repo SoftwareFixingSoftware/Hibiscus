@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiCalendar, FiClock, FiAlertCircle } from 'react-icons/fi';
 import EpisodeService from '../services/EpisodeService';
+import SeasonService from '../services/SeasonService';
 
 const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
   const isEditMode = !!episode;
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [seasons, setSeasons] = useState([]);
+  const [loadingSeasons, setLoadingSeasons] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -14,9 +17,18 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
     isPublished: false,
     durationSeconds: 0,
     isFree: false,
-    priceInCoins: 0
+    priceInCoins: 0,
+    seasonId: ''
   });
 
+  // Load seasons when seriesId is available
+  useEffect(() => {
+    if (seriesId) {
+      fetchSeasons();
+    }
+  }, [seriesId]);
+
+  // Prefill form when editing
   useEffect(() => {
     if (episode) {
       const releaseDate = episode.releaseDate
@@ -31,21 +43,25 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
         isPublished: episode.isPublished || false,
         durationSeconds: episode.durationSeconds || episode.duration || 0,
         isFree: episode.isFree || false,
-        priceInCoins: episode.priceInCoins || 0
-      });
-    } else {
-      setFormData({
-        title: '',
-        description: '',
-        episodeNumber: 1,
-        releaseDate: new Date().toISOString().split('T')[0],
-        isPublished: false,
-        durationSeconds: 0,
-        isFree: false,
-        priceInCoins: 0
+        priceInCoins: episode.priceInCoins || 0,
+        seasonId: episode.seasonId || ''
       });
     }
   }, [episode]);
+
+  const fetchSeasons = async () => {
+    setLoadingSeasons(true);
+    try {
+      const res = await SeasonService.getSeasonsBySeries(seriesId, { size: 100 });
+      // Handle both wrapped and unwrapped responses
+      const data = res.content || res.data?.content || res.data || [];
+      setSeasons(data);
+    } catch (error) {
+      console.error('Error fetching seasons:', error);
+    } finally {
+      setLoadingSeasons(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -70,40 +86,21 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
   const handleDurationMinutesChange = (e) => {
     const minutes = parseFloat(e.target.value) || 0;
     const seconds = Math.round(minutes * 60);
-
-    setFormData((prev) => ({
-      ...prev,
-      durationSeconds: seconds
-    }));
+    setFormData((prev) => ({ ...prev, durationSeconds: seconds }));
   };
 
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
-    }
-
-    if (!formData.description.trim()) {
-      newErrors.description = 'Description is required';
-    }
-
-    if (formData.episodeNumber <= 0) {
-      newErrors.episodeNumber = 'Episode number must be positive';
-    }
-
-    if (formData.durationSeconds <= 0) {
-      newErrors.durationSeconds = 'Duration must be greater than 0';
-    }
-
+    if (!formData.title.trim()) newErrors.title = 'Title is required';
+    if (!formData.description.trim()) newErrors.description = 'Description is required';
+    if (formData.episodeNumber <= 0) newErrors.episodeNumber = 'Episode number must be positive';
+    if (formData.durationSeconds <= 0) newErrors.durationSeconds = 'Duration must be greater than 0';
     if (!formData.isFree && formData.priceInCoins <= 0) {
-      newErrors.priceInCoins =
-        'Price in coins must be greater than 0 for paid episodes';
+      newErrors.priceInCoins = 'Price in coins must be greater than 0 for paid episodes';
     }
-
     if (!isEditMode && !seriesId) {
-      newErrors.seriesId =
-        'Series ID is required. Please make sure you are creating an episode within a series.';
+      newErrors.seriesId = 'Series ID is required. Please make sure you are creating an episode within a series.';
     }
 
     setErrors(newErrors);
@@ -112,10 +109,7 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setLoading(true);
 
@@ -133,32 +127,19 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
 
       let result;
       if (isEditMode) {
-        result = await EpisodeService.updateEpisode(
-          episode.id,
-          episodeData
-        );
+        result = await EpisodeService.updateEpisode(episode.id, episodeData);
       } else {
-        if (!seriesId) {
-          throw new Error(
-            'Cannot create episode without a series ID'
-          );
+        if (formData.seasonId) {
+          result = await EpisodeService.createEpisodeInSeason(formData.seasonId, episodeData);
+        } else {
+          result = await EpisodeService.createEpisodeInSeries(seriesId, episodeData);
         }
-        result = await EpisodeService.createEpisodeInSeries(
-          seriesId,
-          episodeData
-        );
       }
-
       onSubmit(result.data);
     } catch (error) {
       let errorMessage = 'Failed to save episode';
-
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
+      if (error.response?.data?.message) errorMessage = error.response.data.message;
+      else if (error.message) errorMessage = error.message;
       setErrors({ submit: errorMessage });
     } finally {
       setLoading(false);
@@ -184,7 +165,6 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="modal-form">
-
           {errors.submit && (
             <div className="alert alert-error">
               <FiAlertCircle />
@@ -194,7 +174,27 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
             </div>
           )}
 
-          {/* TITLE */}
+          {/* Season dropdown – simplified to show only season numbers */}
+          <div className="form-group">
+            <label className="form-label">Season (optional)</label>
+            <select
+              name="seasonId"
+              value={formData.seasonId}
+              onChange={handleChange}
+              className="form-control"
+              disabled={loadingSeasons || isEditMode} // disable in edit mode (backend may not support changing season)
+            >
+              <option value="">-- Auto-assign based on episode number --</option>
+              {seasons.map(season => (
+                <option key={season.id} value={season.id}>
+                  Season {season.seasonNumber}
+                </option>
+              ))}
+            </select>
+            {loadingSeasons && <span className="form-hint">Loading seasons...</span>}
+          </div>
+
+          {/* Title */}
           <div className="form-group">
             <label className="form-label">Episode Title *</label>
             <input
@@ -205,12 +205,10 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
               className={`form-input ${errors.title ? 'error' : ''}`}
               disabled={loading}
             />
-            {errors.title && (
-              <span className="form-error">{errors.title}</span>
-            )}
+            {errors.title && <span className="form-error">{errors.title}</span>}
           </div>
 
-          {/* DESCRIPTION */}
+          {/* Description */}
           <div className="form-group">
             <label className="form-label">Description *</label>
             <textarea
@@ -221,14 +219,10 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
               rows="4"
               disabled={loading}
             />
-            {errors.description && (
-              <span className="form-error">
-                {errors.description}
-              </span>
-            )}
+            {errors.description && <span className="form-error">{errors.description}</span>}
           </div>
 
-          {/* EPISODE NUMBER + DURATION */}
+          {/* Episode Number + Duration */}
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">Episode Number *</label>
@@ -238,40 +232,30 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
                 value={formData.episodeNumber}
                 onChange={handleChange}
                 min="1"
-                className={`form-input ${
-                  errors.episodeNumber ? 'error' : ''
-                }`}
+                className={`form-input ${errors.episodeNumber ? 'error' : ''}`}
                 disabled={loading}
               />
             </div>
 
             <div className="form-group">
-              <label className="form-label">
-                Duration (minutes) *
-              </label>
+              <label className="form-label">Duration (minutes) *</label>
               <div className="input-with-icon">
                 <FiClock className="input-icon" />
                 <input
                   type="number"
-                  value={(formData.durationSeconds / 60).toFixed(
-                    1
-                  )}
+                  value={(formData.durationSeconds / 60).toFixed(1)}
                   onChange={handleDurationMinutesChange}
                   min="0.1"
                   step="0.1"
-                  className={`form-input ${
-                    errors.durationSeconds ? 'error' : ''
-                  }`}
+                  className={`form-input ${errors.durationSeconds ? 'error' : ''}`}
                   disabled={loading}
                 />
               </div>
-              <div className="form-hint">
-                Current duration: {getDurationDisplay()}
-              </div>
+              <div className="form-hint">Current duration: {getDurationDisplay()}</div>
             </div>
           </div>
 
-          {/* RELEASE DATE */}
+          {/* Release Date */}
           <div className="form-group">
             <label className="form-label">Release Date</label>
             <input
@@ -284,7 +268,7 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
             />
           </div>
 
-          {/* FREE CHECKBOX */}
+          {/* Free Checkbox */}
           <div className="form-group checkbox-group">
             <label className="checkbox-label">
               <input
@@ -298,32 +282,24 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
             </label>
           </div>
 
-          {/* PRICE IN COINS */}
+          {/* Price in Coins */}
           {!formData.isFree && (
             <div className="form-group">
-              <label className="form-label">
-                Price (Coins) *
-              </label>
+              <label className="form-label">Price (Coins) *</label>
               <input
                 type="number"
                 name="priceInCoins"
                 value={formData.priceInCoins}
                 onChange={handleChange}
                 min="1"
-                className={`form-input ${
-                  errors.priceInCoins ? 'error' : ''
-                }`}
+                className={`form-input ${errors.priceInCoins ? 'error' : ''}`}
                 disabled={loading}
               />
-              {errors.priceInCoins && (
-                <span className="form-error">
-                  {errors.priceInCoins}
-                </span>
-              )}
+              {errors.priceInCoins && <span className="form-error">{errors.priceInCoins}</span>}
             </div>
           )}
 
-          {/* PUBLISH */}
+          {/* Publish Checkbox */}
           <div className="form-group checkbox-group">
             <label className="checkbox-label">
               <input
@@ -337,26 +313,13 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
             </label>
           </div>
 
-          {/* FOOTER */}
+          {/* Footer */}
           <div className="modal-footer">
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={onClose}
-              disabled={loading}
-            >
+            <button type="button" className="btn-secondary" onClick={onClose} disabled={loading}>
               Cancel
             </button>
-            <button
-              type="submit"
-              className="btn-primary"
-              disabled={loading}
-            >
-              {loading
-                ? 'Saving...'
-                : isEditMode
-                ? 'Update Episode'
-                : 'Create Episode'}
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? 'Saving...' : isEditMode ? 'Update Episode' : 'Create Episode'}
             </button>
           </div>
         </form>

@@ -547,6 +547,11 @@ const EpisodeManagement = () => {
                     <span>Episode {episode.episodeNumber}</span>
                   </div>
 
+                  {/* NEW: Season badge */}
+                  {episode.seasonNumber && (
+                    <span className="season-badge">S{episode.seasonNumber}</span>
+                  )}
+
                   {/* Price badge */}
                   <div>
                     {episode.isFree ? (

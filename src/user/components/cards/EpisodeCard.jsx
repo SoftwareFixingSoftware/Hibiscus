@@ -17,8 +17,24 @@ const EpisodeCard = ({ episode, rawEpisode, index, isPlaying, isSelected, onSele
       <div className="episode-left">
         <div className="episode-number">E{e.number}</div>
         <div className="episode-meta">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <div className="episode-title">{e.title}</div>
+
+            {/* NEW: Season badge */}
+            {e.seasonNumber && (
+              <span className="season-badge" style={{
+                background: '#444',
+                color: '#fff',
+                padding: '2px 8px',
+                borderRadius: 12,
+                fontSize: '0.75rem',
+                fontWeight: 'bold',
+                marginRight: 4,
+              }}>
+                S{e.seasonNumber}
+              </span>
+            )}
+
             <div>
               {e.isFree ? (
                 <span className="price-pill free">Free</span>

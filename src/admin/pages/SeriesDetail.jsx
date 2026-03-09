@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  FiArrowLeft, 
-  FiEdit2, 
-  FiTrash2, 
-  FiPlayCircle, 
+import {
+  FiArrowLeft,
+  FiEdit2,
+  FiTrash2,
+  FiPlayCircle,
   FiPauseCircle,
-  FiUsers,
   FiEye,
   FiDownload,
   FiCalendar,
@@ -14,11 +13,12 @@ import {
   FiLink,
   FiBarChart2,
   FiPlus,
-  FiUpload,
-  FiImage
+  FiUpload
 } from 'react-icons/fi';
 import SeriesService from '../services/SeriesService';
 import EpisodeService from '../services/EpisodeService';
+import SeasonService from '../services/SeasonService';          // NEW
+import SeasonModal from '../components/SeasonModal';            // NEW
 import SeriesImageUploadModal from '../components/SeriesImageUploadModal';
 
 const SeriesDetail = () => {
@@ -26,6 +26,10 @@ const SeriesDetail = () => {
   const navigate = useNavigate();
   const [series, setSeries] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [seasons, setSeasons] = useState([]);                  // NEW
+  const [seasonsLoading, setSeasonsLoading] = useState(false); // NEW
+  const [showSeasonModal, setShowSeasonModal] = useState(false); // NEW
+  const [selectedSeason, setSelectedSeason] = useState(null);   // NEW
   const [stats, setStats] = useState({
     totalEpisodes: 0,
     publishedEpisodes: 0,
@@ -33,12 +37,11 @@ const SeriesDetail = () => {
     totalDownloads: 0,
     averageRating: 0
   });
-
   const [showImageUploadModal, setShowImageUploadModal] = useState(false);
 
   useEffect(() => {
     fetchSeriesDetails();
- 
+    fetchSeasons();                                             // NEW
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -75,6 +78,51 @@ const SeriesDetail = () => {
     }
   };
 
+  // NEW: fetch seasons
+ const fetchSeasons = async () => {
+  if (!id) return;
+  setSeasonsLoading(true);
+  try {
+    const res = await SeasonService.getSeasonsBySeries(id, { size: 100 });
+    // Handle both wrapped (res.data) and unwrapped (res) responses
+    const data = res.content || res.data?.content || res.data || [];
+    setSeasons(data);
+  } catch (error) {
+    console.error('Error fetching seasons:', error);
+  } finally {
+    setSeasonsLoading(false);
+  }
+};
+
+  // NEW: season handlers
+  const handleAddSeason = () => {
+    setSelectedSeason(null);
+    setShowSeasonModal(true);
+  };
+
+  const handleEditSeason = (season) => {
+    setSelectedSeason(season);
+    setShowSeasonModal(true);
+  };
+
+  const handleDeleteSeason = async (seasonId) => {
+    if (!window.confirm('Delete this season? Episodes in this season will lose their season association.')) return;
+    try {
+      await SeasonService.deleteSeason(seasonId);
+      fetchSeasons();
+    } catch (error) {
+      console.error('Error deleting season:', error);
+      alert('Failed to delete season');
+    }
+  };
+
+  const handleSeasonModalSubmit = () => {
+    setShowSeasonModal(false);
+    setSelectedSeason(null);
+    fetchSeasons();
+  };
+
+  // Existing handlers
   const handleBack = () => navigate('/admin/series');
   const handleEdit = () => navigate(`/admin/series/${id}/edit`);
   const handleDelete = async () => {
@@ -106,10 +154,7 @@ const SeriesDetail = () => {
     }
   };
   const handleAddEpisode = () => navigate(`/admin/episodes/series/${id}`);
-
-  const handleUploadCover = () => {
-    setShowImageUploadModal(true);
-  };
+  const handleUploadCover = () => setShowImageUploadModal(true);
 
   if (loading) {
     return (
@@ -137,15 +182,14 @@ const SeriesDetail = () => {
         <button className="back-btn" onClick={handleBack}>
           <FiArrowLeft />
           <span>Back to Series</span>
-          
         </button>
-        
+
         <div className="header-actions">
           <button className="action-btn secondary" onClick={handleUploadCover}>
             <FiUpload />
             <span>Upload Cover</span>
           </button>
-          
+
           {series.isPublished ? (
             <button className="action-btn warning" onClick={handleUnpublish}>
               <FiPauseCircle />
@@ -172,16 +216,14 @@ const SeriesDetail = () => {
       <div className="series-overview">
         <div className="series-cover-large">
           {series.coverImageUrl ? (
- 
             <img src={series.coverImageUrl} alt={series.title} />
           ) : (
             <div className="cover-placeholder">
               <span>{series.title ? series.title.charAt(0) : '?'}</span>
             </div>
           )}
-         </div>
- 
-        
+        </div>
+
         <div className="series-info">
           <div className="series-header">
             <h1 className="series-title">{series.title}</h1>
@@ -189,9 +231,9 @@ const SeriesDetail = () => {
               {series.isPublished ? 'PUBLISHED' : 'DRAFT'}
             </span>
           </div>
-          
+
           <p className="series-description">{series.description}</p>
-          
+
           <div className="series-meta">
             <div className="meta-item">
               <FiCalendar />
@@ -221,7 +263,6 @@ const SeriesDetail = () => {
           )}
         </div>
       </div>
-      
 
       <div className="stats-grid">
         <div className="stat-card">
@@ -233,7 +274,7 @@ const SeriesDetail = () => {
             <h3 className="stat-value">{stats.totalEpisodes}</h3>
           </div>
         </div>
-        
+
         <div className="stat-card">
           <div className="stat-icon-container">
             <FiPlayCircle className="stat-icon" />
@@ -243,7 +284,7 @@ const SeriesDetail = () => {
             <h3 className="stat-value">{stats.publishedEpisodes}</h3>
           </div>
         </div>
-        
+
         <div className="stat-card">
           <div className="stat-icon-container">
             <FiEye className="stat-icon" />
@@ -253,7 +294,7 @@ const SeriesDetail = () => {
             <h3 className="stat-value">{stats.totalPlays.toLocaleString()}</h3>
           </div>
         </div>
-        
+
         <div className="stat-card">
           <div className="stat-icon-container">
             <FiDownload className="stat-icon" />
@@ -264,6 +305,50 @@ const SeriesDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* ========== NEW SEASONS SECTION ========== */}
+      <div className="seasons-section">
+        <div className="section-header">
+          <h2 className="section-title">Seasons</h2>
+          <div className="section-actions">
+            <button className="btn-primary" onClick={handleAddSeason}>
+              <FiPlus /> Add Season
+            </button>
+          </div>
+        </div>
+
+        {seasonsLoading ? (
+          <div className="loading-spinner small" />
+        ) : seasons.length === 0 ? (
+          <div className="empty-state small">
+            <p>No seasons created yet. Seasons help organize episodes.</p>
+          </div>
+        ) : (
+          <div className="seasons-grid">
+            {seasons.map(season => (
+              <div key={season.id} className="season-card">
+                <div className="season-card-header">
+                  <h3 className="season-number">Season {season.seasonNumber}</h3>
+                  <div className="season-actions">
+                    <button className="icon-btn" onClick={() => handleEditSeason(season)} title="Edit">
+                      <FiEdit2 />
+                    </button>
+                    <button className="icon-btn delete" onClick={() => handleDeleteSeason(season.id)} title="Delete">
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                </div>
+                {season.title && <h4 className="season-title">{season.title}</h4>}
+                <p className="season-description">{season.description || 'No description'}</p>
+                <div className="season-meta">
+                  <span className="episode-count">{season.episodeCount || 0} episodes</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      {/* ========== END SEASONS SECTION ========== */}
 
       <div className="episodes-section">
         <div className="section-header">
@@ -278,10 +363,10 @@ const SeriesDetail = () => {
             </button>
           </div>
         </div>
-        
+
         <div className="episodes-preview">
           <p>Navigate to the episodes page to view and manage all episodes in this series.</p>
-          <button 
+          <button
             className="btn-secondary"
             onClick={() => navigate(`/admin/episodes/series/${id}`)}
           >
@@ -297,7 +382,7 @@ const SeriesDetail = () => {
             <span>Analytics</span>
           </h2>
         </div>
-        
+
         <div className="analytics-grid">
           <div className="analytics-card">
             <h4>Audience Growth</h4>
@@ -309,7 +394,7 @@ const SeriesDetail = () => {
               <div className="growth-bar" style={{ height: '85%' }}></div>
             </div>
           </div>
-          
+
           <div className="analytics-card">
             <h4>Top Episodes</h4>
             <ul className="top-episodes">
@@ -329,15 +414,24 @@ const SeriesDetail = () => {
           </div>
         </div>
       </div>
-      
+
       {showImageUploadModal && series && (
         <SeriesImageUploadModal
           series={series}
           onClose={() => setShowImageUploadModal(false)}
           onSubmit={() => {
             setShowImageUploadModal(false);
-            fetchSeriesDetails(); // Refresh series data after upload
+            fetchSeriesDetails();
           }}
+        />
+      )}
+
+      {showSeasonModal && (
+        <SeasonModal
+          season={selectedSeason}
+          seriesId={id}
+          onClose={() => setShowSeasonModal(false)}
+          onSubmit={handleSeasonModalSubmit}
         />
       )}
     </div>

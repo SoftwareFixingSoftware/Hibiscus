@@ -1,4 +1,3 @@
-// src/utils/episodeHelpers.js
 import { getFileUrl } from '../services/authHelper';
 
 export const mapSeries = (s) => {
@@ -20,11 +19,14 @@ export const mapSeries = (s) => {
     raw: s,
   };
 };
+
 export const mapEpisode = (e, idx = 0) => {
   const priceInCoins = e.priceInCoins ?? e.price_in_coins ?? e.price_in_coins_amount ?? null;
   const priceCents = e.priceCents ?? e.price_cents ?? e.amount_cents ?? null;
   const currency = e.currency ?? e.currency_code ?? 'USD';
   const isFree = (e.isFree === true) || (e.is_free === true);
+  // Extract season number – check common field names
+  const seasonNumber = e.seasonNumber ?? e.season_number ?? null;
 
   return {
     id: e.id || e.episodeId || e.uuid,
@@ -39,6 +41,7 @@ export const mapEpisode = (e, idx = 0) => {
     priceCents,
     currency,
     isFree,
+    seasonNumber,                         // ← new field
   };
 };
 
