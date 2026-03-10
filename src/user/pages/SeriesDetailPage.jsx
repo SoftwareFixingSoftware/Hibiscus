@@ -527,54 +527,56 @@ const SeriesDetailPage = () => {
     }
   };
 
-  const playEpisode = async (epRaw) => {
-    if (!isLoggedIn) { requireLogin(); return; }
-    try {
-      const id = epRaw.id || epRaw.episodeId || epRaw.uuid;
-      if (!id) throw new Error('episode id missing');
-      const mapped = mapEpisode(epRaw, 0);
+ // Inside SeriesDetailPage.jsx – updated playEpisode function
 
-      if (!mapped.isFree) {
-        const hasAccess = await checkAccess(epRaw);
-        if (!hasAccess) {
-          const wantsToBuy = window.confirm(
-            mapped.priceInCoins
-              ? `This episode costs ${mapped.priceInCoins} coins. Would you like to buy it with your coins now? (OK = buy with coins, Cancel = pay with card/paypal if available)`
-              : mapped.priceCents
-              ? `This episode costs ${(mapped.priceCents/100).toFixed(2)} ${mapped.currency}. Click OK to buy with PayPal, Cancel to cancel.`
-              : `This episode is paid. Would you like to purchase it?`
-          );
-          if (!wantsToBuy) return;
-          if (mapped.priceInCoins) {
-            const coinSuccess = await purchaseWithCoins(epRaw);
-            if (!coinSuccess) return;
-          } else if (mapped.priceCents && mapped.priceCents > 0) {
-            const moneyStarted = await purchaseWithMoney(epRaw);
-            if (!moneyStarted) return;
-            return;
-          } else {
-            alert('Unable to determine pricing for this episode.');
-            return;
-          }
+const playEpisode = async (epRaw) => {
+  if (!isLoggedIn) { requireLogin(); return; }
+  try {
+    const id = epRaw.id || epRaw.episodeId || epRaw.uuid;
+    if (!id) throw new Error('episode id missing');
+    const mapped = mapEpisode(epRaw, 0);
+
+    if (!mapped.isFree) {
+      const hasAccess = await checkAccess(epRaw);
+      if (!hasAccess) {
+        const wantsToBuy = window.confirm(
+          mapped.priceInCoins
+            ? `This episode costs ${mapped.priceInCoins} coins. Would you like to buy it with your coins now? (OK = buy with coins, Cancel = pay with card/paypal if available)`
+            : mapped.priceCents
+            ? `This episode costs ${(mapped.priceCents/100).toFixed(2)} ${mapped.currency}. Click OK to buy with PayPal, Cancel to cancel.`
+            : `This episode is paid. Would you like to purchase it?`
+        );
+        if (!wantsToBuy) return;
+        if (mapped.priceInCoins) {
+          const coinSuccess = await purchaseWithCoins(epRaw);
+          if (!coinSuccess) return;
+        } else if (mapped.priceCents && mapped.priceCents > 0) {
+          const moneyStarted = await purchaseWithMoney(epRaw);
+          if (!moneyStarted) return;
+          return;
+        } else {
+          alert('Unable to determine pricing for this episode.');
+          return;
         }
       }
-
-      let url = await PublicEpisodeService.getStreamUrl(id);
-      if (!url || !/^https?:\/\//i.test(url)) throw new Error('No playable url');
-
-      await play(url, {
-        episodeId: id,
-        title: epRaw.title || epRaw.name || epRaw.episodeTitle || 'Untitled',
-        author: series?.title || series?.name || '',
-      });
-
-      setSelectedEpisode(mapped);
-    } catch (err) {
-      console.error('playEpisode', err);
-      alert('Could not play episode — check console.');
     }
-  };
 
+    // --- CHANGED: getStreamUrl now returns the endpoint path, not a signed URL ---
+    const url = await PublicEpisodeService.getStreamUrl(id);
+    if (!url) throw new Error('No playable url');
+
+    await play(url, {
+      episodeId: id,
+      title: epRaw.title || epRaw.name || epRaw.episodeTitle || 'Untitled',
+      author: series?.title || series?.name || '',
+    });
+
+    setSelectedEpisode(mapped);
+  } catch (err) {
+    console.error('playEpisode', err);
+    alert('Could not play episode — check console.');
+  }
+};
   const selectEpisodeWithoutPlay = (epRaw, idx) => {
     setSelectedEpisode(mapEpisode(epRaw, idx));
   };

@@ -41,10 +41,18 @@ const PublicEpisodeService = {
     return res.data;
   },
 
+  /**
+   * Returns the streaming endpoint URL for an episode.
+   * The frontend will use this URL to play the audio; the backend will handle streaming and access control.
+   * 
+   * Note: We build an absolute URL using api.defaults.baseURL so the browser sends the request
+   * directly to the backend, including cookies (withCredentials is set on the axios instance,
+   * but the audio element itself relies on the browser's native cookie handling).
+   */
   getStreamUrl: async (id) => {
     if (!id) throw new Error('id required');
-    const res = await api.get(`${getBasePath()}/${id}/stream-url`);
-    return res.data;
+    const baseURL = api.defaults.baseURL; // e.g. 'http://localhost:9019/api'
+    return `${baseURL}${getBasePath()}/${id}/stream`;
   },
 
   checkAccess: async (episodeId) => {
