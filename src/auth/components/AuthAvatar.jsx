@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import '../auth/styles/auth.css';
+import '../styles/auth.css';
 
 export default function AuthAvatar({ 
   username = '', 
@@ -47,9 +47,9 @@ export default function AuthAvatar({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="hib-flex hib-flex-col hib-items-center hib-justify-center">
       <motion.div
-        className="relative"
+        className="hib-relative"
         initial="idle"
         animate={state}
         variants={avatarVariants}
@@ -60,10 +60,10 @@ export default function AuthAvatar({
               initial={{ y: 0, opacity: 0, scale: 0.5 }}
               animate={{ y: -20, opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.5 }}
-              className="absolute -top-6 left-1/2 transform -translate-x-1/2"
+              className="hib-absolute hib--top-6 hib-left-1/2 hib-transform hib--translate-x-1/2"
             >
-              <div className="bg-green-600 text-white text-xs px-2 py-1 rounded-full whitespace-nowrap border border-green-400/20">
-                ✓ Success!
+              <div className="hib-bg-green-600 hib-text-white hib-text-xs hib-px-2 hib-py-1 hib-rounded-full hib-whitespace-nowrap hib-border hib-border-green-400/20">
+                 Success!
               </div>
             </motion.div>
           )}
@@ -72,16 +72,16 @@ export default function AuthAvatar({
               initial={{ y: 0, opacity: 0, scale: 0.5 }}
               animate={{ y: -20, opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.5 }}
-              className="absolute -top-6 left-1/2 transform -translate-x-1/2"
+              className="hib-absolute hib--top-6 hib-left-1/2 hib-transform hib--translate-x-1/2"
             >
-              <div className="bg-red-600 text-white text-xs px-2 py-1 rounded-full whitespace-nowrap border border-red-400/20">
-                ✗ Invalid
+              <div className="hib-bg-red-600 hib-text-white hib-text-xs hib-px-2 hib-py-1 hib-rounded-full hib-whitespace-nowrap hib-border hib-border-red-400/20">
+                Invalid
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <svg viewBox="0 0 200 200" width="140" height="140" className="drop-shadow-xl">
+        <svg viewBox="0 0 200 200" width="180" height="180" className="hib-drop-shadow-xl">
           <defs>
             <linearGradient id="headGradient" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#FFDBCB" />
@@ -91,7 +91,7 @@ export default function AuthAvatar({
           
           <circle cx="100" cy="90" r="54" fill="url(#headGradient)" stroke="#E8B89B" strokeWidth="2" />
           
-          <path d="M45 70 C40 30, 160 20, 155 70 Z" fill="#5A2727" />
+          {/* Hair removed */}
           
           <g transform={`translate(${eyeOffset},0)`}>
             <g>
@@ -156,10 +156,10 @@ export default function AuthAvatar({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="mt-4 text-center"
+            className="hib-mt-4 hib-text-center"
           >
-            <p className="text-sm text-gray-400">Hello,</p>
-            <p className="font-medium text-white truncate max-w-[120px]">
+            <p className="hib-text-sm hib-text-gray-400">Hello,</p>
+            <p className="hib-font-medium hib-text-white hib-truncate hib-max-w-[120px]">
               {username || 'Guest'}
             </p>
           </motion.div>

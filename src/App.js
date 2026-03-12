@@ -1,4 +1,3 @@
-// src/App.jsx
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 
@@ -11,14 +10,15 @@ import SeriesDetail from './admin/pages/SeriesDetail';
 import AdminUsers from './admin/pages/AdminUsers';
 import AdminAnalytics from './admin/pages/AdminAnalytics';
 // Auth Components
-import ForgotPassword from './auth/ForgotPassword';
-import ResetPassword from './auth/ResetPassword';
-import SignUp from './auth/SignUp';
-import SignUpAdmin from './auth/SignUpAdmin';
-import SignIn from './auth/SignIn';
+import ForgotPassword from './auth/pages/ForgotPassword';
+import ResetPassword from './auth/pages/ResetPassword';
+import SignUp from './auth/pages/SignUp';
+import SignUpAdmin from './auth/pages/SignUpAdmin';
+import SignIn from './auth/pages/SignIn';
+import GithubCallback from './auth/pages/GithubCallback';
 
 // User Module
-import { AudioProvider } from './user/context/AudioContext';   // moved to top level
+import { AudioProvider } from './user/context/AudioContext';
 import UserLayout from './user/layouts/UserLayout';
 import PublicLayout from './user/layouts/PublicLayout';
 import HomePage from './user/pages/HomePage';
@@ -33,18 +33,22 @@ import SavedSeries from './user/pages/SavedSeriesPage';
 import NotificationsPage from './user/pages/NotificationsPage';
 import UserSupport from './user/pages/SupportCenterPage';
 
-// Common Components (admin guard)
+// Common Components
 import ProtectedRoute from './admin/components/ProtectedRoute';
 import AdminCoinPackagesPage from './admin/pages/AdminCoinPackagesPage';
 import AdminPayments from './admin/pages/AdminPayments';
 import AdminEpisodePurchases from './admin/pages/AdminEpisodePurchases';
 import AdminSupport from './admin/pages/AdminSupportPage';
 import AdminPaymentDetail from './admin/pages/AdminPaymentDetail';
+import ThemeToggle from './components/ThemeToggle';   // <-- import stays here
 
 function App() {
   return (
     <BrowserRouter>
-      <AudioProvider>   {/* Audio context available everywhere */}
+      <AudioProvider>
+        {/* ThemeToggle is now outside <Routes> – appears on all pages */}
+        <ThemeToggle />
+        
         <Routes>
           {/* ========== PUBLIC AUTH ROUTES ========== */}
           <Route path="/login" element={<SignIn />} />
@@ -52,6 +56,7 @@ function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/register" element={<SignUp />} />
           <Route path="/admin/register" element={<SignUpAdmin />} />
+          <Route path="/auth/github/callback" element={<GithubCallback />} />
 
           {/* ========== ADMIN ROUTES ========== */}
           <Route
@@ -85,7 +90,7 @@ function App() {
 
           {/* ========== USER ROUTES (protected, /user prefix) ========== */}
           <Route element={<UserProtectedRoute />}>
-            <Route element={<UserLayout />}>   {/* AudioProvider removed from here */}
+            <Route element={<UserLayout />}>
               <Route path="/user" element={<Outlet />}>
                 <Route index element={<HomePage />} />
                 <Route path="series/:id" element={<SeriesDetailPage />} />

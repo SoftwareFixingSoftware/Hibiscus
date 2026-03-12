@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import '../auth/styles/auth.css';
+import '../styles/auth.css';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:9019';
 
@@ -43,7 +43,6 @@ export default function ForgotPassword() {
         return;
       }
 
-      // ---- intelligent error mapping ----
       const msg = body?.message || 'Failed to send reset link';
 
       if (res.status === 400) {
@@ -57,7 +56,6 @@ export default function ForgotPassword() {
       } else {
         setError(msg);
       }
-
     } catch (err) {
       console.error(err);
       setError('Unable to connect to server. Please try again.');
@@ -67,25 +65,25 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="auth-layout">
+    <div className="hib-auth-layout">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="auth-card"
+        className="hib-auth-card"
         style={{ maxWidth: '480px' }}
       >
-        <div className="form-wrapper">
-          <div className="form-header">
-            <div className="brand-logo">
-              <div className="logo-icon">
-                <span className="logo-text">H</span>
+        <div className="hib-form-wrapper">
+          <div className="hib-form-header">
+            <div className="hib-brand-logo">
+              <div className="hib-logo-icon">
+                <span className="hib-logo-text">H</span>
               </div>
-              <h1 className="brand-title">Hibiscus</h1>
+              <h1 className="hib-brand-title">Hibiscus</h1>
             </div>
-            <h2 className="form-title">Reset Your Password</h2>
-            <p className="form-switch">
-              Remember your password? <Link to="/login" className="form-link">Sign in here</Link>
+            <h2 className="hib-form-title">Reset Your Password</h2>
+            <p className="hib-form-switch">
+              Remember your password? <Link to="/login" className="hib-form-link">Sign in here</Link>
             </p>
           </div>
 
@@ -96,20 +94,20 @@ export default function ForgotPassword() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
-                className="text-center p-8"
+                className="hib-text-center hib-p-8"
               >
-                <div className="success-icon mx-auto mb-6">
-                  <svg className="w-16 h-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="hib-success-icon hib-mx-auto hib-mb-6">
+                  <svg className="hib-w-16 hib-h-16 hib-text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Check Your Email</h3>
-                <p className="text-gray-400 mb-6">
+                <h3 className="hib-text-xl hib-font-semibold hib-mb-2">Check Your Email</h3>
+                <p className="hib-text-muted hib-mb-6">
                   We've sent password reset instructions to <strong>{email}</strong>
                 </p>
                 <button
                   onClick={() => resetState()}
-                  className="text-indigo-400 hover:text-indigo-300 text-sm"
+                  className="hib-text-accent hover:hib-text-accent-hover hib-text-sm"
                 >
                   Try a different email
                 </button>
@@ -120,12 +118,12 @@ export default function ForgotPassword() {
                 onSubmit={handleSubmit}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="form"
+                className="hib-form"
               >
                 {error && (
-                  <div className="alert-error mb-4">
-                    <div className="alert-content">
-                      <svg className="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="hib-alert-error hib-mb-4">
+                    <div className="hib-alert-content">
+                      <svg className="hib-alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <p>{error}</p>
@@ -134,11 +132,11 @@ export default function ForgotPassword() {
                 )}
 
                 {hint && (
-                  <div className="alert-info mb-4">
+                  <div className="hib-alert-info hib-mb-4">
                     <p>{hint}</p>
                     {hint.toLowerCase().includes('google') && (
-                      <div className="mt-2 text-sm">
-                        <Link to="/login" className="text-indigo-400 hover:text-indigo-300">
+                      <div className="hib-mt-2 hib-text-sm">
+                        <Link to="/login" className="hib-text-accent hover:hib-text-accent-hover">
                           Continue to sign in →
                         </Link>
                       </div>
@@ -146,29 +144,29 @@ export default function ForgotPassword() {
                   </div>
                 )}
 
-                <div className="form-group">
-                  <label className="form-label">Email Address</label>
+                <div className="hib-form-group">
+                  <label className="hib-form-label">Email Address</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    className="form-input"
+                    className="hib-form-input"
                     disabled={loading}
                     required
                   />
-                  <p className="text-sm text-gray-500 mt-2">
+                  <p className="hib-text-sm hib-text-muted hib-mt-2">
                     Password reset is only available for email/password accounts.
                   </p>
                 </div>
 
-                <button type="submit" disabled={loading} className="btn-primary mt-6">
+                <button type="submit" disabled={loading} className="hib-btn-primary hib-mt-6">
                   {loading ? (
-                    <div className="loading-container">
-                      <div className="loading-spinner">
-                        <svg className="spinner" viewBox="0 0 24 24">
-                          <circle className="spinner-track" cx="12" cy="12" r="10" />
-                          <circle className="spinner-indicator" cx="12" cy="12" r="10" />
+                    <div className="hib-loading-container">
+                      <div className="hib-loading-spinner">
+                        <svg className="hib-spinner" viewBox="0 0 24 24">
+                          <circle className="hib-spinner-track" cx="12" cy="12" r="10" />
+                          <circle className="hib-spinner-indicator" cx="12" cy="12" r="10" />
                         </svg>
                       </div>
                       <span>Sending Reset Link...</span>
@@ -176,8 +174,8 @@ export default function ForgotPassword() {
                   ) : 'Send Reset Link'}
                 </button>
 
-                <div className="mt-8 pt-6 border-t border-gray-800">
-                  <Link to="/register" className="block text-center text-indigo-400 hover:text-indigo-300">
+                <div className="hib-mt-8 hib-pt-6 hib-border-t hib-border">
+                  <Link to="/register" className="hib-block hib-text-center hib-text-accent hover:hib-text-accent-hover">
                     Don't have an account? Sign up
                   </Link>
                 </div>

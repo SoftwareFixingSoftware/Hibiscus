@@ -1,5 +1,7 @@
 /* ================================
-   GLOBAL DARK THEME STYLES
+   GLOBAL THEME – DARK (DEFAULT) & LIGHT
+   Toggle by adding/removing class "light-theme" on <body>
+   All utility classes are prefixed with "hib-" to avoid conflicts.
    ================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
@@ -10,12 +12,122 @@
   box-sizing: border-box;
 }
 
+/* ----- Dark theme (default) – warm & professional ----- */
+/* ----- Dark theme – deep black with warm accents ----- */
+:root {
+  --hib-primary: #b84c5e;              /* soft red */
+  --hib-primary-dark: #9a3f4f;
+  --hib-secondary: #d47b9a;             /* dusty rose */
+  --hib-accent: #d47b9a;
+  --hib-accent-hover: #c16684;
+
+  --hib-bg-page: #0c0c0c;               /* near black */
+  --hib-bg-gradient-to: #1a1a1a;         /* slightly lighter black */
+  --hib-bg-card: rgba(20, 20, 20, 0.95); /* deep charcoal with transparency */
+  --hib-bg-avatar: linear-gradient(145deg, rgba(180, 70, 90, 0.15) 0%, rgba(200, 120, 140, 0.15) 100%);
+
+  --hib-text-primary: #f0e9e2;           /* warm off-white */
+  --hib-text-secondary: #cdc0b5;          /* warm light gray */
+  --hib-text-muted: #a18f82;              /* muted warm gray */
+  --hib-text-muted-2: #7f6e61;            /* darker warm gray */
+
+  --hib-border: rgba(255, 255, 255, 0.06);
+  --hib-input-bg: rgba(30, 30, 30, 0.8);
+  --hib-input-border: rgba(255, 255, 255, 0.1);
+  --hib-input-focus-border: #d47b9a;
+  --hib-input-focus-shadow: rgba(212, 123, 154, 0.25);
+
+  --hib-button-primary: linear-gradient(145deg, #b84c5e, #d47b9a);
+  --hib-button-hover-shadow: 0 12px 28px rgba(180, 70, 90, 0.5);
+
+  --hib-social-bg: rgba(30, 30, 30, 0.8);
+  --hib-social-border: rgba(255, 255, 255, 0.1);
+  --hib-social-hover-bg: rgba(50, 50, 50, 0.9);
+  --hib-social-hover-border: rgba(255, 255, 255, 0.2);
+
+  --hib-divider-bg: #0c0c0c;
+
+  --hib-alert-error-bg: rgba(220, 38, 38, 0.2);
+  --hib-alert-error-border: rgba(220, 38, 38, 0.35);
+  --hib-alert-error-text: #fbb5b5;
+
+  --hib-alert-success-bg: rgba(16, 185, 129, 0.2);
+  --hib-alert-success-border: rgba(16, 185, 129, 0.35);
+  --hib-alert-success-text: #a7f3d0;
+
+  --hib-success-color: #10b981;
+  --hib-error-color: #ef4444;
+
+  --hib-spinner-track: rgba(255, 255, 255, 0.15);
+  --hib-spinner-indicator: #d47b7a;
+
+  --hib-scrollbar-track: rgba(255, 255, 255, 0.05);
+  --hib-scrollbar-thumb: rgba(255, 255, 255, 0.15);
+  --hib-scrollbar-thumb-hover: rgba(255, 255, 255, 0.25);
+
+  --hib-selection-bg: rgba(212, 123, 154, 0.4);
+}
+/* ----- Light theme – warm & inviting ----- */
+.light-theme {
+  --hib-primary: #8b0020;               /* rich burgundy */
+  --hib-primary-dark: #6d0019;
+  --hib-secondary: #b03060;              /* warm raspberry */
+  --hib-accent: #b03060;
+  --hib-accent-hover: #9a264f;
+
+  --hib-bg-page: #fef9f5;                /* warm off-white */
+  --hib-bg-gradient-to: #fdf3ed;          /* soft peach */
+  --hib-bg-card: rgba(255, 250, 245, 0.9);
+  --hib-bg-avatar: linear-gradient(145deg, rgba(139, 0, 32, 0.02) 0%, rgba(176, 48, 96, 0.02) 100%);
+
+  --hib-text-primary: #2d2a24;            /* soft black */
+  --hib-text-secondary: #5b4e42;           /* warm brown-gray */
+  --hib-text-muted: #8f7e6e;               /* warm gray */
+  --hib-text-muted-2: #b7a89a;             /* lighter warm gray */
+
+  --hib-border: rgba(139, 0, 32, 0.08);
+  --hib-input-bg: #ffffff;
+  --hib-input-border: #e0d6cf;
+  --hib-input-focus-border: #b03060;
+  --hib-input-focus-shadow: rgba(176, 48, 96, 0.1);
+
+  --hib-button-primary: linear-gradient(145deg, #8b0020, #b03060);
+  --hib-button-hover-shadow: 0 12px 28px rgba(139, 0, 32, 0.25);
+
+  --hib-social-bg: #ffffff;
+  --hib-social-border: #e0d6cf;
+  --hib-social-hover-bg: #fef3ed;
+  --hib-social-hover-border: #b7a89a;
+
+  --hib-divider-bg: #ffffff;
+
+  --hib-alert-error-bg: rgba(220, 38, 38, 0.05);
+  --hib-alert-error-border: rgba(220, 38, 38, 0.15);
+  --hib-alert-error-text: #9b2c2c;
+
+  --hib-alert-success-bg: rgba(16, 185, 129, 0.05);
+  --hib-alert-success-border: rgba(16, 185, 129, 0.15);
+  --hib-alert-success-text: #0b5e4b;
+
+  --hib-success-color: #10b981;
+  --hib-error-color: #dc2626;
+
+  --hib-spinner-track: rgba(0, 0, 0, 0.08);
+  --hib-spinner-indicator: #b03060;
+
+  --hib-scrollbar-track: rgba(0, 0, 0, 0.05);
+  --hib-scrollbar-thumb: rgba(0, 0, 0, 0.2);
+  --hib-scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
+
+  --hib-selection-bg: rgba(176, 48, 96, 0.2);
+}
+
 html,
 body,
 #root {
   min-height: 100vh;
-  background: #0f172a;
-  color: #f9fafb;
+  background: var(--hib-bg-page);
+  color: var(--hib-text-primary);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
     'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
     'Helvetica Neue', sans-serif;
@@ -24,115 +136,103 @@ body,
 }
 
 body {
-  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-  color: #e5e7eb;
+  background: linear-gradient(145deg, var(--hib-bg-page) 0%, var(--hib-bg-gradient-to) 100%);
+  color: var(--hib-text-secondary);
   overflow-x: hidden;
+  transition: background 0.3s ease, color 0.2s ease;
 }
 
-/* Custom scrollbar for dark theme */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
 }
-
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.5);
+  background: var(--hib-scrollbar-track);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: rgba(71, 85, 105, 0.5);
+  background: var(--hib-scrollbar-thumb);
   border-radius: 5px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.6);
+  background: var(--hib-scrollbar-thumb-hover);
 }
 
-/* Selection color */
+/* Selection */
 ::selection {
-  background: rgba(96, 165, 250, 0.3);
-  color: #ffffff;
+  background: var(--hib-selection-bg);
+  color: var(--hib-text-primary);
 }
 
 /* Focus styles */
 :focus {
-  outline: 2px solid rgba(96, 165, 250, 0.5);
+  outline: 2px solid var(--hib-accent);
   outline-offset: 2px;
 }
-
 :focus:not(:focus-visible) {
   outline: none;
 }
 
-/* Utility classes */
-.text-gradient {
-  background: linear-gradient(135deg, #60a5fa 0%, #8b5cf6 100%);
+/* Utility classes (prefixed with hib-) */
+.hib-text-gradient {
+  background: linear-gradient(135deg, var(--hib-primary) 0%, var(--hib-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.glass-effect {
-  background: rgba(15, 23, 42, 0.8);
+.hib-glass-effect {
+  background: var(--hib-bg-card);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--hib-border);
 }
 
-/* Animation utilities */
-@keyframes float {
+/* Animations */
+@keyframes hib-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
 }
-
-.float-animation {
-  animation: float 3s ease-in-out infinite;
+.hib-float-animation {
+  animation: hib-float 3s ease-in-out infinite;
 }
 
-@keyframes pulse {
+@keyframes hib-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
-
-.pulse-animation {
-  animation: pulse 2s ease-in-out infinite;
+.hib-pulse-animation {
+  animation: hib-pulse 2s ease-in-out infinite;
 }
 
-/* Loading spinner */
-.spinner {
-  border: 3px solid rgba(255, 255, 255, 0.1);
+/* Loading spinner (global) */
+.hib-spinner {
+  border: 3px solid var(--hib-spinner-track);
   border-radius: 50%;
-  border-top: 3px solid #60a5fa;
+  border-top: 3px solid var(--hib-spinner-indicator);
   width: 24px;
   height: 24px;
-  animation: spin 1s linear infinite;
+  animation: hib-spin 1s linear infinite;
 }
-
-@keyframes spin {
+@keyframes hib-spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-/* Responsive typography */
+/* Responsive */
 @media (max-width: 768px) {
-  html {
-    font-size: 14px;
-  }
+  html { font-size: 14px; }
 }
-
 @media (max-width: 480px) {
-  html {
-    font-size: 13px;
-  }
+  html { font-size: 13px; }
 }
 
-/* Print styles */
+/* Print */
 @media print {
   body {
     background: white !important;
     color: black !important;
   }
-  
-  .no-print {
+  .hib-no-print {
     display: none !important;
   }
 }
