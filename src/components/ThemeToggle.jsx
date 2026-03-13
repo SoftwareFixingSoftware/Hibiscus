@@ -1,50 +1,80 @@
-import { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
-export default function ThemeToggle() {
+/**
+ * ThemeToggle: toggles `body.light-theme`
+ * - persists to localStorage 'theme' key: 'light' or 'dark'
+ * - uses prefers-color-scheme if no saved value
+ */
+export default function ThemeToggle({ className = '' }) {
   const [isLight, setIsLight] = useState(false);
 
   useEffect(() => {
-    // Check if light theme is already active (e.g., from localStorage)
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light') {
-      document.body.classList.add('light-theme');
-      setIsLight(true);
+    try {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light') {
+        document.body.classList.add('light-theme');
+        setIsLight(true);
+        return;
+      }
+      if (saved === 'dark') {
+        document.body.classList.remove('light-theme');
+        setIsLight(false);
+        return;
+      }
+      // fallback to system preference
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+        document.body.classList.add('light-theme');
+        setIsLight(true);
+      } else {
+        document.body.classList.remove('light-theme');
+        setIsLight(false);
+      }
+    } catch (e) {
+      console.warn('ThemeToggle init error', e);
     }
   }, []);
 
-  const toggleTheme = () => {
-    if (isLight) {
-      document.body.classList.remove('light-theme');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.body.classList.add('light-theme');
-      localStorage.setItem('theme', 'light');
+  const toggle = () => {
+    try {
+      if (isLight) {
+        document.body.classList.remove('light-theme');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.classList.add('light-theme');
+        localStorage.setItem('theme', 'light');
+      }
+      setIsLight(!isLight);
+    } catch (e) {
+      console.warn('ThemeToggle toggle error', e);
     }
-    setIsLight(!isLight);
   };
 
   return (
     <button
-      onClick={toggleTheme}
-      className="hib-theme-toggle"
-      aria-label="Toggle theme"
+      onClick={toggle}
+      className={`hib-theme-toggle ${className}`}
+      aria-label={isLight ? 'Switch to dark theme' : 'Switch to light theme'}
+      aria-pressed={isLight}
+      title={isLight ? 'Switch to dark theme' : 'Switch to light theme'}
       style={{
         position: 'fixed',
         top: '1rem',
         right: '1rem',
-        zIndex: 1000,
-        background: 'var(--hib-bg-card)',
+        zIndex: 1200,
+        padding: '0.45rem 0.9rem',
+        borderRadius: 999,
         border: '1px solid var(--hib-border)',
-        borderRadius: '30px',
-        padding: '0.5rem 1rem',
-        cursor: 'pointer',
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.02), transparent)',
         color: 'var(--hib-text-primary)',
-        fontSize: '14px',
-        fontWeight: '500',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        fontWeight: 600,
+        cursor: 'pointer',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '0.6rem',
       }}
     >
-      {isLight ? '🌙 Dark' : '☀️ Light'}
+      <span style={{ fontSize: 16 }}>{isLight ? '🌙' : '☀️'}</span>
+      <span style={{ fontSize: 13 }}>{isLight ? 'Dark' : 'Light'}</span>
     </button>
   );
 }

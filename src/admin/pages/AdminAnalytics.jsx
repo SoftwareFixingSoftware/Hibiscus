@@ -1,36 +1,50 @@
 import React, { useState } from 'react';
 import AdminFollowedSeries from './AdminFollowedSeries';
-import AdminSeriesReviews from './AdminSeriesReviews';
 import AdminListeningHistory from './AdminListeningHistory';
-import './AdminAnalytics.css';
+import AdminSeriesReviews from './AdminSeriesReviews';
+import '../styles/admin-analytics.css'; // will use global classes
 
 const AdminAnalytics = () => {
-  const [activeTab, setActiveTab] = useState('listening');
+  const [activeTab, setActiveTab] = useState('followed');
 
-  const tabs = [
-    { id: 'listening', label: 'Listening History', component: AdminListeningHistory },
-    { id: 'followed', label: 'Followed Series', component: AdminFollowedSeries },
-    { id: 'reviews', label: 'Series Reviews', component: AdminSeriesReviews }
-  ];
-
-  const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || AdminListeningHistory;
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'followed':
+        return <AdminFollowedSeries />;
+      case 'listening':
+        return <AdminListeningHistory />;
+      case 'reviews':
+        return <AdminSeriesReviews />;
+      default:
+        return <AdminFollowedSeries />;
+    }
+  };
 
   return (
-    <div className="admin-analytics">
-      <h2>Admin Analytics Dashboard</h2>
-      <div className="tab-bar">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
+    <div className="adm-analytics-section">
+      <h3>Analytics</h3>
+      <div className="adm-tab-bar">
+        <button
+          className={`adm-tab-button ${activeTab === 'followed' ? 'adm-active' : ''}`}
+          onClick={() => setActiveTab('followed')}
+        >
+          Followed Series
+        </button>
+        <button
+          className={`adm-tab-button ${activeTab === 'listening' ? 'adm-active' : ''}`}
+          onClick={() => setActiveTab('listening')}
+        >
+          Listening History
+        </button>
+        <button
+          className={`adm-tab-button ${activeTab === 'reviews' ? 'adm-active' : ''}`}
+          onClick={() => setActiveTab('reviews')}
+        >
+          Series Reviews
+        </button>
       </div>
-      <div className="tab-content">
-        <ActiveComponent />
+      <div className="adm-tab-content">
+        {renderTabContent()}
       </div>
     </div>
   );

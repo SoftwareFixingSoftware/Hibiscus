@@ -46,15 +46,15 @@ const SeasonModal = ({ season, seriesId, onClose, onSubmit }) => {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <h3>{season ? 'Edit Season' : 'Create New Season'}</h3>
-          <button className="close-btn" onClick={onClose}><FiX /></button>
+    <div className="adm-modal-overlay">
+      <div className="adm-modal-container">
+        <div className="adm-modal-header">
+          <h3 className="adm-modal-title">{season ? 'Edit Season' : 'Create New Season'}</h3>
+          <button className="adm-modal-close" onClick={onClose}><FiX /></button>
         </div>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Season Number *</label>
+        <form onSubmit={handleSubmit} className="adm-modal-form">
+          <div className="adm-form-group">
+            <label className="adm-form-label">Season Number *</label>
             <input
               type="number"
               name="seasonNumber"
@@ -62,35 +62,35 @@ const SeasonModal = ({ season, seriesId, onClose, onSubmit }) => {
               onChange={handleChange}
               required
               min="1"
-              className="form-control"
+              className="adm-form-input"
             />
           </div>
-          <div className="form-group">
-            <label>Title</label>
+          <div className="adm-form-group">
+            <label className="adm-form-label">Title</label>
             <input
               type="text"
               name="title"
               value={formData.title}
               onChange={handleChange}
-              className="form-control"
+              className="adm-form-input"
               placeholder="e.g. Season 1: The Beginning"
             />
           </div>
-          <div className="form-group">
-            <label>Description</label>
+          <div className="adm-form-group">
+            <label className="adm-form-label">Description</label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
               rows="3"
-              className="form-control"
+              className="adm-form-textarea"
               placeholder="Brief description of this season..."
             />
           </div>
-          {error && <div className="error-message">{error}</div>}
-          <div className="modal-actions">
-            <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn-primary" disabled={loading}>
+          {error && <div className="adm-alert adm-error">{error}</div>}
+          <div className="adm-modal-footer">
+            <button type="button" className="adm-btn-secondary" onClick={onClose}>Cancel</button>
+            <button type="submit" className="adm-btn-primary" disabled={loading}>
               {loading ? 'Saving...' : (season ? 'Update' : 'Create')}
             </button>
           </div>

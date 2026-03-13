@@ -1,21 +1,11 @@
-// src/admin/components/Sidebar.jsx
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { 
-  FiHome, 
-  FiVideo, 
-  FiMusic, 
-  FiUsers, 
-  FiBarChart2,
-  FiMenu,
-  FiX,
-  FiPackage,
-  FiLogOut,
-  FiCreditCard,
-  FiShoppingCart,
-  FiHelpCircle,
-  FiRepeat
+import {
+  FiHome, FiVideo, FiMusic, FiUsers, FiBarChart2,
+  FiMenu, FiX, FiPackage, FiLogOut, FiCreditCard,
+  FiShoppingCart, FiHelpCircle, FiRepeat
 } from 'react-icons/fi';
+
 
 const Sidebar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -34,8 +24,6 @@ const Sidebar = () => {
     { name: 'Payments', icon: FiCreditCard, path: '/admin/payments' },
     { name: 'Purchases', icon: FiShoppingCart, path: '/admin/purchases' },
     { name: 'Support', icon: FiHelpCircle, path: '/admin/support' },
-
-    // NEW ITEM
     { name: 'Switch Role', icon: FiRepeat, path: '/user' }
   ];
 
@@ -45,62 +33,48 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className={`admin-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
-      
-      <div className="sidebar-header">
-        <div className="brand">
-          <div className="brand-logo">
-            <span className="logo-text">H</span>
+    <aside className={`adm-sidebar ${sidebarOpen ? 'adm-open' : 'adm-closed'}`}>
+      <div className="adm-sidebar-header">
+        <div className="adm-brand">
+          <div className="adm-brand-logo">
+            <span className="adm-logo-text">H</span>
           </div>
-
           {sidebarOpen && (
-            <div className="brand-text">
-              <h2 className="brand-title">Hibiscus</h2>
-              <p className="brand-subtitle">Content Admin</p>
+            <div className="adm-brand-text">
+              <h2 className="adm-brand-title">Hibiscus</h2>
+              <p className="adm-brand-subtitle">Content Admin</p>
             </div>
           )}
         </div>
-
-        <button 
-          className="sidebar-toggle" 
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-        >
+        <button className="adm-sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
         </button>
       </div>
 
-      <nav className="sidebar-nav">
+      <nav className="adm-sidebar-nav">
         {navigationItems.map((item) => (
           <NavLink
             key={item.name}
             to={item.path}
-            className={({ isActive }) => 
-              `nav-item ${isActive ? 'active' : ''}`
-            }
+            className={({ isActive }) => `adm-nav-item ${isActive ? 'adm-active' : ''}`}
           >
-            <item.icon className="nav-icon" size={20} />
-            {sidebarOpen && <span className="nav-text">{item.name}</span>}
+            <item.icon className="adm-nav-icon" size={20} />
+            {sidebarOpen && <span className="adm-nav-text">{item.name}</span>}
           </NavLink>
         ))}
       </nav>
 
       {sidebarOpen && (
-        <div className="sidebar-footer">
-          <div className="user-info">
-            <div className="user-avatar">
+        <div className="adm-sidebar-footer">
+          <div className="adm-user-info">
+            <div className="adm-user-avatar">
               {user?.username?.charAt(0).toUpperCase() || 'A'}
             </div>
-
-            <div className="user-details">
-              <h4 className="user-name">{user.username}</h4>
-              <p className="user-role">{user.role}</p>
+            <div className="adm-user-details">
+              <h4 className="adm-user-name">{user.username}</h4>
+              <p className="adm-user-role">{user.role}</p>
             </div>
-
-            <button 
-              className="logout-btn"
-              onClick={handleLogout}
-              title="Logout"
-            >
+            <button className="adm-logout-btn" onClick={handleLogout} title="Logout">
               <FiLogOut size={18} />
             </button>
           </div>

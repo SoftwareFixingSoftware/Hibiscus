@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import AdminFollowedSeriesService from '../services/adminFollowedSeriesService';
-import './AdminAnalytics.css';
 
 const AdminFollowedSeries = () => {
   const [follows, setFollows] = useState([]);
@@ -56,43 +55,31 @@ const AdminFollowedSeries = () => {
     fetchTopSeries();
   }, [page]);
 
-  const handlePreviousPage = () => {
-    if (page > 0) setPage(page - 1);
-  };
+  const handlePreviousPage = () => { if (page > 0) setPage(page - 1); };
+  const handleNextPage = () => { if (page < totalPages - 1) setPage(page + 1); };
+  const formatDate = (instantStr) => new Date(instantStr).toLocaleString();
 
-  const handleNextPage = () => {
-    if (page < totalPages - 1) setPage(page + 1);
-  };
-
-  const formatDate = (instantStr) => {
-    return new Date(instantStr).toLocaleString();
-  };
-
-  if (error) return <div className="error">{error}</div>;
+  if (error) return <div className="adm-error">{error}</div>;
 
   return (
-    <div className="analytics-section">
+    <div className="adm-analytics-section">
       <h3>Followed Series</h3>
 
       {stats.length > 0 && (
-        <div className="stats-cards">
-          <div className="stat-card">
-            <span className="stat-label">Total Follows</span>
-            <span className="stat-value">{stats.length}</span>
+        <div className="adm-stats-cards">
+          <div className="adm-stat-card">
+            <span className="adm-stat-label">Total Follows</span>
+            <span className="adm-stat-value">{stats.length}</span>
           </div>
-          {/* Add more stats if available */}
         </div>
       )}
 
       {topSeries.length > 0 && (
-        <div className="top-list">
+        <div className="adm-top-list">
           <h4>Top 10 Followed Series</h4>
-          <table className="analytics-table">
+          <table className="adm-analytics-table">
             <thead>
-              <tr>
-                <th>Series Title</th>
-                <th>Follower Count</th>
-              </tr>
+              <tr><th>Series Title</th><th>Follower Count</th></tr>
             </thead>
             <tbody>
               {topSeries.map(series => (
@@ -107,9 +94,9 @@ const AdminFollowedSeries = () => {
       )}
 
       {follows.length === 0 && !loading ? (
-        <div className="no-data">No follows found.</div>
+        <div className="adm-no-data">No follows found.</div>
       ) : (
-        <table className="analytics-table">
+        <table className="adm-analytics-table">
           <thead>
             <tr>
               <th>User Email</th>
@@ -131,11 +118,11 @@ const AdminFollowedSeries = () => {
         </table>
       )}
 
-      {loading && <div className="loading">Loading...</div>}
-      <div className="pagination">
-        <button onClick={handlePreviousPage} disabled={page === 0}>Previous</button>
-        <span>Page {page + 1} of {totalPages}</span>
-        <button onClick={handleNextPage} disabled={page >= totalPages - 1}>Next</button>
+      {loading && <div className="adm-loading">Loading...</div>}
+      <div className="adm-pagination-container">
+        <button onClick={handlePreviousPage} disabled={page === 0} className="adm-pagination-nav">Previous</button>
+        <span className="adm-pagination-info">Page {page + 1} of {totalPages}</span>
+        <button onClick={handleNextPage} disabled={page >= totalPages - 1} className="adm-pagination-nav">Next</button>
       </div>
     </div>
   );

@@ -1,0 +1,343 @@
+/* ================================
+   ADMIN ANALYTICS
+   ================================ */
+
+.adm-analytics-section {
+  width: 100%;
+}
+
+.adm-analytics-section h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--hib-text-primary);
+  margin-bottom: 1.5rem;
+}
+
+/* -------------------------------
+   Tabs
+------------------------------- */
+
+.adm-tab-bar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid var(--hib-border);
+  padding-bottom: 0.5rem;
+}
+
+.adm-tab-button {
+  padding: 0.75rem 1.5rem;
+  background: none;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--hib-text-muted);
+  transition: all 0.2s ease;
+}
+
+.adm-tab-button:hover {
+  background: var(--hib-bg-light);
+  color: var(--hib-text-primary);
+}
+
+.adm-tab-button.adm-active {
+  background: var(--hib-primary);
+  color: white;
+  font-weight: 600;
+}
+
+.adm-tab-content {
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--hib-card-shadow);
+}
+
+/* -------------------------------
+   Statistics Cards
+   (reused from admin-payments.css)
+------------------------------- */
+
+.adm-stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.adm-stat-card {
+  position: relative;
+  padding: 1rem 1.1rem;
+  border-radius: 12px;
+  background: linear-gradient(160deg, rgba(255,255,255,0.01), rgba(0,0,0,0.04)), var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  box-shadow: var(--hib-card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  overflow: hidden;
+}
+
+.adm-stat-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--hib-primary), var(--hib-primary-600));
+  opacity: 0.95;
+}
+
+.adm-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 40px rgba(2,6,23,0.25);
+}
+
+.adm-stat-label {
+  font-size: 0.82rem;
+  color: var(--hib-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.adm-stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--hib-text-primary);
+  white-space: nowrap;
+}
+
+/* -------------------------------
+   Top Lists (side by side)
+------------------------------- */
+
+.adm-top-lists {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin: 2rem 0;
+}
+
+.adm-top-list {
+  flex: 1 1 300px;
+  min-width: 300px;
+}
+
+.adm-top-list h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--hib-text-primary);
+  margin-bottom: 1rem;
+}
+
+/* -------------------------------
+   Series Statistics Box
+------------------------------- */
+
+.adm-series-stats {
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--hib-card-shadow);
+}
+
+/* -------------------------------
+   Analytics Tables
+   (consistent with other admin tables)
+------------------------------- */
+
+.adm-analytics-table {
+  width: 100%;
+  min-width: 800px;
+  border-collapse: collapse;
+  background: var(--hib-bg-card);
+  color: var(--hib-text-primary);
+  margin: 1rem 0;
+}
+
+.adm-analytics-table th {
+  background: var(--hib-bg-darker);
+  color: var(--hib-text-primary);
+  padding: 0.95rem 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--hib-border);
+  text-align: left;
+}
+
+.adm-analytics-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--hib-border);
+  color: var(--hib-text-primary);
+  white-space: nowrap;
+}
+
+.adm-analytics-table tbody tr:hover {
+  background: var(--row-hover-bg);
+  transition: background 0.14s ease;
+}
+
+/* -------------------------------
+   Trend Bars (for future use)
+------------------------------- */
+
+.adm-trend-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 150px;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  padding-bottom: 1.5rem;
+}
+
+.adm-trend-bar {
+  flex: 0 0 40px;
+  background: var(--hib-primary);
+  position: relative;
+  min-height: 20px;
+  transition: height 0.3s;
+  border-radius: 4px 4px 0 0;
+}
+
+.adm-trend-bar .adm-trend-date {
+  position: absolute;
+  bottom: -1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  white-space: nowrap;
+  color: var(--hib-text-muted);
+}
+
+.adm-trend-bar .adm-trend-count {
+  position: absolute;
+  top: -1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: var(--hib-text-primary);
+}
+
+/* -------------------------------
+   Pagination
+------------------------------- */
+
+.adm-pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.adm-pagination-nav {
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  padding: 0.45rem 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--hib-text-primary);
+  font-size: 0.875rem;
+  transition: background 0.2s ease;
+}
+
+.adm-pagination-nav:hover:not(:disabled) {
+  background: var(--row-hover-bg);
+}
+
+.adm-pagination-nav:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.adm-pagination-info {
+  color: var(--hib-text-muted);
+  font-size: 0.875rem;
+}
+
+/* -------------------------------
+   Loading / No Data / Error
+------------------------------- */
+
+.adm-loading {
+  padding: 1.25rem;
+  text-align: center;
+  color: var(--hib-text-muted);
+  font-style: italic;
+}
+
+.adm-no-data {
+  padding: 1.25rem;
+  background: var(--hib-bg-card);
+  border-radius: 10px;
+  color: var(--hib-text-muted);
+  text-align: center;
+  border: 1px dashed var(--hib-border);
+}
+
+.adm-error {
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid var(--hib-error-color);
+  color: var(--hib-error-color);
+  border-radius: 8px;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+/* -------------------------------
+   Responsive Adjustments
+------------------------------- */
+
+@media (max-width: 1024px) {
+  .adm-top-lists {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .adm-top-list {
+    min-width: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .adm-tab-bar {
+    flex-direction: column;
+    gap: 0.5rem;
+    border-bottom: none;
+  }
+
+  .adm-tab-button {
+    border-radius: 8px;
+    text-align: left;
+  }
+
+  .adm-analytics-table {
+    min-width: 600px;
+  }
+
+  .adm-stats-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .adm-stats-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-analytics-table {
+    min-width: 500px;
+  }
+}

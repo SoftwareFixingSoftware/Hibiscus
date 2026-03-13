@@ -1,0 +1,475 @@
+/* ================================
+   ADMIN SUPPORT CENTER
+   ================================ */
+
+.adm-support-center-page {
+  padding: 1.5rem;
+}
+
+.adm-support-center-page h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--hib-text-primary);
+  margin-bottom: 1.5rem;
+}
+
+/* -------------------------------
+   Filter Bar
+------------------------------- */
+
+.adm-filter-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  border-radius: 8px;
+}
+
+.adm-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.adm-filter-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--hib-text-primary);
+}
+
+.adm-filter-group select,
+.adm-filter-group input {
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  border-radius: 6px;
+  color: var(--hib-text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.adm-filter-group select:focus,
+.adm-filter-group input:focus {
+  outline: none;
+  border-color: var(--hib-primary);
+  box-shadow: 0 0 0 2px rgba(217, 169, 90, 0.2);
+}
+
+.adm-filter-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.5rem;
+  background: var(--hib-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.adm-filter-button:hover {
+  background: var(--hib-primary-dark);
+}
+
+.adm-filter-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* -------------------------------
+   Tickets Layout (two columns)
+------------------------------- */
+
+.adm-tickets-container {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.5rem;
+}
+
+/* --- Tickets List (left column) --- */
+.adm-tickets-list {
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--hib-card-shadow);
+}
+
+.adm-tickets-list h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--hib-text-primary);
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.adm-tickets-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.adm-tickets-list li {
+  padding: 1rem;
+  border-bottom: 1px solid var(--hib-border);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  color: var(--hib-text-primary);
+  border-radius: 6px;
+}
+
+.adm-tickets-list li:last-child {
+  border-bottom: none;
+}
+
+.adm-tickets-list li:hover {
+  background: var(--row-hover-bg);
+}
+
+.adm-tickets-list li.adm-active {
+  background: var(--hib-primary);
+  color: white;
+}
+
+.adm-tickets-list li strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+/* --- Ticket Details (right column) --- */
+.adm-ticket-details {
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--hib-card-shadow);
+}
+
+.adm-ticket-details h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--hib-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.adm-ticket-details p {
+  color: var(--hib-text-muted);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+/* Meta information box */
+.adm-ticket-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--hib-bg-darker);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--hib-text-muted);
+  border: 1px solid var(--hib-border);
+}
+
+.adm-ticket-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.adm-ticket-meta a {
+  color: var(--hib-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.adm-ticket-meta a:hover {
+  text-decoration: underline;
+}
+
+/* -------------------------------
+   Admin Actions (status/assign)
+------------------------------- */
+
+.adm-admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: var(--hib-bg-darker);
+  border-radius: 8px;
+  border: 1px solid var(--hib-border);
+}
+
+.adm-status-update,
+.adm-assign-ticket {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.adm-status-update select,
+.adm-assign-ticket input {
+  padding: 0.5rem;
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  border-radius: 6px;
+  color: var(--hib-text-primary);
+  font-size: 0.875rem;
+  min-width: 160px;
+}
+
+.adm-assign-ticket input {
+  width: 250px;
+}
+
+.adm-status-update button,
+.adm-assign-ticket button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  background: var(--hib-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.adm-status-update button:hover:not(:disabled),
+.adm-assign-ticket button:hover:not(:disabled) {
+  background: var(--hib-primary-dark);
+}
+
+.adm-status-update button:disabled,
+.adm-assign-ticket button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* -------------------------------
+   Messages Section
+------------------------------- */
+
+.adm-messages-section {
+  margin-top: 1.5rem;
+}
+
+.adm-messages-section h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--hib-text-primary);
+  margin-bottom: 1rem;
+}
+
+.adm-messages-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem 0;
+}
+
+.adm-messages-section li {
+  background: var(--hib-bg-darker);
+  border: 1px solid var(--hib-border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: background 0.2s ease;
+}
+
+.adm-messages-section li.adm-internal {
+  background: rgba(245, 158, 11, 0.08);
+  border-left: 4px solid var(--hib-warning-color);
+}
+
+.adm-msg-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.adm-responder {
+  font-weight: 600;
+  color: var(--hib-primary);
+}
+
+.adm-msg-time {
+  color: var(--hib-text-muted);
+  font-size: 0.8rem;
+}
+
+.adm-internal-badge {
+  background: var(--hib-warning-color);
+  color: white;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.adm-msg-body {
+  color: var(--hib-text-primary);
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.adm-attachments {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.adm-attachments a {
+  color: var(--hib-primary);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.adm-attachments a:hover {
+  text-decoration: underline;
+}
+
+/* -------------------------------
+   Send Message Form
+------------------------------- */
+
+.adm-send-message {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.adm-send-message textarea {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  border-radius: 8px;
+  color: var(--hib-text-primary);
+  font-size: 0.875rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.adm-send-message textarea:focus {
+  outline: none;
+  border-color: var(--hib-primary);
+  box-shadow: 0 0 0 2px rgba(217, 169, 90, 0.2);
+}
+
+.adm-send-message button {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.5rem;
+  background: var(--hib-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.adm-send-message button:hover:not(:disabled) {
+  background: var(--hib-primary-dark);
+}
+
+.adm-send-message button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* -------------------------------
+   Loading & Error States
+------------------------------- */
+
+.adm-loading {
+  padding: 2rem;
+  text-align: center;
+  color: var(--hib-text-muted);
+  font-style: italic;
+}
+
+.adm-error {
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--hib-error-color);
+  color: var(--hib-error-color);
+  border-radius: 8px;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+/* -------------------------------
+   Responsive Adjustments
+------------------------------- */
+
+@media (max-width: 1024px) {
+  .adm-tickets-container {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-tickets-list {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .adm-admin-actions {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .adm-status-update,
+  .adm-assign-ticket {
+    width: 100%;
+  }
+
+  .adm-assign-ticket input {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .adm-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .adm-filter-group {
+    width: 100%;
+  }
+
+  .adm-filter-button {
+    justify-content: center;
+  }
+}

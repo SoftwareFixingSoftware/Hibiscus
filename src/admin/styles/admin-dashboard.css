@@ -1,0 +1,109 @@
+/* ================================
+   ADMIN DASHBOARD
+   ================================ */
+
+.adm-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.adm-dashboard-header {
+  margin-bottom: 1rem;
+}
+
+.adm-dashboard-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--hib-text-primary);
+  margin: 0;
+}
+
+.adm-dashboard-subtitle {
+  color: var(--hib-text-muted);
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+}
+
+/* Stats Grid */
+.adm-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Metrics Section */
+.adm-metrics-section {
+  margin-top: 1rem;
+}
+
+.adm-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--hib-text-primary);
+  margin-bottom: 1rem;
+}
+
+.adm-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.adm-metric-card {
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.adm-metric-label {
+  font-size: 0.875rem;
+  color: var(--hib-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.adm-metric-value {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--hib-text-primary);
+}
+
+/* Top List Card */
+.adm-top-list-card {
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.adm-top-list-card h4 {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--hib-text-primary);
+}
+
+.adm-top-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.adm-top-table th {
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--hib-text-muted);
+  padding-bottom: 0.5rem;
+}
+
+.adm-top-table td {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--hib-border);
+}
+
+.adm-top-table tr:last-child td {
+  border-bottom: none;
+}

@@ -1,15 +1,14 @@
-// src/admin/layouts/AdminLayout.jsx
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import '../styles/admin.css';
+import '../styles/admin-base.css';  
 
 const AdminLayout = () => {
   return (
-    <div className="admin-container">
+    <div className="adm-admin-container">
       <Sidebar />
-      <div className="admin-main">
-        <main className="admin-content">
+      <div className="adm-admin-main">
+        <main className="adm-admin-content">
           <Outlet />
         </main>
       </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom'; // add this import
+import { Link } from 'react-router-dom';
 import AdminPaymentService from '../services/adminPaymentService';
-import './AdminPurchases.css';
+import '../styles/admin-payments.css';
 
 const AdminPayments = () => {
   const [payments, setPayments] = useState([]);
@@ -17,7 +17,6 @@ const AdminPayments = () => {
     setError(null);
     try {
       const data = await AdminPaymentService.getPayments({ page, size });
-      console.log('Payments data:', data);
       if (data && data.content) {
         setPayments(data.content);
         setTotalPages(data.totalPages || 0);
@@ -39,7 +38,6 @@ const AdminPayments = () => {
   const fetchStatistics = async () => {
     try {
       const data = await AdminPaymentService.getPaymentStatistics();
-      console.log('Payment statistics data:', data);
       setStatistics(data || {});
     } catch (err) {
       console.error('Failed to load payment statistics', err);
@@ -51,43 +49,29 @@ const AdminPayments = () => {
     fetchStatistics();
   }, [page]);
 
-  const handlePreviousPage = () => {
-    if (page > 0) setPage(page - 1);
-  };
+  const handlePreviousPage = () => { if (page > 0) setPage(page - 1); };
+  const handleNextPage = () => { if (page < totalPages - 1) setPage(page + 1); };
+  const formatDate = (dateTimeStr) => new Date(dateTimeStr).toLocaleString();
+  const formatCurrency = (cents) => `$${(cents / 100).toFixed(2)}`;
 
-  const handleNextPage = () => {
-    if (page < totalPages - 1) setPage(page + 1);
-  };
-
-  const formatDate = (dateTimeStr) => {
-    return new Date(dateTimeStr).toLocaleString();
-  };
-
-  const formatCurrency = (cents) => {
-    return `$${(cents / 100).toFixed(2)}`;
-  };
-
-  console.log('Rendering with payments:', payments);
-  console.log('Rendering with statistics:', statistics);
-
-  if (error) return <div className="error">{error}</div>;
+  if (error) return <div className="adm-error">{error}</div>;
 
   return (
-    <div className="admin-purchases-container">
+    <div className="adm-purchases-container">
       <h2>Payments</h2>
       {statistics && (
-        <div className="stats-cards">
-          <div className="stat-card">
-            <span className="stat-label">Total Revenue</span>
-            <span className="stat-value">{formatCurrency(statistics.totalCompletedRevenueCents || 0)}</span>
+        <div className="adm-stats-cards">
+          <div className="adm-stat-card">
+            <span className="adm-stat-label">Total Revenue</span>
+            <span className="adm-stat-value">{formatCurrency(statistics.totalCompletedRevenueCents || 0)}</span>
           </div>
-          <div className="stat-card">
-            <span className="stat-label">Unique Paying Users</span>
-            <span className="stat-value">{statistics.distinctUsersWithCompletedPayments || 0}</span>
+          <div className="adm-stat-card">
+            <span className="adm-stat-label">Unique Paying Users</span>
+            <span className="adm-stat-value">{statistics.distinctUsersWithCompletedPayments || 0}</span>
           </div>
-          <div className="stat-card">
-            <span className="stat-label">Status Counts</span>
-            <div className="stat-sub">
+          <div className="adm-stat-card">
+            <span className="adm-stat-label">Status Counts</span>
+            <div className="adm-stat-sub">
               {Object.entries(statistics.countsByStatus || {}).map(([status, count]) => (
                 <div key={status}>{status}: {count}</div>
               ))}
@@ -96,47 +80,46 @@ const AdminPayments = () => {
         </div>
       )}
 
-      {payments.length === 0 && !loading && (
-        <div className="no-data">No payments found.</div>
-      )}
+      {payments.length === 0 && !loading && <div className="adm-no-data">No payments found.</div>}
 
-      <table className="purchases-table">
-        <thead>
-          <tr>
-            <th>Payment ID</th>
-            <th>User Email</th>
-            <th>Provider</th>
-            <th>Order ID</th>
-            <th>Capture ID</th>
-            <th>Amount</th>
-            <th>Currency</th>
-            <th>Status</th>
-            <th>Created At</th>
-          </tr>
-        </thead>
-        <tbody>
-          {payments.map(payment => (
-            <tr key={payment.paymentId}>
-              <td>
-                <Link to={`/admin/payments/${payment.paymentId}`}>{payment.paymentId}</Link>
-              </td>
-              <td>{payment.userEmail || payment.userId}</td>
-              <td>{payment.provider}</td>
-              <td>{payment.paypalOrderId || '-'}</td>
-              <td>{payment.paypalCaptureId || '-'}</td>
-              <td>{formatCurrency(payment.amountCents)}</td>
-              <td>{payment.currency}</td>
-              <td>{payment.status}</td>
-              <td>{formatDate(payment.createdAt)}</td>
+      <div className="adm-table-wrapper">
+        <table className="adm-purchases-table">
+          <thead>
+            <tr>
+              <th>Payment ID</th>
+              <th>User Email</th>
+              <th>Provider</th>
+              <th>Order ID</th>
+              <th>Capture ID</th>
+              <th>Amount</th>
+              <th>Currency</th>
+              <th>Status</th>
+              <th>Created At</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      {loading && <div className="loading">Loading...</div>}
-      <div className="pagination">
-        <button onClick={handlePreviousPage} disabled={page === 0}>Previous</button>
-        <span>Page {page + 1} of {totalPages}</span>
-        <button onClick={handleNextPage} disabled={page >= totalPages - 1}>Next</button>
+          </thead>
+          <tbody>
+            {payments.map(payment => (
+              <tr key={payment.paymentId}>
+                <td><Link to={`/admin/payments/${payment.paymentId}`}>{payment.paymentId}</Link></td>
+                <td>{payment.userEmail || payment.userId}</td>
+                <td>{payment.provider}</td>
+                <td>{payment.paypalOrderId || '-'}</td>
+                <td>{payment.paypalCaptureId || '-'}</td>
+                <td>{formatCurrency(payment.amountCents)}</td>
+                <td>{payment.currency}</td>
+                <td>{payment.status}</td>
+                <td>{formatDate(payment.createdAt)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {loading && <div className="adm-loading">Loading...</div>}
+      <div className="adm-pagination-container">
+        <button onClick={handlePreviousPage} disabled={page === 0} className="adm-pagination-nav">Previous</button>
+        <span className="adm-pagination-info">Page {page + 1} of {totalPages}</span>
+        <button onClick={handleNextPage} disabled={page >= totalPages - 1} className="adm-pagination-nav">Next</button>
       </div>
     </div>
   );

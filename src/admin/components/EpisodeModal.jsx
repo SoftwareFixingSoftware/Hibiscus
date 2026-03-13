@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { FiX, FiCalendar, FiClock, FiAlertCircle } from 'react-icons/fi';
+import React, { useState, useEffect, useRef } from 'react';
+import { FiX, FiCalendar, FiClock, FiAlertCircle, FiUpload } from 'react-icons/fi';
 import EpisodeService from '../services/EpisodeService';
 import SeasonService from '../services/SeasonService';
 
-const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
+const EpisodeModal = ({ episode, seriesId, suggestedEpisodeNumber, onClose, onSubmit }) => {
   const isEditMode = !!episode;
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [seasons, setSeasons] = useState([]);
   const [loadingSeasons, setLoadingSeasons] = useState(false);
+  const [audioFile, setAudioFile] = useState(null);
+  const [computingDuration, setComputingDuration] = useState(false);
+  const fileInputRef = useRef(null);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -21,39 +25,35 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
     seasonId: ''
   });
 
-  // Load seasons when seriesId is available
   useEffect(() => {
-    if (seriesId) {
-      fetchSeasons();
-    }
+    if (seriesId) fetchSeasons();
   }, [seriesId]);
 
-  // Prefill form when editing
   useEffect(() => {
     if (episode) {
       const releaseDate = episode.releaseDate
         ? new Date(episode.releaseDate).toISOString().split('T')[0]
         : new Date().toISOString().split('T')[0];
-
       setFormData({
         title: episode.title || '',
         description: episode.description || '',
         episodeNumber: episode.episodeNumber || 1,
-        releaseDate: releaseDate,
+        releaseDate,
         isPublished: episode.isPublished || false,
         durationSeconds: episode.durationSeconds || episode.duration || 0,
         isFree: episode.isFree || false,
         priceInCoins: episode.priceInCoins || 0,
         seasonId: episode.seasonId || ''
       });
+    } else if (suggestedEpisodeNumber) {
+      setFormData(prev => ({ ...prev, episodeNumber: suggestedEpisodeNumber }));
     }
-  }, [episode]);
+  }, [episode, suggestedEpisodeNumber]);
 
   const fetchSeasons = async () => {
     setLoadingSeasons(true);
     try {
       const res = await SeasonService.getSeasonsBySeries(seriesId, { size: 100 });
-      // Handle both wrapped and unwrapped responses
       const data = res.content || res.data?.content || res.data || [];
       setSeasons(data);
     } catch (error) {
@@ -65,33 +65,42 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
-    let newValue =
-      type === 'checkbox'
-        ? checked
-        : type === 'number'
-        ? parseInt(value) || 0
-        : value;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: newValue
-    }));
-
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }));
-    }
+    let newValue = type === 'checkbox' ? checked : (type === 'number' ? parseInt(value) || 0 : value);
+    setFormData(prev => ({ ...prev, [name]: newValue }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const handleDurationMinutesChange = (e) => {
     const minutes = parseFloat(e.target.value) || 0;
     const seconds = Math.round(minutes * 60);
-    setFormData((prev) => ({ ...prev, durationSeconds: seconds }));
+    setFormData(prev => ({ ...prev, durationSeconds: seconds }));
+  };
+
+  const handleAudioFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setAudioFile(file);
+    setComputingDuration(true);
+
+    const url = URL.createObjectURL(file);
+    const audio = new Audio(url);
+
+    audio.addEventListener('loadedmetadata', () => {
+      const duration = Math.round(audio.duration);
+      setFormData(prev => ({ ...prev, durationSeconds: duration }));
+      URL.revokeObjectURL(url);
+      setComputingDuration(false);
+    });
+
+    audio.addEventListener('error', () => {
+      alert('Could not read audio file duration. Please enter manually.');
+      URL.revokeObjectURL(url);
+      setComputingDuration(false);
+    });
   };
 
   const validateForm = () => {
     const newErrors = {};
-
     if (!formData.title.trim()) newErrors.title = 'Title is required';
     if (!formData.description.trim()) newErrors.description = 'Description is required';
     if (formData.episodeNumber <= 0) newErrors.episodeNumber = 'Episode number must be positive';
@@ -100,9 +109,8 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
       newErrors.priceInCoins = 'Price in coins must be greater than 0 for paid episodes';
     }
     if (!isEditMode && !seriesId) {
-      newErrors.seriesId = 'Series ID is required. Please make sure you are creating an episode within a series.';
+      newErrors.seriesId = 'Series ID is required.';
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -110,9 +118,7 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
     setLoading(true);
-
     try {
       const episodeData = {
         title: formData.title.trim(),
@@ -124,7 +130,6 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
         isFree: formData.isFree,
         priceInCoins: formData.isFree ? 0 : formData.priceInCoins
       };
-
       let result;
       if (isEditMode) {
         result = await EpisodeService.updateEpisode(episode.id, episodeData);
@@ -137,9 +142,23 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
       }
       onSubmit(result.data);
     } catch (error) {
+      console.error('Episode save error:', error);
       let errorMessage = 'Failed to save episode';
-      if (error.response?.data?.message) errorMessage = error.response.data.message;
-      else if (error.message) errorMessage = error.message;
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      // Handle duplicate episode number (unique constraint)
+      if (
+        errorMessage.toLowerCase().includes('duplicate') ||
+        errorMessage.includes('ux_series_episode') ||
+        errorMessage.includes('1062') // MySQL duplicate entry code
+      ) {
+        errorMessage = `Episode number ${formData.episodeNumber} already exists for this series. Please choose a different number.`;
+      }
+
       setErrors({ submit: errorMessage });
     } finally {
       setLoading(false);
@@ -153,36 +172,35 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container">
-        <div className="modal-header">
-          <h3 className="modal-title">
+    <div className="adm-modal-overlay">
+      <div className="adm-modal-container">
+        <div className="adm-modal-header">
+          <h3 className="adm-modal-title">
             {isEditMode ? 'Edit Episode' : 'Create New Episode'}
           </h3>
-          <button className="modal-close" onClick={onClose}>
+          <button className="adm-modal-close" onClick={onClose}>
             <FiX />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="modal-form">
+        <form onSubmit={handleSubmit} className="adm-modal-form">
           {errors.submit && (
-            <div className="alert alert-error">
-              <FiAlertCircle />
+            <div className="adm-alert adm-error">
+              <FiAlertCircle className="adm-alert-icon" />
               <div style={{ marginLeft: '8px' }}>
                 <strong>Error:</strong> {errors.submit}
               </div>
             </div>
           )}
 
-          {/* Season dropdown – simplified to show only season numbers */}
-          <div className="form-group">
-            <label className="form-label">Season (optional)</label>
+          <div className="adm-form-group">
+            <label className="adm-form-label">Season (optional)</label>
             <select
               name="seasonId"
               value={formData.seasonId}
               onChange={handleChange}
-              className="form-control"
-              disabled={loadingSeasons || isEditMode} // disable in edit mode (backend may not support changing season)
+              className="adm-form-select"
+              disabled={loadingSeasons || isEditMode}
             >
               <option value="">-- Auto-assign based on episode number --</option>
               {seasons.map(season => (
@@ -191,134 +209,158 @@ const EpisodeModal = ({ episode, seriesId, onClose, onSubmit }) => {
                 </option>
               ))}
             </select>
-            {loadingSeasons && <span className="form-hint">Loading seasons...</span>}
+            {loadingSeasons && <span className="adm-form-hint">Loading seasons...</span>}
           </div>
 
-          {/* Title */}
-          <div className="form-group">
-            <label className="form-label">Episode Title *</label>
+          <div className="adm-form-group">
+            <label className="adm-form-label">Episode Title *</label>
             <input
               type="text"
               name="title"
               value={formData.title}
               onChange={handleChange}
-              className={`form-input ${errors.title ? 'error' : ''}`}
+              className={`adm-form-input ${errors.title ? 'adm-error' : ''}`}
               disabled={loading}
             />
-            {errors.title && <span className="form-error">{errors.title}</span>}
+            {errors.title && <span className="adm-form-error">{errors.title}</span>}
           </div>
 
-          {/* Description */}
-          <div className="form-group">
-            <label className="form-label">Description *</label>
+          <div className="adm-form-group">
+            <label className="adm-form-label">Description *</label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
-              className={`form-input ${errors.description ? 'error' : ''}`}
+              className={`adm-form-textarea ${errors.description ? 'adm-error' : ''}`}
               rows="4"
               disabled={loading}
             />
-            {errors.description && <span className="form-error">{errors.description}</span>}
+            {errors.description && <span className="adm-form-error">{errors.description}</span>}
           </div>
 
-          {/* Episode Number + Duration */}
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Episode Number *</label>
+          <div className="adm-form-row">
+            <div className="adm-form-group">
+              <label className="adm-form-label">Episode Number *</label>
               <input
                 type="number"
                 name="episodeNumber"
                 value={formData.episodeNumber}
                 onChange={handleChange}
                 min="1"
-                className={`form-input ${errors.episodeNumber ? 'error' : ''}`}
+                className={`adm-form-input ${errors.episodeNumber ? 'adm-error' : ''}`}
                 disabled={loading}
               />
+              {!isEditMode && suggestedEpisodeNumber && (
+                <span className="adm-form-hint">Suggested: {suggestedEpisodeNumber} (you can change it)</span>
+              )}
             </div>
-
-            <div className="form-group">
-              <label className="form-label">Duration (minutes) *</label>
-              <div className="input-with-icon">
-                <FiClock className="input-icon" />
+            <div className="adm-form-group">
+              <label className="adm-form-label">Duration (minutes) *</label>
+              <div className="adm-input-with-icon">
+                <FiClock className="adm-input-icon" />
                 <input
                   type="number"
                   value={(formData.durationSeconds / 60).toFixed(1)}
                   onChange={handleDurationMinutesChange}
                   min="0.1"
                   step="0.1"
-                  className={`form-input ${errors.durationSeconds ? 'error' : ''}`}
-                  disabled={loading}
+                  className={`adm-form-input ${errors.durationSeconds ? 'adm-error' : ''}`}
+                  disabled={loading || computingDuration}
                 />
               </div>
-              <div className="form-hint">Current duration: {getDurationDisplay()}</div>
+              <div className="adm-form-hint">
+                {computingDuration ? 'Computing from audio...' : `Current: ${getDurationDisplay()}`}
+              </div>
             </div>
           </div>
 
-          {/* Release Date */}
-          <div className="form-group">
-            <label className="form-label">Release Date</label>
+          {!isEditMode && (
+            <div className="adm-form-group">
+              <label className="adm-form-label">Audio File (for auto‑duration)</label>
+              <div>
+                <input
+                  type="file"
+                  accept="audio/*"
+                  ref={fileInputRef}
+                  onChange={handleAudioFileChange}
+                  style={{ display: 'none' }}
+                />
+                <button
+                  type="button"
+                  className="adm-btn-secondary"
+                  onClick={() => fileInputRef.current.click()}
+                  disabled={computingDuration}
+                >
+                  <FiUpload /> Select Audio File
+                </button>
+              </div>
+              {audioFile && (
+                <span className="adm-form-hint">Selected: {audioFile.name}</span>
+              )}
+            </div>
+          )}
+
+          <div className="adm-form-group">
+            <label className="adm-form-label">Release Date</label>
             <input
               type="date"
               name="releaseDate"
               value={formData.releaseDate}
               onChange={handleChange}
-              className="form-input"
+              className="adm-form-input"
               disabled={loading}
             />
           </div>
 
-          {/* Free Checkbox */}
-          <div className="form-group checkbox-group">
-            <label className="checkbox-label">
+          <div className="adm-form-group adm-checkbox-group">
+            <label className="adm-checkbox-label">
               <input
                 type="checkbox"
                 name="isFree"
                 checked={formData.isFree}
                 onChange={handleChange}
                 disabled={loading}
+                className="adm-checkbox"
               />
               Free Episode
             </label>
           </div>
 
-          {/* Price in Coins */}
           {!formData.isFree && (
-            <div className="form-group">
-              <label className="form-label">Price (Coins) *</label>
+            <div className="adm-form-group">
+              <label className="adm-form-label">Price (Coins) *</label>
               <input
                 type="number"
                 name="priceInCoins"
                 value={formData.priceInCoins}
                 onChange={handleChange}
                 min="1"
-                className={`form-input ${errors.priceInCoins ? 'error' : ''}`}
+                className={`adm-form-input ${errors.priceInCoins ? 'adm-error' : ''}`}
                 disabled={loading}
               />
-              {errors.priceInCoins && <span className="form-error">{errors.priceInCoins}</span>}
+              {errors.priceInCoins && <span className="adm-form-error">{errors.priceInCoins}</span>}
             </div>
           )}
 
-          {/* Publish Checkbox */}
-          <div className="form-group checkbox-group">
-            <label className="checkbox-label">
+          <div className="adm-form-group adm-checkbox-group">
+            <label className="adm-checkbox-label">
               <input
                 type="checkbox"
                 name="isPublished"
                 checked={formData.isPublished}
                 onChange={handleChange}
                 disabled={loading}
+                className="adm-checkbox"
               />
               Publish immediately
             </label>
           </div>
 
-          {/* Footer */}
-          <div className="modal-footer">
-            <button type="button" className="btn-secondary" onClick={onClose} disabled={loading}>
+          <div className="adm-modal-footer">
+            <button type="button" className="adm-btn-secondary" onClick={onClose} disabled={loading}>
               Cancel
             </button>
-            <button type="submit" className="btn-primary" disabled={loading}>
+            <button type="submit" className="adm-btn-primary" disabled={loading || computingDuration}>
               {loading ? 'Saving...' : isEditMode ? 'Update Episode' : 'Create Episode'}
             </button>
           </div>

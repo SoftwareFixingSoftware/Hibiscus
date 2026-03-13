@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AdminEpisodePurchaseService from '../services/adminEpisodePurchaseService';
-import './AdminPurchases.css';
+import '../styles/admin-payments.css'; // unified CSS
 
 const AdminEpisodePurchases = () => {
   const [purchases, setPurchases] = useState([]);
@@ -18,7 +18,6 @@ const AdminEpisodePurchases = () => {
     setError(null);
     try {
       const data = await AdminEpisodePurchaseService.getPurchases({ page, size });
-      console.log('Purchases data:', data);
       if (data && data.content) {
         setPurchases(data.content);
         setTotalPages(data.totalPages || 0);
@@ -40,7 +39,6 @@ const AdminEpisodePurchases = () => {
   const fetchStatistics = async () => {
     try {
       const data = await AdminEpisodePurchaseService.getPurchaseStatistics();
-      console.log('Statistics data:', data);
       setStatistics(data || {});
     } catch (err) {
       console.error('Failed to load purchase statistics', err);
@@ -50,7 +48,6 @@ const AdminEpisodePurchases = () => {
   const fetchSeriesAggregates = async () => {
     try {
       const data = await AdminEpisodePurchaseService.getSeriesAggregates();
-      console.log('Series aggregates data:', data);
       setSeriesAggregates(data || []);
     } catch (err) {
       console.error('Failed to load series aggregates', err);
@@ -61,50 +58,37 @@ const AdminEpisodePurchases = () => {
     fetchPurchases();
     fetchStatistics();
     fetchSeriesAggregates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
-  const handlePreviousPage = () => {
-    if (page > 0) setPage(page - 1);
-  };
+  const handlePreviousPage = () => { if (page > 0) setPage(page - 1); };
+  const handleNextPage = () => { if (page < totalPages - 1) setPage(page + 1); };
+  const formatDate = (instantStr) => instantStr ? new Date(instantStr).toLocaleString() : '-';
+  const formatCurrency = (cents) => `$${((cents || 0) / 100).toFixed(2)}`;
 
-  const handleNextPage = () => {
-    if (page < totalPages - 1) setPage(page + 1);
-  };
-
-  const formatDate = (instantStr) => {
-    return new Date(instantStr).toLocaleString();
-  };
-
-  const formatCurrency = (cents) => {
-    return `$${(cents / 100).toFixed(2)}`;
-  };
-
-  console.log('Rendering with purchases:', purchases);
-  console.log('Rendering with statistics:', statistics);
-  console.log('Rendering with seriesAggregates:', seriesAggregates);
-
-  if (error) return <div className="error">{error}</div>;
+  if (error) return <div className="adm-error">{error}</div>;
 
   return (
-    <div className="admin-purchases-container">
+    <div className="adm-purchases-container">
       <h2>Episode Purchases</h2>
+
       {statistics && (
-        <div className="stats-cards">
-          <div className="stat-card">
-            <span className="stat-label">Total Users Purchased</span>
-            <span className="stat-value">{statistics.totalUsersPurchased || 0}</span>
+        <div className="adm-stats-cards">
+          <div className="adm-stat-card">
+            <span className="adm-stat-label">Total Users Purchased</span>
+            <span className="adm-stat-value">{statistics.totalUsersPurchased || 0}</span>
           </div>
-          <div className="stat-card">
-            <span className="stat-label">Total Purchases</span>
-            <span className="stat-value">{statistics.totalEpisodePurchases || 0}</span>
+          <div className="adm-stat-card">
+            <span className="adm-stat-label">Total Purchases</span>
+            <span className="adm-stat-value">{statistics.totalEpisodePurchases || 0}</span>
           </div>
-          <div className="stat-card">
-            <span className="stat-label">Total Coins Spent</span>
-            <span className="stat-value">{statistics.totalCoinsSpent || 0}</span>
+          <div className="adm-stat-card">
+            <span className="adm-stat-label">Total Coins Spent</span>
+            <span className="adm-stat-value">{statistics.totalCoinsSpent || 0}</span>
           </div>
-          <div className="stat-card">
-            <span className="stat-label">Status Counts</span>
-            <div className="stat-sub">
+          <div className="adm-stat-card">
+            <span className="adm-stat-label">Status Counts</span>
+            <div className="adm-stat-sub">
               {Object.entries(statistics.countsByStatus || {}).map(([status, count]) => (
                 <div key={status}>{status}: {count}</div>
               ))}
@@ -114,84 +98,101 @@ const AdminEpisodePurchases = () => {
       )}
 
       {seriesAggregates && seriesAggregates.length > 0 && (
-        <div className="series-stats">
+        <div className="adm-series-stats">
           <h3>Series Aggregates</h3>
-          <table className="series-table">
-            <thead>
-              <tr>
-                <th>Series ID</th>
-                <th>Title</th>
-                <th>Purchase Count</th>
-                <th>Total Coins Spent</th>
-                <th>Total Revenue (cents)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {seriesAggregates.map(series => (
-                <tr key={series.seriesId}>
-                  <td>{series.seriesId}</td>
-                  <td>{series.seriesTitle}</td>
-                  <td>{series.purchaseCount}</td>
-                  <td>{series.totalCoinsSpent}</td>
-                  <td>{formatCurrency(series.totalRevenueCents)}</td>
+          <div className="adm-table-wrapper">
+            <table className="adm-series-table" role="table" aria-label="Series aggregates">
+              <thead>
+                <tr>
+                  <th>Series ID</th>
+                  <th>Title</th>
+                  <th>Purchase Count</th>
+                  <th>Total Coins Spent</th>
+                  <th>Total Revenue (cents)</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {seriesAggregates.map(series => (
+                  <tr key={series.seriesId}>
+                    <td data-label="Series ID">{series.seriesId}</td>
+                    <td data-label="Title">{series.seriesTitle}</td>
+                    <td data-label="Purchase Count">{series.purchaseCount}</td>
+                    <td data-label="Total Coins Spent">{series.totalCoinsSpent}</td>
+                    <td data-label="Total Revenue (cents)">{formatCurrency(series.totalRevenueCents)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
-      {purchases.length === 0 && !loading && (
-        <div className="no-data">No purchases found.</div>
-      )}
+      {purchases.length === 0 && !loading && <div className="adm-no-data">No purchases found.</div>}
 
-      <table className="purchases-table">
-        <thead>
-          <tr>
-            <th>Purchase ID</th>
-            <th>User Email</th>
-            <th>Series ID</th>
-            <th>Episode ID</th>
-            <th>Payment ID</th>
-            <th>Amount (cents)</th>
-            <th>Currency</th>
-            <th>Coins Spent</th>
-            <th>Paid with Coins</th>
-            <th>Status</th>
-            <th>Purchased At</th>
-          </tr>
-        </thead>
-        <tbody>
-          {purchases.map(purchase => (
-            <tr key={purchase.purchaseId}>
-              <td>{purchase.purchaseId}</td>
-              <td>{purchase.userEmail || purchase.userId}</td>
-              <td>
-                <Link to={`/user/series/${purchase.seriesId}`} target="_blank" rel="noopener noreferrer">
-                  {purchase.seriesId}
-                </Link>
-              </td>
-              <td>
-                <Link to={`/user/series/${purchase.seriesId}?episode=${purchase.episodeId}`} target="_blank" rel="noopener noreferrer">
-                  {purchase.episodeId}
-                </Link>
-              </td>
-              <td>{purchase.paymentId || '-'}</td>
-              <td>{purchase.amountCents}</td>
-              <td>{purchase.currency}</td>
-              <td>{purchase.coinsSpent}</td>
-              <td>{purchase.paidWithCoins ? 'Yes' : 'No'}</td>
-              <td>{purchase.status}</td>
-              <td>{formatDate(purchase.purchasedAt)}</td>
+      <div className="adm-table-wrapper" aria-live="polite">
+        <table className="adm-purchases-table" role="table" aria-label="Episode purchases">
+          <thead>
+            <tr>
+              <th>Purchase ID</th>
+              <th>User Email</th>
+              <th>Series ID</th>
+              <th>Episode ID</th>
+              <th>Payment ID</th>
+              <th>Amount (cents)</th>
+              <th>Currency</th>
+              <th>Coins Spent</th>
+              <th>Paid with Coins</th>
+              <th>Status</th>
+              <th>Purchased At</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      {loading && <div className="loading">Loading...</div>}
-      <div className="pagination">
-        <button onClick={handlePreviousPage} disabled={page === 0}>Previous</button>
-        <span>Page {page + 1} of {totalPages}</span>
-        <button onClick={handleNextPage} disabled={page >= totalPages - 1}>Next</button>
+          </thead>
+          <tbody>
+            {purchases.map(purchase => (
+              <tr key={purchase.purchaseId}>
+                <td data-label="Purchase ID">{purchase.purchaseId}</td>
+                <td data-label="User Email">{purchase.userEmail || purchase.userId}</td>
+                <td data-label="Series ID">
+                  <Link
+                    to={`/user/series/${purchase.seriesId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {purchase.seriesId}
+                  </Link>
+                </td>
+                <td data-label="Episode ID">
+                  <Link
+                    to={`/user/series/${purchase.seriesId}?episode=${purchase.episodeId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {purchase.episodeId}
+                  </Link>
+                </td>
+                <td data-label="Payment ID">{purchase.paymentId || '-'}</td>
+                <td data-label="Amount (cents)">{purchase.amountCents}</td>
+                <td data-label="Currency">{purchase.currency}</td>
+                <td data-label="Coins Spent">{purchase.coinsSpent}</td>
+                <td
+                  data-label="Paid with Coins"
+                  className={purchase.paidWithCoins ? 'paid-with-coins-yes' : 'paid-with-coins-no'}
+                >
+                  {purchase.paidWithCoins ? 'Yes' : 'No'}
+                </td>
+                <td data-label="Status" data-status={purchase.status}>{purchase.status}</td>
+                <td data-label="Purchased At">{formatDate(purchase.purchasedAt)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {loading && <div className="adm-loading">Loading...</div>}
+
+      <div className="adm-pagination-container" role="navigation" aria-label="Pagination">
+        <button onClick={handlePreviousPage} disabled={page === 0} className="adm-pagination-nav">Previous</button>
+        <span className="adm-pagination-info">Page {page + 1} of {totalPages}</span>
+        <button onClick={handleNextPage} disabled={page >= totalPages - 1} className="adm-pagination-nav">Next</button>
       </div>
     </div>
   );

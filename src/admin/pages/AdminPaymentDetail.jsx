@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import AdminPaymentService from '../services/adminPaymentService';
-import './AdminPurchases.css';
+import '../styles/admin-payments.css';
 
 const AdminPaymentDetail = () => {
   const { paymentId } = useParams();
@@ -18,8 +18,8 @@ const AdminPaymentDetail = () => {
         const data = await AdminPaymentService.getPayment(paymentId);
         setPayment(data);
       } catch (err) {
-        console.error('Failed to load payment', err);
         setError('Failed to load payment details.');
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -27,76 +27,66 @@ const AdminPaymentDetail = () => {
     fetchPayment();
   }, [paymentId]);
 
-  const formatDate = (dateTimeStr) => {
-    if (!dateTimeStr) return '-';
-    return new Date(dateTimeStr).toLocaleString();
-  };
+  const formatDate = (dateTimeStr) => (dateTimeStr ? new Date(dateTimeStr).toLocaleString() : '-');
+  const formatCurrency = (cents) => `$${((cents || 0) / 100).toFixed(2)}`;
 
-  const formatCurrency = (cents) => {
-    return `$${(cents / 100).toFixed(2)}`;
-  };
-
-  if (loading) return <div className="loading">Loading payment details...</div>;
-  if (error) return <div className="error">{error}</div>;
-  if (!payment) return <div className="error">Payment not found.</div>;
+  if (loading) return <div className="adm-loading">Loading payment details...</div>;
+  if (error) return <div className="adm-error">{error}</div>;
+  if (!payment) return <div className="adm-error">Payment not found.</div>;
 
   return (
-    <div className="admin-payment-detail">
+    <div className="adm-purchases-container">
       <h2>Payment Details</h2>
-      <button onClick={() => navigate(-1)} className="back-button">← Back</button>
-      <div className="payment-detail-card">
-        <div className="detail-row">
-          <span className="detail-label">Payment ID:</span>
-          <span className="detail-value">{payment.paymentId}</span>
+      <button onClick={() => navigate(-1)} className="adm-back-button">← Back</button>
+      <div className="adm-payment-detail-card">
+        <div className="adm-detail-row">
+          <span className="adm-detail-label">Payment ID:</span>
+          <span className="adm-detail-value">{payment.paymentId}</span>
         </div>
-        <div className="detail-row">
-          <span className="detail-label">User:</span>
-          <span className="detail-value">
-            {payment.userEmail ? (
-              <Link to={`/admin/users/${payment.userId}`}>{payment.userEmail}</Link>
-            ) : (
-              payment.userId
-            )}
+        <div className="adm-detail-row">
+          <span className="adm-detail-label">User:</span>
+          <span className="adm-detail-value">
+            {payment.userEmail ? <Link to={`/admin/users/${payment.userId}`}>{payment.userEmail}</Link> : payment.userId}
           </span>
         </div>
-        <div className="detail-row">
-          <span className="detail-label">Provider:</span>
-          <span className="detail-value">{payment.provider}</span>
+        <div className="adm-detail-row">
+          <span className="adm-detail-label">Provider:</span>
+          <span className="adm-detail-value">{payment.provider}</span>
         </div>
-        <div className="detail-row">
-          <span className="detail-label">PayPal Order ID:</span>
-          <span className="detail-value">{payment.paypalOrderId || '-'}</span>
+        <div className="adm-detail-row">
+          <span className="adm-detail-label">PayPal Order ID:</span>
+          <span className="adm-detail-value">{payment.paypalOrderId || '-'}</span>
         </div>
-        <div className="detail-row">
-          <span className="detail-label">PayPal Capture ID:</span>
-          <span className="detail-value">{payment.paypalCaptureId || '-'}</span>
+        <div className="adm-detail-row">
+          <span className="adm-detail-label">PayPal Capture ID:</span>
+          <span className="adm-detail-value">{payment.paypalCaptureId || '-'}</span>
         </div>
-        <div className="detail-row">
-          <span className="detail-label">Amount:</span>
-          <span className="detail-value">{formatCurrency(payment.amountCents)} {payment.currency}</span>
+        <div className="adm-detail-row">
+          <span className="adm-detail-label">Amount:</span>
+          <span className="adm-detail-value">{formatCurrency(payment.amountCents)} {payment.currency}</span>
         </div>
-        <div className="detail-row">
-          <span className="detail-label">Status:</span>
-          <span className="detail-value">{payment.status}</span>
+        <div className="adm-detail-row">
+          <span className="adm-detail-label">Status:</span>
+          <span className="adm-detail-value">{payment.status}</span>
         </div>
-        <div className="detail-row">
-          <span className="detail-label">Created At:</span>
-          <span className="detail-value">{formatDate(payment.createdAt)}</span>
+        <div className="adm-detail-row">
+          <span className="adm-detail-label">Created At:</span>
+          <span className="adm-detail-value">{formatDate(payment.createdAt)}</span>
         </div>
-        <div className="detail-row">
-          <span className="detail-label">Updated At:</span>
-          <span className="detail-value">{formatDate(payment.updatedAt)}</span>
+        <div className="adm-detail-row">
+          <span className="adm-detail-label">Updated At:</span>
+          <span className="adm-detail-value">{formatDate(payment.updatedAt)}</span>
         </div>
         {payment.completedAt && (
-          <div className="detail-row">
-            <span className="detail-label">Completed At:</span>
-            <span className="detail-value">{formatDate(payment.completedAt)}</span>
+          <div className="adm-detail-row">
+            <span className="adm-detail-label">Completed At:</span>
+            <span className="adm-detail-value">{formatDate(payment.completedAt)}</span>
           </div>
         )}
         {payment.metadata && (
-          <div className="detail-row">
-            <span className="detail-label">Metadata:</span>
-            <pre className="detail-value metadata">{JSON.stringify(payment.metadata, null, 2)}</pre>
+          <div className="adm-detail-row">
+            <span className="adm-detail-label">Metadata:</span>
+            <pre className="adm-detail-value adm-metadata">{JSON.stringify(payment.metadata, null, 2)}</pre>
           </div>
         )}
       </div>

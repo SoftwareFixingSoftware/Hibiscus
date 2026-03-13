@@ -1,78 +1,11 @@
 // src/admin/pages/AdminUsers.jsx
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { FiSearch, FiChevronLeft, FiChevronRight, FiUser } from 'react-icons/fi';
 import UserService from '../services/UserService';
 import { mapDtoToUser, displayName } from '../components/UserModel';
+import '../styles/admin-users.css';
 
 const DEFAULT_PAGE_SIZE = 20;
-
-const thStyle = { padding: '12px 10px', fontSize: 13, color: '#374151' };
-const tdStyle = { padding: '12px 10px', fontSize: 14, color: '#111827', verticalAlign: 'middle' };
-const actionBtn = { padding: '6px 10px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' };
-const pageBtn = { padding: 8, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' };
-const primaryBtn = { padding: '8px 12px', borderRadius: 8, border: 'none', background: '#0ea5a4', color: '#fff', cursor: 'pointer' };
-const outlineBtn = { padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' };
-
-// DRAWER STYLES
-const drawerOverlay = {
-  position: 'fixed',
-  inset: 0,
-  background: 'rgba(15,23,42,0.55)',
-  backdropFilter: 'blur(2px)',
-  display: 'flex',
-  justifyContent: 'flex-end',
-  zIndex: 1000
-};
-
-const drawer = {
-  width: '600px',
-  maxWidth: '100%',
-  height: '100%',
-  background: '#ffffff',
-  display: 'flex',
-  flexDirection: 'column',
-  boxShadow: '-10px 0 30px rgba(0,0,0,0.12)'
-};
-
-const drawerHeader = {
-  padding: '20px 24px',
-  borderBottom: '1px solid #f1f5f9',
-  fontSize: 18,
-  fontWeight: 600
-};
-
-const drawerBody = {
-  flex: 1,
-  overflowY: 'auto',
-  padding: '20px 24px',
-  display: 'grid',
-  gap: 16
-};
-
-const drawerFooter = {
-  padding: '16px 24px',
-  borderTop: '1px solid #f1f5f9',
-  display: 'flex',
-  justifyContent: 'flex-end',
-  gap: 12,
-  background: '#fff'
-};
-
-const inputStyle = {
-  width: '100%',
-  padding: '10px 12px',
-  borderRadius: 8,
-  border: '1px solid #e5e7eb',
-  fontSize: 14
-};
-
-const labelStyle = {
-  fontSize: 13,
-  fontWeight: 500,
-  marginBottom: 4,
-  display: 'block',
-  color: '#374151'
-};
 
 const normalizePage = (body = {}) => {
   if (Array.isArray(body.content)) {
@@ -129,13 +62,18 @@ const AdminUsers = () => {
   const [error, setError] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  // Editing states
   const [isEditing, setIsEditing] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState(null);
   const [editForm, setEditForm] = useState({});
 
-  // debounce q -> setQ
+  // Avatar component with error fallback
+  const AvatarCell = ({ url }) => {
+    const [hasError, setHasError] = useState(false);
+    if (!url || hasError) return <FiUser />;
+    return <img src={url} alt="avatar" onError={() => setHasError(true)} />;
+  };
+
   useEffect(() => {
     const t = setTimeout(() => setQ(internalQ), 300);
     return () => clearTimeout(t);
@@ -190,7 +128,12 @@ const AdminUsers = () => {
 
   const openUser = (userId) => {
     const found = data.content.find((x) => x.userId === userId);
-    if (found) { setSelectedUser(found); setEditForm(found); setIsEditing(true); return; }
+    if (found) {
+      setSelectedUser(found);
+      setEditForm(found);
+      setIsEditing(true);
+      return;
+    }
 
     const controller = new AbortController();
     UserService.getUserById(userId, { signal: controller.signal })
@@ -231,7 +174,8 @@ const AdminUsers = () => {
         countryCode: editForm.countryCode,
         active: !!editForm.active,
         emailVerified: !!editForm.emailVerified,
-        admin: !!editForm.admin
+        admin: !!editForm.admin,
+        authProvider: editForm.authProvider
       };
 
       const updated = await UserService.updateUser(selectedUser.userId, payload);
@@ -259,81 +203,76 @@ const AdminUsers = () => {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+    <div className="adm-users-container">
+      <header className="adm-users-header">
         <div>
-          <h1 style={{ margin: 0 }}>Users</h1>
-          <p style={{ margin: 0, color: '#6b7280' }}>Manage user accounts — search, sort, and review details.</p>
+          <h1>Users</h1>
+          <p className="adm-page-subtitle">Manage user accounts — search, sort, and review details.</p>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <div style={{ position: 'relative' }}>
-            <input
-              type="search"
-              value={internalQ}
-              onChange={(e) => setInternalQ(e.target.value)}
-              placeholder="Search by name, email or username"
-              style={{ padding: '8px 36px 8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', minWidth: 320 }}
-            />
-            <FiSearch style={{ position: 'absolute', right: 10, top: 8, color: '#9ca3af' }} />
-          </div>
-
-          <select value={size} onChange={(e) => { setSize(Number(e.target.value)); setPage(0); }} style={{ padding: 8, borderRadius: 8 }}>
-            <option value={10}>10 / page</option>
-            <option value={20}>20 / page</option>
-            <option value={50}>50 / page</option>
-            <option value={100}>100 / page</option>
-          </select>
-
-          <button onClick={clearFilters} style={{ padding: '8px 12px', borderRadius: 8 }}>Reset</button>
+        <div className="adm-search-box">
+          <input
+            type="search"
+            value={internalQ}
+            onChange={(e) => setInternalQ(e.target.value)}
+            placeholder="Search by name, email or username"
+          />
+          <FiSearch />
         </div>
       </header>
 
-      <section style={{ background: '#fff', borderRadius: 12, padding: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+      <section className="adm-users-table">
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Loading users...</div>
+          <div className="adm-loading-container">
+            <div className="adm-loading-spinner"></div>
+            <p>Loading users...</p>
+          </div>
         ) : error ? (
-          <div style={{ padding: 20, color: 'crimson' }}>{error}</div>
+          <div className="adm-error">{error}</div>
         ) : (
           <>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
+            <div className="adm-list-container">
+              <table className="adm-data-table">
                 <thead>
-                  <tr style={{ textAlign: 'left', borderBottom: '1px solid #efefef' }}>
-                    <th style={thStyle}></th>
-                    <th style={thStyle}>Username</th>
-                    <th style={thStyle}>Email</th>
-                    <th style={thStyle}>Name</th>
-                    <th style={thStyle}>Locale</th>
-                    <th style={thStyle}>Country</th>
-                    <th style={thStyle}>Active</th>
-                    <th style={thStyle}>Admin</th>
-                    <th style={thStyle}>Verified</th>
-                    <th style={thStyle}>Created</th>
-                    <th style={{ ...thStyle, textAlign: 'center' }}>Actions</th>
+                  <tr>
+                    <th></th>
+                    <th onClick={() => onSort('username')}>Username</th>
+                    <th onClick={() => onSort('email')}>Email</th>
+                    <th onClick={() => onSort('name')}>Name</th>
+                    <th>Locale</th>
+                    <th>Country</th>
+                    <th>Active</th>
+                    <th>Admin</th>
+                    <th>Verified</th>
+                    <th>Auth Provider</th>
+                    <th>Last Seen</th>
+                    <th onClick={() => onSort('createdAt')}>Created</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.content.length === 0 ? (
-                    <tr><td colSpan={11} style={{ padding: 24, color: '#6b7280' }}>No users found.</td></tr>
+                    <tr><td colSpan="13" className="adm-empty-state">No users found.</td></tr>
                   ) : data.content.map((u) => (
-                    <tr key={u.userId} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                      <td style={tdStyle}>
-                        <div style={{ width: 40, height: 40, borderRadius: 8, overflow: 'hidden', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {u.avatarUrl ? <img src={u.avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <FiUser />}
+                    <tr key={u.userId}>
+                      <td>
+                        <div className="adm-user-avatar-cell">
+                          <AvatarCell url={u.avatarUrl} />
                         </div>
                       </td>
-                      <td style={tdStyle}>{u.username || <span style={{ color: '#9ca3af' }}>—</span>}</td>
-                      <td style={tdStyle}>{u.email || <span style={{ color: '#9ca3af' }}>—</span>}</td>
-                      <td style={tdStyle}>{u.name || <span style={{ color: '#9ca3af' }}>—</span>}</td>
-                      <td style={tdStyle}>{u.locale || '-'}</td>
-                      <td style={tdStyle}>{u.countryCode || '-'}</td>
-                      <td style={tdStyle}>{u.active ? 'Yes' : 'No'}</td>
-                      <td style={tdStyle}>{u.admin ? 'Yes' : 'No'}</td>
-                      <td style={tdStyle}>{u.emailVerified ? 'Yes' : 'No'}</td>
-                      <td style={tdStyle}>{formatDate(u.createdAt)}</td>
-                      <td style={{ ...tdStyle, textAlign: 'center' }}>
-                        <button onClick={() => openUser(u.userId)} style={actionBtn}>Edit</button>
+                      <td>{u.username || '—'}</td>
+                      <td>{u.email || '—'}</td>
+                      <td>{u.name || '—'}</td>
+                      <td>{u.locale || '-'}</td>
+                      <td>{u.countryCode || '-'}</td>
+                      <td>{u.active ? 'Yes' : 'No'}</td>
+                      <td>{u.admin ? 'Yes' : 'No'}</td>
+                      <td>{u.emailVerified ? 'Yes' : 'No'}</td>
+                      <td>{u.authProvider || '-'}</td>
+                      <td>{formatDate(u.lastSeenAt)}</td>
+                      <td>{formatDate(u.createdAt)}</td>
+                      <td>
+                        <button className="adm-action-btn adm-edit" onClick={() => openUser(u.userId)}>Edit</button>
                       </td>
                     </tr>
                   ))}
@@ -341,110 +280,132 @@ const AdminUsers = () => {
               </table>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 6px' }}>
-              <div style={{ color: '#6b7280' }}>Showing <strong>{data.content.length}</strong> of <strong>{data.totalElements}</strong></div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <button disabled={page <= 0} onClick={() => setPage((p) => Math.max(0, p - 1))} style={pageBtn}><FiChevronLeft /></button>
-                <span style={{ minWidth: 80, textAlign: 'center' }}>Page { (data.number || page) + 1 } / { Math.max(1, data.totalPages || 1) }</span>
-                <button disabled={page + 1 >= (data.totalPages || 1)} onClick={() => setPage((p) => p + 1)} style={pageBtn}><FiChevronRight /></button>
+            <div className="adm-pagination-container">
+              <div className="adm-pagination-info">
+                Showing <strong>{data.content.length}</strong> of <strong>{data.totalElements}</strong>
+              </div>
+              <div className="adm-pagination-controls">
+                <button
+                  className="adm-pagination-nav"
+                  disabled={page <= 0}
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                >
+                  <FiChevronLeft />
+                </button>
+                <span>Page { (data.number || page) + 1 } / { Math.max(1, data.totalPages || 1) }</span>
+                <button
+                  className="adm-pagination-nav"
+                  disabled={page + 1 >= (data.totalPages || 1)}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  <FiChevronRight />
+                </button>
               </div>
             </div>
           </>
         )}
       </section>
 
-      {/* DETAIL DRAWER */}
       {selectedUser && (
-        <div style={drawerOverlay} onClick={closeDrawer}>
-          <div style={drawer} onClick={(e) => e.stopPropagation()}>
-            {/* HEADER */}
-            <div style={drawerHeader}>
+        <div className="adm-drawer-overlay" onClick={closeDrawer}>
+          <div className="adm-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="adm-drawer-header">
               Edit User — {displayName(selectedUser)}
+              <button className="adm-modal-close" onClick={closeDrawer}>×</button>
             </div>
 
-            {/* BODY */}
-            <div style={drawerBody}>
-              <div>
-                <label style={labelStyle}>Full Name</label>
+            <div className="adm-drawer-body">
+              <div className="adm-form-group">
+                <label className="adm-form-label">Full Name</label>
                 <input
-                  style={inputStyle}
+                  className="adm-form-input"
                   value={editForm.name || ''}
                   onChange={(e) => handleEditChange('name', e.target.value)}
                 />
               </div>
 
-              <div>
-                <label style={labelStyle}>Username</label>
+              <div className="adm-form-group">
+                <label className="adm-form-label">Username</label>
                 <input
-                  style={inputStyle}
+                  className="adm-form-input"
                   value={editForm.username || ''}
                   onChange={(e) => handleEditChange('username', e.target.value)}
                 />
               </div>
 
-              <div>
-                <label style={labelStyle}>Email</label>
+              <div className="adm-form-group">
+                <label className="adm-form-label">Email</label>
                 <input
-                  style={inputStyle}
+                  className="adm-form-input"
                   value={editForm.email || ''}
                   onChange={(e) => handleEditChange('email', e.target.value)}
                 />
               </div>
 
-              <div>
-                <label style={labelStyle}>Locale</label>
+              <div className="adm-form-group">
+                <label className="adm-form-label">Locale</label>
                 <input
-                  style={inputStyle}
+                  className="adm-form-input"
                   value={editForm.locale || ''}
                   onChange={(e) => handleEditChange('locale', e.target.value)}
                   placeholder="e.g., en-US"
                 />
               </div>
 
-              <div>
-                <label style={labelStyle}>Country Code</label>
+              <div className="adm-form-group">
+                <label className="adm-form-label">Country Code</label>
                 <input
-                  style={inputStyle}
+                  className="adm-form-input"
                   value={editForm.countryCode || ''}
                   onChange={(e) => handleEditChange('countryCode', e.target.value)}
                   placeholder="e.g., US"
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-                <label style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 4, color: '#000' }}>
+              {/* Auth Provider dropdown */}
+              <div className="adm-form-group">
+                <label className="adm-form-label">Auth Provider</label>
+                <select
+                  className="adm-form-select"
+                  value={editForm.authProvider || ''}
+                  onChange={(e) => handleEditChange('authProvider', e.target.value)}
+                >
+                  <option value="google">Google</option>
+                  <option value="github">GitHub</option>
+                  <option value="local">Local</option>
+                </select>
+              </div>
+
+              <div className="adm-checkbox-group">
+                <label className="adm-checkbox-label">
                   <input
                     type="checkbox"
-                    name="admin"
                     checked={!!editForm.admin}
                     onChange={(e) => handleEditChange('admin', e.target.checked)}
                   /> Admin
                 </label>
-                <label style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 4, color: '#000' }}>
+                <label className="adm-checkbox-label">
                   <input
                     type="checkbox"
-                    name="active"
                     checked={!!editForm.active}
                     onChange={(e) => handleEditChange('active', e.target.checked)}
                   /> Active
                 </label>
-                <label style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 4, color: '#000' }}>
+                <label className="adm-checkbox-label">
                   <input
                     type="checkbox"
-                    name="emailVerified"
                     checked={!!editForm.emailVerified}
                     onChange={(e) => handleEditChange('emailVerified', e.target.checked)}
                   /> Email Verified
                 </label>
               </div>
 
-              {editError && <div style={{ color: 'crimson', fontSize: 14 }}>{editError}</div>}
+              {editError && <div className="adm-alert adm-error">{editError}</div>}
             </div>
 
-            {/* FOOTER */}
-            <div style={drawerFooter}>
-              <button onClick={closeDrawer} style={outlineBtn}>Cancel</button>
-              <button onClick={handleSaveEdit} disabled={editLoading} style={primaryBtn}>
+            <div className="adm-drawer-footer">
+              <button className="adm-btn-secondary" onClick={closeDrawer}>Cancel</button>
+              <button className="adm-btn-primary" onClick={handleSaveEdit} disabled={editLoading}>
                 {editLoading ? 'Saving...' : 'Save Changes'}
               </button>
             </div>

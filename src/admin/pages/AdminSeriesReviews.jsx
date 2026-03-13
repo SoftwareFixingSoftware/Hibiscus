@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AdminSeriesReviewService from '../services/adminSeriesReviewService';
-import './AdminAnalytics.css';
+ 
 
 const AdminSeriesReviews = () => {
   const [reviews, setReviews] = useState([]);
@@ -45,41 +45,33 @@ const AdminSeriesReviews = () => {
     fetchStats();
   }, [page]);
 
-  const handlePreviousPage = () => {
-    if (page > 0) setPage(page - 1);
-  };
+  const handlePreviousPage = () => { if (page > 0) setPage(page - 1); };
+  const handleNextPage = () => { if (page < totalPages - 1) setPage(page + 1); };
+  const formatDate = (instantStr) => new Date(instantStr).toLocaleString();
 
-  const handleNextPage = () => {
-    if (page < totalPages - 1) setPage(page + 1);
-  };
-
-  const formatDate = (instantStr) => {
-    return new Date(instantStr).toLocaleString();
-  };
-
-  if (error) return <div className="error">{error}</div>;
+  if (error) return <div className="adm-error">{error}</div>;
 
   return (
-    <div className="analytics-section">
+    <div className="adm-analytics-section">
       <h3>Series Reviews</h3>
 
       {stats && (
-        <div className="stats-cards">
-          <div className="stat-card">
-            <span className="stat-label">Total Reviews</span>
-            <span className="stat-value">{stats.totalReviews || 0}</span>
+        <div className="adm-stats-cards">
+          <div className="adm-stat-card">
+            <span className="adm-stat-label">Total Reviews</span>
+            <span className="adm-stat-value">{stats.totalReviews || 0}</span>
           </div>
-          <div className="stat-card">
-            <span className="stat-label">Overall Avg Rating</span>
-            <span className="stat-value">{(stats.overallAverageRating || 0).toFixed(2)}</span>
+          <div className="adm-stat-card">
+            <span className="adm-stat-label">Overall Avg Rating</span>
+            <span className="adm-stat-value">{(stats.overallAverageRating || 0).toFixed(2)}</span>
           </div>
         </div>
       )}
 
       {stats?.seriesStatistics && stats.seriesStatistics.length > 0 && (
-        <div className="series-stats">
+        <div className="adm-series-stats">
           <h4>Per-Series Statistics</h4>
-          <table className="analytics-table">
+          <table className="adm-analytics-table">
             <thead>
               <tr>
                 <th>Series</th>
@@ -107,9 +99,9 @@ const AdminSeriesReviews = () => {
       )}
 
       {reviews.length === 0 && !loading ? (
-        <div className="no-data">No reviews found.</div>
+        <div className="adm-no-data">No reviews found.</div>
       ) : (
-        <table className="analytics-table">
+        <table className="adm-analytics-table">
           <thead>
             <tr>
               <th>User Email</th>
@@ -133,11 +125,11 @@ const AdminSeriesReviews = () => {
         </table>
       )}
 
-      {loading && <div className="loading">Loading...</div>}
-      <div className="pagination">
-        <button onClick={handlePreviousPage} disabled={page === 0}>Previous</button>
-        <span>Page {page + 1} of {totalPages}</span>
-        <button onClick={handleNextPage} disabled={page >= totalPages - 1}>Next</button>
+      {loading && <div className="adm-loading">Loading...</div>}
+      <div className="adm-pagination-container">
+        <button onClick={handlePreviousPage} disabled={page === 0} className="adm-pagination-nav">Previous</button>
+        <span className="adm-pagination-info">Page {page + 1} of {totalPages}</span>
+        <button onClick={handleNextPage} disabled={page >= totalPages - 1} className="adm-pagination-nav">Next</button>
       </div>
     </div>
   );

@@ -30,59 +30,36 @@ const SeriesModal = ({ series, onClose, onSubmit }) => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-    
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const validateForm = () => {
     const newErrors = {};
-    
-    if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
-    }
-    
-    if (!formData.description.trim()) {
-      newErrors.description = 'Description is required';
-    }
-    
-    if (!formData.category.trim()) {
-      newErrors.category = 'Category is required';
-    }
-    
+    if (!formData.title.trim()) newErrors.title = 'Title is required';
+    if (!formData.description.trim()) newErrors.description = 'Description is required';
+    if (!formData.category.trim()) newErrors.category = 'Category is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-    
+    if (!validateForm()) return;
     setLoading(true);
     try {
       let result;
-      
       if (isEditMode) {
         result = await SeriesService.updateSeries(series.id, formData);
       } else {
         result = await SeriesService.createSeries(formData);
       }
-      
       onSubmit(result);
     } catch (error) {
-      console.error('Error saving series:', error);
-      
-      // Handle unauthorized
-      if (error === 'Unauthorized' || (error.message && error.message.includes('401'))) {
+      if (error === 'Unauthorized' || error.message?.includes('401')) {
         localStorage.clear();
         window.location.href = '/login';
         return;
       }
-      
       setErrors({ submit: error.message || 'Failed to save series' });
     } finally {
       setLoading(false);
@@ -90,72 +67,60 @@ const SeriesModal = ({ series, onClose, onSubmit }) => {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container">
-        <div className="modal-header">
-          <h3 className="modal-title">
+    <div className="adm-modal-overlay">
+      <div className="adm-modal-container">
+        <div className="adm-modal-header">
+          <h3 className="adm-modal-title">
             {isEditMode ? 'Edit Series' : 'Create New Series'}
           </h3>
-          <button className="modal-close" onClick={onClose}>
+          <button className="adm-modal-close" onClick={onClose}>
             <FiX />
           </button>
         </div>
-        
-        <form onSubmit={handleSubmit} className="modal-form">
+
+        <form onSubmit={handleSubmit} className="adm-modal-form">
           {errors.submit && (
-            <div className="alert alert-error">
-              {errors.submit}
-            </div>
+            <div className="adm-alert adm-error">{errors.submit}</div>
           )}
-          
-          <div className="form-group">
-            <label className="form-label" htmlFor="title">
-              Title *
-            </label>
+
+          <div className="adm-form-group">
+            <label className="adm-form-label" htmlFor="title">Title *</label>
             <input
               type="text"
               id="title"
               name="title"
               value={formData.title}
               onChange={handleChange}
-              className={`form-input ${errors.title ? 'error' : ''}`}
+              className={`adm-form-input ${errors.title ? 'adm-error' : ''}`}
               placeholder="Enter series title"
               disabled={loading}
             />
-            {errors.title && (
-              <span className="form-error">{errors.title}</span>
-            )}
+            {errors.title && <span className="adm-form-error">{errors.title}</span>}
           </div>
-          
-          <div className="form-group">
-            <label className="form-label" htmlFor="description">
-              Description *
-            </label>
+
+          <div className="adm-form-group">
+            <label className="adm-form-label" htmlFor="description">Description *</label>
             <textarea
               id="description"
               name="description"
               value={formData.description}
               onChange={handleChange}
-              className={`form-input ${errors.description ? 'error' : ''}`}
+              className={`adm-form-textarea ${errors.description ? 'adm-error' : ''}`}
               placeholder="Enter series description"
               rows="4"
               disabled={loading}
             />
-            {errors.description && (
-              <span className="form-error">{errors.description}</span>
-            )}
+            {errors.description && <span className="adm-form-error">{errors.description}</span>}
           </div>
-          
-          <div className="form-group">
-            <label className="form-label" htmlFor="category">
-              Category *
-            </label>
+
+          <div className="adm-form-group">
+            <label className="adm-form-label" htmlFor="category">Category *</label>
             <select
               id="category"
               name="category"
               value={formData.category}
               onChange={handleChange}
-              className={`form-select ${errors.category ? 'error' : ''}`}
+              className={`adm-form-select ${errors.category ? 'adm-error' : ''}`}
               disabled={loading}
             >
               <option value="">Select a category</option>
@@ -167,40 +132,28 @@ const SeriesModal = ({ series, onClose, onSubmit }) => {
               <option value="Education">Education</option>
               <option value="Entertainment">Entertainment</option>
             </select>
-            {errors.category && (
-              <span className="form-error">{errors.category}</span>
-            )}
+            {errors.category && <span className="adm-form-error">{errors.category}</span>}
           </div>
-          
-          <div className="form-group checkbox-group">
-            <label className="checkbox-label">
+
+          <div className="adm-form-group adm-checkbox-group">
+            <label className="adm-checkbox-label">
               <input
                 type="checkbox"
                 name="isPublished"
                 checked={formData.isPublished}
                 onChange={handleChange}
-                className="checkbox-input"
+                className="adm-checkbox"
                 disabled={loading}
               />
-              <span className="checkbox-custom"></span>
-              <span className="checkbox-text">Publish immediately</span>
+              <span className="adm-checkbox-text">Publish immediately</span>
             </label>
           </div>
-          
-          <div className="modal-footer">
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={onClose}
-              disabled={loading}
-            >
+
+          <div className="adm-modal-footer">
+            <button type="button" className="adm-btn-secondary" onClick={onClose} disabled={loading}>
               Cancel
             </button>
-            <button
-              type="submit"
-              className="btn-primary"
-              disabled={loading}
-            >
+            <button type="submit" className="adm-btn-primary" disabled={loading}>
               {loading ? 'Saving...' : (isEditMode ? 'Update Series' : 'Create Series')}
             </button>
           </div>

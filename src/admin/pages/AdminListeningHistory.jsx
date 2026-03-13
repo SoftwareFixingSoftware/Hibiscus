@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import AdminListeningHistoryService from '../services/adminListeningHistoryService';
-import './AdminAnalytics.css';
 
 const AdminListeningHistory = () => {
   const [history, setHistory] = useState([]);
@@ -67,18 +66,9 @@ const AdminListeningHistory = () => {
     fetchTopSeries();
   }, [page]);
 
-  const handlePreviousPage = () => {
-    if (page > 0) setPage(page - 1);
-  };
-
-  const handleNextPage = () => {
-    if (page < totalPages - 1) setPage(page + 1);
-  };
-
-  const formatDate = (instantStr) => {
-    return new Date(instantStr).toLocaleString();
-  };
-
+  const handlePreviousPage = () => { if (page > 0) setPage(page - 1); };
+  const handleNextPage = () => { if (page < totalPages - 1) setPage(page + 1); };
+  const formatDate = (instantStr) => new Date(instantStr).toLocaleString();
   const formatSeconds = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
@@ -86,40 +76,38 @@ const AdminListeningHistory = () => {
     return `${hrs}h ${mins}m ${secs}s`;
   };
 
-  if (error) return <div className="error">{error}</div>;
+  if (error) return <div className="adm-error">{error}</div>;
 
   return (
-    <div className="analytics-section">
+    <div className="adm-analytics-section">
       <h3>Listening History</h3>
 
       {stats && (
-        <div className="stats-cards">
-          <div className="stat-card">
-            <span className="stat-label">Total Events</span>
-            <span className="stat-value">{stats.totalEvents || 0}</span>
+        <div className="adm-stats-cards">
+          <div className="adm-stat-card">
+            <span className="adm-stat-label">Total Events</span>
+            <span className="adm-stat-value">{stats.totalEvents || 0}</span>
           </div>
-          <div className="stat-card">
-            <span className="stat-label">Unique Users</span>
-            <span className="stat-value">{stats.uniqueUsers || 0}</span>
+          <div className="adm-stat-card">
+            <span className="adm-stat-label">Unique Users</span>
+            <span className="adm-stat-value">{stats.uniqueUsers || 0}</span>
           </div>
-          <div className="stat-card">
-            <span className="stat-label">Total Minutes Listened</span>
-            <span className="stat-value">{Math.round((stats.totalSecondsListened || 0) / 60)}</span>
+          <div className="adm-stat-card">
+            <span className="adm-stat-label">Total Minutes Listened</span>
+            <span className="adm-stat-value">{Math.round((stats.totalSecondsListened || 0) / 60)}</span>
           </div>
-          <div className="stat-card">
-            <span className="stat-label">Avg Progress (Incomplete)</span>
-            <span className="stat-value">{Math.round(stats.averageProgressIncomplete || 0)}s</span>
+          <div className="adm-stat-card">
+            <span className="adm-stat-label">Avg Progress (Incomplete)</span>
+            <span className="adm-stat-value">{Math.round(stats.averageProgressIncomplete || 0)}s</span>
           </div>
         </div>
       )}
 
-      <div className="top-lists">
-        <div className="top-list">
+      <div className="adm-top-lists">
+        <div className="adm-top-list">
           <h4>Top 10 Episodes</h4>
-          <table className="analytics-table">
-            <thead>
-              <tr><th>Episode</th><th>Listen Count</th></tr>
-            </thead>
+          <table className="adm-analytics-table">
+            <thead><tr><th>Episode</th><th>Listen Count</th></tr></thead>
             <tbody>
               {topEpisodes.map(ep => (
                 <tr key={ep.id}>
@@ -130,13 +118,10 @@ const AdminListeningHistory = () => {
             </tbody>
           </table>
         </div>
-
-        <div className="top-list">
+        <div className="adm-top-list">
           <h4>Top 10 Series</h4>
-          <table className="analytics-table">
-            <thead>
-              <tr><th>Series</th><th>Listen Count</th></tr>
-            </thead>
+          <table className="adm-analytics-table">
+            <thead><tr><th>Series</th><th>Listen Count</th></tr></thead>
             <tbody>
               {topSeries.map(s => (
                 <tr key={s.id}>
@@ -150,9 +135,9 @@ const AdminListeningHistory = () => {
       </div>
 
       {history.length === 0 && !loading ? (
-        <div className="no-data">No history entries found.</div>
+        <div className="adm-no-data">No history entries found.</div>
       ) : (
-        <table className="analytics-table">
+        <table className="adm-analytics-table">
           <thead>
             <tr>
               <th>User Email</th>
@@ -178,11 +163,11 @@ const AdminListeningHistory = () => {
         </table>
       )}
 
-      {loading && <div className="loading">Loading...</div>}
-      <div className="pagination">
-        <button onClick={handlePreviousPage} disabled={page === 0}>Previous</button>
-        <span>Page {page + 1} of {totalPages}</span>
-        <button onClick={handleNextPage} disabled={page >= totalPages - 1}>Next</button>
+      {loading && <div className="adm-loading">Loading...</div>}
+      <div className="adm-pagination-container">
+        <button onClick={handlePreviousPage} disabled={page === 0} className="adm-pagination-nav">Previous</button>
+        <span className="adm-pagination-info">Page {page + 1} of {totalPages}</span>
+        <button onClick={handleNextPage} disabled={page >= totalPages - 1} className="adm-pagination-nav">Next</button>
       </div>
     </div>
   );

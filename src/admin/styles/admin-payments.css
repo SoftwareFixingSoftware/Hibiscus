@@ -1,0 +1,410 @@
+/* =====================================================================
+   admin-payments.css
+   Full warm & calm theme, stat-card icons, table polish (headers retained)
+   ===================================================================== */
+
+/* -------------------------
+   THEME VARIABLES (default dark)
+   ------------------------- */
+
+:root{
+  --hib-bg-page: #0b1220;
+  --hib-bg-card: #0f1724;
+  --hib-bg-darker: #0b1220;
+  --hib-bg-light: #12161b;
+
+  --hib-text-primary: #e7eef6;
+  --hib-text-muted: #9aa4b2;
+
+  --hib-border: rgba(255,255,255,0.06);
+
+  --hib-primary: #d9a95a;
+  --hib-primary-600: #c7893f;
+  --hib-primary-dark: #a86c2b;
+
+  --hib-success-color: #16a34a;
+  --hib-warning-color: #f59e0b;
+  --hib-error-color: #ef4444;
+
+  --table-header-bg: linear-gradient(90deg, rgba(213,160,86,0.96), rgba(200,141,59,0.95));
+  --table-header-text: #ffffff;
+  --table-header-border: rgba(255,255,255,0.06);
+  --table-header-glow: rgba(2,6,23,0.06);
+
+  --row-hover-bg: rgba(255,255,255,0.02);
+
+  --hib-card-shadow: 0 8px 26px rgba(2,6,23,0.5);
+}
+
+/* -------------------------
+   LIGHT THEME OVERRIDES
+   Usage: add `body.light-theme` (your ThemeToggle does that)
+   ------------------------- */
+body.light-theme{
+  --hib-bg-page: #fff8f2;
+  --hib-bg-card: #fffdf9;
+  --hib-bg-darker: #fff5eb;
+  --hib-bg-light: #fbf6ef;
+
+  --hib-text-primary: #222222;
+  --hib-text-muted: #6b6b70;
+
+  --hib-border: rgba(11,22,36,0.06);
+  --hib-primary: #fb923c;
+  --hib-primary-600: #f97316;
+  --hib-primary-dark: #c2410c;
+
+  --table-header-bg: linear-gradient(90deg, rgba(249,115,22,0.96), rgba(251,146,60,0.92));
+  --table-header-text: #000000;   /* changed from #ffffff to constant black */
+  --table-header-border: rgba(0,0,0,0.06);
+  --table-header-glow: rgba(11,22,40,0.06);
+
+  --row-hover-bg: rgba(245,236,220,0.95);
+
+  --hib-card-shadow: 0 8px 26px rgba(11,22,40,0.06);
+}
+
+/* -------------------------
+   GLOBAL LAYOUT / CONTAINERS
+   ------------------------- */
+
+.adm-purchases-container{
+  padding: 1.5rem;
+  background: var(--hib-bg-page);
+  color: var(--hib-text-primary);
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.adm-purchases-container h2{
+  font-size: 1.9rem;
+  margin: 0 0 1.25rem;
+  font-weight: 700;
+  color: var(--hib-text-primary);
+}
+
+.adm-purchases-container h3{
+  font-size: 1.25rem;
+  margin: 0 0 1rem;
+  font-weight: 600;
+  color: var(--hib-text-primary);
+}
+
+/* -------------------------
+   PREMIUM STAT CARDS (with icon slot)
+   ------------------------- */
+
+.adm-stats-cards{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* card base */
+.adm-stat-card{
+  position: relative;
+  padding: 1rem 1.1rem;
+  border-radius: 12px;
+  background:
+    linear-gradient(160deg, rgba(255,255,255,0.01), rgba(0,0,0,0.04)),
+    var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  box-shadow: var(--hib-card-shadow);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: transform .22s ease, box-shadow .22s ease;
+  overflow: hidden;
+}
+
+/* top accent bar */
+.adm-stat-card::before{
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--hib-primary), var(--hib-primary-600));
+  opacity: .95;
+}
+
+/* ambient glow corner */
+.adm-stat-card::after{
+  content: "";
+  position: absolute;
+  width: 120px; height: 120px;
+  top: -36px; right: -36px;
+  background: radial-gradient(circle, rgba(210,165,110,0.12), transparent 60%);
+  pointer-events: none;
+}
+
+/* hover */
+.adm-stat-card:hover{
+  transform: translateY(-4px);
+  box-shadow: 0 14px 40px rgba(2,6,23,0.25);
+}
+
+/* icon wrapper: intended to hold an inline react-icon */
+.adm-stat-icon{
+  flex: 0 0 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04));
+  border: 1px solid rgba(255,255,255,0.03);
+  color: var(--hib-primary);
+  font-size: 22px;
+  box-shadow: 0 6px 14px rgba(2,6,23,0.08);
+}
+
+/* icon small variant (if you want) */
+.adm-stat-icon.small{
+  width: 42px; height: 42px; font-size: 18px;
+}
+
+/* stat text area */
+.adm-stat-body{
+  display:flex;
+  flex-direction: column;
+  gap: .15rem;
+  min-width: 0;
+}
+
+.adm-stat-label{
+  font-size: .82rem;
+  color: var(--hib-text-muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.adm-stat-value{
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--hib-text-primary);
+  white-space: nowrap;
+}
+
+.adm-stat-sub{
+  font-size: .9rem;
+  color: var(--hib-text-muted);
+}
+
+/* -------------------------
+   SERIES AGGREGATES BOX
+   ------------------------- */
+
+.adm-series-stats{
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--hib-card-shadow);
+}
+
+/* -------------------------
+   TABLE WRAPPER & TABLE BASE
+   ------------------------- */
+
+.adm-table-wrapper{
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: 60vh;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 0;
+}
+
+/* default table layout */
+.adm-series-table,
+.adm-purchases-table{
+  width: 100%;
+  min-width: 900px;
+  border-collapse: separate;
+  font-size: .92rem;
+  text-align: left;
+  background: transparent;
+}
+
+/* header row (uses theme variable) */
+.adm-series-table thead tr,
+.adm-purchases-table thead tr{
+  background: var(--table-header-bg);
+}
+
+/* header cells */
+.adm-series-table th,
+.adm-purchases-table th{
+  padding: 0.95rem 1rem;
+  font-weight: 700;
+  color: var(--table-header-text);
+  text-transform: uppercase;
+  font-size: .75rem;
+  letter-spacing: .06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* sticky header (keeps gradient) */
+.adm-series-table thead th,
+.adm-purchases-table thead th{
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+}
+
+/* rounded top corners */
+.adm-purchases-table thead th:first-child,
+.adm-series-table thead th:first-child{
+  border-top-left-radius: 10px;
+}
+.adm-purchases-table thead th:last-child,
+.adm-series-table thead th:last-child{
+  border-top-right-radius: 10px;
+}
+
+/* -------------------------
+   STICKY FIRST COLUMN (TH vs TD careful)
+   ------------------------- */
+
+/* header first column: keep header gradient, ensure it sits above */
+.adm-series-table th:first-child,
+.adm-purchases-table th:first-child{
+  position: sticky;
+  left: 0;
+  z-index: 40;  /* high so header text stays visible */
+  background: var(--table-header-bg); /* keep header gradient */
+  border-right: 1px solid var(--table-header-border);
+}
+
+/* body first column cells: card bg + subtle divider */
+.adm-series-table td:first-child,
+.adm-purchases-table td:first-child{
+  position: sticky;
+  left: 0;
+  z-index: 20;
+  background: var(--hib-bg-card);
+  border-right: 1px solid var(--hib-border);
+  box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+}
+
+/* -------------------------
+   TABLE CELLS / ROWS
+   ------------------------- */
+
+.adm-series-table td,
+.adm-purchases-table td{
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--hib-border);
+  color: var(--hib-text-primary);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* zebra subtle alt background */
+.adm-series-table tbody tr:nth-child(even),
+.adm-purchases-table tbody tr:nth-child(even){
+  background: rgba(255,255,255,0.00);
+}
+
+/* theme-aware row hover using variable */
+.adm-series-table tbody tr:hover,
+.adm-purchases-table tbody tr:hover{
+  background: var(--row-hover-bg);
+  transition: background .14s ease, transform .12s ease;
+}
+.adm-series-table tbody tr:hover td,
+.adm-purchases-table tbody tr:hover td{
+  color: var(--hib-text-primary);
+}
+
+/* links inside table */
+.adm-purchases-table td a{
+  color: var(--hib-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+.adm-purchases-table td a:hover{
+  text-decoration: underline;
+  color: var(--hib-primary-600);
+}
+
+/* status chips */
+.status-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:.5rem;
+  padding:.25rem .5rem;
+  border-radius: 999px;
+  font-weight:700;
+  font-size:.82rem;
+  color:#fff;
+}
+.status-completed{ background: linear-gradient(90deg,#16a34a,#059669); }
+.status-pending{ background: linear-gradient(90deg,#fbbf24,#fb923c); color:#111827; }
+.status-failed { background: linear-gradient(90deg,#ef4444,#f97316); }
+
+/* paid-with-coins classes */
+.adm-purchases-table td.paid-with-coins-yes{ color: var(--hib-success-color); font-weight:700; }
+.adm-purchases-table td.paid-with-coins-no{ color: var(--hib-text-muted); }
+
+/* -------------------------
+   TABLE SCROLLBAR STYLING
+   ------------------------- */
+.adm-table-wrapper::-webkit-scrollbar{ height:10px; width:10px; }
+.adm-table-wrapper::-webkit-scrollbar-thumb{ background: var(--hib-primary-600, var(--hib-primary)); border-radius:8px; border:2px solid transparent; }
+.adm-table-wrapper{ scrollbar-width: thin; scrollbar-color: var(--hib-primary) transparent; }
+
+/* -------------------------
+   PAYMENT DETAIL CARD
+   ------------------------- */
+.adm-payment-detail-card{
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--hib-card-shadow);
+}
+.adm-detail-row{ display:flex; gap:1rem; padding:.6rem 0; border-bottom:1px solid var(--hib-border); }
+.adm-detail-row:last-child{ border-bottom:none; }
+.adm-detail-label{ min-width:150px; font-weight:600; color:var(--hib-text-muted); }
+.adm-detail-value{ color:var(--hib-text-primary); word-break:break-word; }
+
+/* -------------------------
+   MISC: pagination, messages
+   ------------------------- */
+.adm-no-data, .adm-loading{ padding:1.25rem; background:var(--hib-bg-card); border-radius:10px; color:var(--hib-text-muted); text-align:center; border:1px dashed var(--hib-border); }
+.adm-pagination-container{ display:flex; justify-content:center; align-items:center; gap:1rem; margin-top:1rem; }
+.adm-pagination-nav{ background:var(--hib-bg-card); border:1px solid var(--hib-border); padding:.45rem .8rem; border-radius:8px; cursor:pointer; color:var(--hib-text-primary); }
+.adm-pagination-nav:hover{ background:var(--row-hover-bg); }
+.adm-error{ background: rgba(239,68,68,0.08); color:var(--hib-error-color); padding:1rem; border-radius:8px; border:1px solid var(--hib-error-color); }
+
+/* -------------------------
+   MOBILE CARD VIEW
+   ------------------------- */
+@media (max-width:768px){
+  .adm-table-wrapper{ max-height: 70vh; }
+  .adm-purchases-table thead,
+  .adm-series-table thead { display: none; }
+  .adm-purchases-table, .adm-purchases-table tbody, .adm-purchases-table tr, .adm-purchases-table td,
+  .adm-series-table, .adm-series-table tbody, .adm-series-table tr, .adm-series-table td {
+    display:block; width:100%;
+  }
+  .adm-purchases-table tr, .adm-series-table tr { margin:0 0 1rem; border-radius:10px; background: var(--hib-bg-card); padding:.75rem; border:1px solid var(--hib-border); }
+  .adm-purchases-table td, .adm-series-table td { padding:.6rem .75rem; white-space:normal; position:relative; padding-left:45%; }
+  .adm-purchases-table td::before, .adm-series-table td::before { content: attr(data-label); position:absolute; left:.9rem; top:.5rem; font-weight:700; color:var(--hib-text-muted); width:40%; font-size:.85rem; }
+  .adm-purchases-table td:first-child, .adm-series-table td:first-child { position:relative; left:auto; box-shadow:none; background:transparent; padding-left:.75rem; }
+}
+
+/* accessibility/focus */
+.adm-purchases-table tr:focus-within, .adm-series-table tr:focus-within { outline: 3px solid rgba(213,160,86,0.14); outline-offset:4px; }
+
+/* small polish */
+.adm-stat-card .small-note { font-size: .85rem; color: var(--hib-text-muted); }

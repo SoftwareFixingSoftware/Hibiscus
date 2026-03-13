@@ -11,37 +11,36 @@ import {
   FiCalendar,
   FiTag,
   FiLink,
-  FiBarChart2,
   FiPlus,
   FiUpload
 } from 'react-icons/fi';
 import SeriesService from '../services/SeriesService';
 import EpisodeService from '../services/EpisodeService';
-import SeasonService from '../services/SeasonService';          // NEW
-import SeasonModal from '../components/SeasonModal';            // NEW
+import SeasonService from '../services/SeasonService';
+import SeasonModal from '../components/SeasonModal';
+import SeriesModal from '../components/SeriesModal';          // Import for editing
 import SeriesImageUploadModal from '../components/SeriesImageUploadModal';
+import '../styles/admin-series.css';
 
 const SeriesDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [series, setSeries] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [seasons, setSeasons] = useState([]);                  // NEW
-  const [seasonsLoading, setSeasonsLoading] = useState(false); // NEW
-  const [showSeasonModal, setShowSeasonModal] = useState(false); // NEW
-  const [selectedSeason, setSelectedSeason] = useState(null);   // NEW
+  const [seasons, setSeasons] = useState([]);
+  const [seasonsLoading, setSeasonsLoading] = useState(false);
+  const [showSeasonModal, setShowSeasonModal] = useState(false);
+  const [selectedSeason, setSelectedSeason] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);      // New state for edit modal
   const [stats, setStats] = useState({
     totalEpisodes: 0,
-    publishedEpisodes: 0,
-    totalPlays: 0,
-    totalDownloads: 0,
-    averageRating: 0
+    publishedEpisodes: 0
   });
   const [showImageUploadModal, setShowImageUploadModal] = useState(false);
 
   useEffect(() => {
     fetchSeriesDetails();
-    fetchSeasons();                                             // NEW
+    fetchSeasons();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -65,10 +64,7 @@ const SeriesDetail = () => {
 
       setStats({
         totalEpisodes: episodes.length,
-        publishedEpisodes: publishedEpisodes.length,
-        totalPlays: episodes.reduce((sum, ep) => sum + (ep.playCount || 0), 0),
-        totalDownloads: episodes.reduce((sum, ep) => sum + (ep.downloadCount || 0), 0),
-        averageRating: seriesData?.averageRating || 0
+        publishedEpisodes: publishedEpisodes.length
       });
 
       setLoading(false);
@@ -78,23 +74,20 @@ const SeriesDetail = () => {
     }
   };
 
-  // NEW: fetch seasons
- const fetchSeasons = async () => {
-  if (!id) return;
-  setSeasonsLoading(true);
-  try {
-    const res = await SeasonService.getSeasonsBySeries(id, { size: 100 });
-    // Handle both wrapped (res.data) and unwrapped (res) responses
-    const data = res.content || res.data?.content || res.data || [];
-    setSeasons(data);
-  } catch (error) {
-    console.error('Error fetching seasons:', error);
-  } finally {
-    setSeasonsLoading(false);
-  }
-};
+  const fetchSeasons = async () => {
+    if (!id) return;
+    setSeasonsLoading(true);
+    try {
+      const res = await SeasonService.getSeasonsBySeries(id, { size: 100 });
+      const data = res.content || res.data?.content || res.data || [];
+      setSeasons(data);
+    } catch (error) {
+      console.error('Error fetching seasons:', error);
+    } finally {
+      setSeasonsLoading(false);
+    }
+  };
 
-  // NEW: season handlers
   const handleAddSeason = () => {
     setSelectedSeason(null);
     setShowSeasonModal(true);
@@ -122,9 +115,17 @@ const SeriesDetail = () => {
     fetchSeasons();
   };
 
-  // Existing handlers
+  // Edit series via modal
+  const handleEditSeries = () => {
+    setShowEditModal(true);
+  };
+
+  const handleEditModalSubmit = () => {
+    setShowEditModal(false);
+    fetchSeriesDetails();   // Refresh after update
+  };
+
   const handleBack = () => navigate('/admin/series');
-  const handleEdit = () => navigate(`/admin/series/${id}/edit`);
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this series? This action cannot be undone.')) return;
     try {
@@ -158,8 +159,8 @@ const SeriesDetail = () => {
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
+      <div className="adm-loading-container">
+        <div className="adm-loading-spinner"></div>
         <p>Loading series details...</p>
       </div>
     );
@@ -167,9 +168,9 @@ const SeriesDetail = () => {
 
   if (!series) {
     return (
-      <div className="error-container">
+      <div className="adm-error-container">
         <h2>Series not found</h2>
-        <button className="btn-primary" onClick={handleBack}>
+        <button className="adm-btn-primary" onClick={handleBack}>
           Back to Series
         </button>
       </div>
@@ -177,170 +178,148 @@ const SeriesDetail = () => {
   }
 
   return (
-    <div className="series-detail-container">
-      <div className="detail-header">
-        <button className="back-btn" onClick={handleBack}>
+    <div className="adm-series-detail-container">
+      <div className="adm-detail-header">
+        <button className="adm-back-btn" onClick={handleBack}>
           <FiArrowLeft />
           <span>Back to Series</span>
         </button>
 
-        <div className="header-actions">
-          <button className="action-btn secondary" onClick={handleUploadCover}>
+        <div className="adm-header-actions">
+          <button className="adm-action-btn adm-secondary" onClick={handleUploadCover}>
             <FiUpload />
             <span>Upload Cover</span>
           </button>
 
           {series.isPublished ? (
-            <button className="action-btn warning" onClick={handleUnpublish}>
+            <button className="adm-action-btn adm-warning" onClick={handleUnpublish}>
               <FiPauseCircle />
               <span>Unpublish</span>
             </button>
           ) : (
-            <button className="action-btn success" onClick={handlePublish}>
+            <button className="adm-action-btn adm-success" onClick={handlePublish}>
               <FiPlayCircle />
               <span>Publish</span>
             </button>
           )}
 
-          <button className="action-btn edit" onClick={handleEdit}>
+          <button className="adm-action-btn adm-edit" onClick={handleEditSeries}>
             <FiEdit2 />
             <span>Edit</span>
           </button>
-          <button className="action-btn delete" onClick={handleDelete}>
+          <button className="adm-action-btn adm-delete" onClick={handleDelete}>
             <FiTrash2 />
             <span>Delete</span>
           </button>
         </div>
       </div>
 
-      <div className="series-overview">
-        <div className="series-cover-large">
+      <div className="adm-series-overview">
+        <div className="adm-series-cover-large">
           {series.coverImageUrl ? (
             <img src={series.coverImageUrl} alt={series.title} />
           ) : (
-            <div className="cover-placeholder">
+            <div className="adm-cover-placeholder">
               <span>{series.title ? series.title.charAt(0) : '?'}</span>
             </div>
           )}
         </div>
 
-        <div className="series-info">
-          <div className="series-header">
-            <h1 className="series-title">{series.title}</h1>
-            <span className={`status-badge large ${series.isPublished ? 'active' : 'draft'}`}>
+        <div className="adm-series-info">
+          <div className="adm-series-header">
+            <h1 className="adm-series-title">{series.title}</h1>
+            <span className={`adm-status-badge large ${series.isPublished ? 'active' : 'draft'}`}>
               {series.isPublished ? 'PUBLISHED' : 'DRAFT'}
             </span>
           </div>
 
-          <p className="series-description">{series.description}</p>
+          <p className="adm-series-description">{series.description}</p>
 
-          <div className="series-meta">
-            <div className="meta-item">
+          <div className="adm-series-meta">
+            <div className="adm-meta-item">
               <FiCalendar />
               <span>Created: {series.createdAt ? new Date(series.createdAt).toLocaleDateString() : '—'}</span>
             </div>
-            <div className="meta-item">
+            <div className="adm-meta-item">
               <FiTag />
               <span>Category: {series.category || 'Uncategorized'}</span>
             </div>
-            <div className="meta-item">
+            <div className="adm-meta-item">
               <FiLink />
               <span>Slug: {series.slug || '—'}</span>
             </div>
-            <div className="meta-item">
-              <span className="rating">
-                ★ {series.averageRating?.toFixed(1) || '0.0'}
-              </span>
+            <div className="adm-meta-item">
+              <span className="adm-rating">★ {series.averageRating?.toFixed(1) || '0.0'}</span>
             </div>
           </div>
 
           {series.tags && series.tags.length > 0 && (
-            <div className="series-tags">
+            <div className="adm-series-tags">
               {series.tags.map((tag, index) => (
-                <span key={index} className="tag">#{tag}</span>
+                <span key={index} className="adm-tag">#{tag}</span>
               ))}
             </div>
           )}
         </div>
       </div>
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon-container">
-            <FiPlayCircle className="stat-icon" />
+      <div className="adm-stats-grid">
+        <div className="adm-stat-card">
+          <div className="adm-stat-icon-container">
+            <FiPlayCircle className="adm-stat-icon" />
           </div>
-          <div className="stat-content">
-            <p className="stat-title">Total Episodes</p>
-            <h3 className="stat-value">{stats.totalEpisodes}</h3>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon-container">
-            <FiPlayCircle className="stat-icon" />
-          </div>
-          <div className="stat-content">
-            <p className="stat-title">Published</p>
-            <h3 className="stat-value">{stats.publishedEpisodes}</h3>
+          <div className="adm-stat-content">
+            <p className="adm-stat-title">Total Episodes</p>
+            <h3 className="adm-stat-value">{stats.totalEpisodes}</h3>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon-container">
-            <FiEye className="stat-icon" />
+        <div className="adm-stat-card">
+          <div className="adm-stat-icon-container">
+            <FiPlayCircle className="adm-stat-icon" />
           </div>
-          <div className="stat-content">
-            <p className="stat-title">Total Plays</p>
-            <h3 className="stat-value">{stats.totalPlays.toLocaleString()}</h3>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon-container">
-            <FiDownload className="stat-icon" />
-          </div>
-          <div className="stat-content">
-            <p className="stat-title">Downloads</p>
-            <h3 className="stat-value">{stats.totalDownloads.toLocaleString()}</h3>
+          <div className="adm-stat-content">
+            <p className="adm-stat-title">Published</p>
+            <h3 className="adm-stat-value">{stats.publishedEpisodes}</h3>
           </div>
         </div>
       </div>
 
-      {/* ========== NEW SEASONS SECTION ========== */}
-      <div className="seasons-section">
-        <div className="section-header">
-          <h2 className="section-title">Seasons</h2>
-          <div className="section-actions">
-            <button className="btn-primary" onClick={handleAddSeason}>
+      {/* Seasons Section */}
+      <div className="adm-seasons-section">
+        <div className="adm-section-header">
+          <h2 className="adm-section-title">Seasons</h2>
+          <div className="adm-section-actions">
+            <button className="adm-btn-primary" onClick={handleAddSeason}>
               <FiPlus /> Add Season
             </button>
           </div>
         </div>
 
         {seasonsLoading ? (
-          <div className="loading-spinner small" />
+          <div className="adm-loading-spinner small" />
         ) : seasons.length === 0 ? (
-          <div className="empty-state small">
+          <div className="adm-empty-state small">
             <p>No seasons created yet. Seasons help organize episodes.</p>
           </div>
         ) : (
-          <div className="seasons-grid">
+          <div className="adm-seasons-grid">
             {seasons.map(season => (
-              <div key={season.id} className="season-card">
-                <div className="season-card-header">
-                  <h3 className="season-number">Season {season.seasonNumber}</h3>
-                  <div className="season-actions">
-                    <button className="icon-btn" onClick={() => handleEditSeason(season)} title="Edit">
+              <div key={season.id} className="adm-season-card">
+                <div className="adm-season-card-header">
+                  <h3 className="adm-season-number">Season {season.seasonNumber}</h3>
+                  <div className="adm-season-actions">
+                    <button className="adm-icon-btn" onClick={() => handleEditSeason(season)} title="Edit">
                       <FiEdit2 />
                     </button>
-                    <button className="icon-btn delete" onClick={() => handleDeleteSeason(season.id)} title="Delete">
+                    <button className="adm-icon-btn adm-delete" onClick={() => handleDeleteSeason(season.id)} title="Delete">
                       <FiTrash2 />
                     </button>
                   </div>
                 </div>
-                {season.title && <h4 className="season-title">{season.title}</h4>}
-                <p className="season-description">{season.description || 'No description'}</p>
-                <div className="season-meta">
+                {season.title && <h4 className="adm-season-title">{season.title}</h4>}
+                <p className="adm-season-description">{season.description || 'No description'}</p>
+                <div className="adm-season-meta">
                   <span className="episode-count">{season.episodeCount || 0} episodes</span>
                 </div>
               </div>
@@ -348,70 +327,29 @@ const SeriesDetail = () => {
           </div>
         )}
       </div>
-      {/* ========== END SEASONS SECTION ========== */}
 
-      <div className="episodes-section">
-        <div className="section-header">
-          <h2 className="section-title">Episodes</h2>
-          <div className="section-actions">
-            <button className="btn-secondary" onClick={() => navigate(`/admin/episodes/series/${id}`)}>
+      <div className="adm-episodes-section">
+        <div className="adm-section-header">
+          <h2 className="adm-section-title">Episodes</h2>
+          <div className="adm-section-actions">
+            <button className="adm-btn-secondary" onClick={() => navigate(`/admin/episodes/series/${id}`)}>
               View All Episodes
             </button>
-            <button className="btn-primary" onClick={handleAddEpisode}>
+            <button className="adm-btn-primary" onClick={handleAddEpisode}>
               <FiPlus />
               <span>Add New Episode</span>
             </button>
           </div>
         </div>
 
-        <div className="episodes-preview">
+        <div className="adm-episodes-preview">
           <p>Navigate to the episodes page to view and manage all episodes in this series.</p>
           <button
-            className="btn-secondary"
+            className="adm-btn-secondary"
             onClick={() => navigate(`/admin/episodes/series/${id}`)}
           >
             Go to Episodes
           </button>
-        </div>
-      </div>
-
-      <div className="analytics-section">
-        <div className="section-header">
-          <h2 className="section-title">
-            <FiBarChart2 />
-            <span>Analytics</span>
-          </h2>
-        </div>
-
-        <div className="analytics-grid">
-          <div className="analytics-card">
-            <h4>Audience Growth</h4>
-            <div className="growth-chart">
-              <div className="growth-bar" style={{ height: '80%' }}></div>
-              <div className="growth-bar" style={{ height: '90%' }}></div>
-              <div className="growth-bar" style={{ height: '75%' }}></div>
-              <div className="growth-bar" style={{ height: '95%' }}></div>
-              <div className="growth-bar" style={{ height: '85%' }}></div>
-            </div>
-          </div>
-
-          <div className="analytics-card">
-            <h4>Top Episodes</h4>
-            <ul className="top-episodes">
-              <li>
-                <span className="episode-name">The Future of AI</span>
-                <span className="episode-plays">2,450 plays</span>
-              </li>
-              <li>
-                <span className="episode-name">Web3 and Blockchain</span>
-                <span className="episode-plays">1,980 plays</span>
-              </li>
-              <li>
-                <span className="episode-name">Cybersecurity Essentials</span>
-                <span className="episode-plays">1,750 plays</span>
-              </li>
-            </ul>
-          </div>
         </div>
       </div>
 
@@ -432,6 +370,14 @@ const SeriesDetail = () => {
           seriesId={id}
           onClose={() => setShowSeasonModal(false)}
           onSubmit={handleSeasonModalSubmit}
+        />
+      )}
+
+      {showEditModal && series && (
+        <SeriesModal
+          series={series}
+          onClose={() => setShowEditModal(false)}
+          onSubmit={handleEditModalSubmit}
         />
       )}
     </div>

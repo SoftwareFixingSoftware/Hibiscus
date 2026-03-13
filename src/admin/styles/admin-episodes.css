@@ -1,0 +1,636 @@
+/* ================================
+   ADMIN EPISODES
+   ================================ */
+
+/* ---------- Episodes Grid ---------- */
+.adm-episodes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.adm-episode-card {
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: var(--hib-card-shadow);
+}
+
+.adm-episode-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 40px rgba(2,6,23,0.25);
+}
+
+.adm-episode-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: var(--hib-bg-darker);
+  border-bottom: 1px solid var(--hib-border);
+}
+
+.adm-episode-number {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--hib-text-muted);
+}
+
+/* Season badge */
+.adm-season-badge {
+  background: var(--hib-primary);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-left: 0.5rem;
+}
+
+/* Price badges */
+.adm-status-badge.adm-free {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--hib-success-color);
+  border: 1px solid transparent;
+}
+
+.adm-status-badge.adm-coins {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--hib-warning-color);
+}
+
+.adm-status-badge.adm-money {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--hib-primary);
+}
+
+.adm-episode-content {
+  padding: 1.5rem;
+}
+
+.adm-episode-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--hib-text-primary);
+  margin: 0 0 0.75rem;
+}
+
+.adm-episode-description {
+  color: var(--hib-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 0 0 1rem;
+}
+
+.adm-episode-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.adm-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--hib-text-muted);
+}
+
+.adm-meta-item svg {
+  width: 16px;
+  height: 16px;
+}
+
+.adm-audio-preview {
+  margin-top: 1rem;
+}
+
+.adm-audio-player {
+  width: 100%;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--hib-bg-darker);
+  border: 1px solid var(--hib-border);
+}
+
+.adm-episode-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: var(--hib-bg-darker);
+  border-top: 1px solid var(--hib-border);
+}
+
+.adm-action-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ---------- Audio upload specific ---------- */
+.adm-upload-info {
+  background: var(--hib-bg-darker);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.adm-upload-info h4 {
+  margin: 0 0 0.5rem;
+  color: var(--hib-text-primary);
+}
+
+.adm-current-audio-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.adm-audio-status {
+  display: flex;
+  align-items: center;
+  color: var(--hib-success-color);
+  font-size: 0.875rem;
+}
+
+.adm-audio-details {
+  background: var(--hib-bg-card);
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.adm-audio-url {
+  word-break: break-all;
+  color: var(--hib-text-primary);
+}
+
+.adm-audio-size {
+  color: var(--hib-text-muted);
+  margin-top: 0.25rem;
+}
+
+.adm-audio-warning {
+  display: flex;
+  align-items: center;
+  color: var(--hib-warning-color);
+  font-size: 0.875rem;
+}
+
+.adm-file-drop-zone {
+  border: 2px dashed var(--hib-border);
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 1rem 0;
+}
+
+.adm-file-drop-zone:hover {
+  border-color: var(--hib-primary);
+  background: rgba(217, 169, 90, 0.05);
+}
+
+.adm-file-drop-zone.adm-has-file {
+  border-color: var(--hib-primary);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.adm-file-selected {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.adm-file-details {
+  text-align: center;
+}
+
+.adm-file-name {
+  font-weight: bold;
+  color: var(--hib-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.adm-file-size,
+.adm-file-type {
+  color: var(--hib-text-muted);
+  font-size: 0.875rem;
+}
+
+.adm-upload-progress {
+  margin: 1rem 0;
+}
+
+.adm-progress-bar {
+  height: 8px;
+  background: var(--hib-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.adm-progress-fill {
+  height: 100%;
+  background: var(--hib-primary);
+  transition: width 0.3s ease;
+}
+
+.adm-progress-text {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--hib-text-muted);
+  margin-top: 0.5rem;
+}
+
+/* ---------- Series Breadcrumb ---------- */
+.adm-series-breadcrumb {
+  margin-bottom: 1rem;
+}
+
+.adm-back-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--hib-primary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  padding: 0;
+}
+
+.adm-back-link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Warning / Alert Messages ---------- */
+.adm-warning-message,
+.adm-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid var(--hib-warning-color);
+  border-radius: 8px;
+  color: var(--hib-warning-color);
+  font-size: 0.875rem;
+}
+
+.adm-alert.adm-warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: var(--hib-warning-color);
+  color: var(--hib-warning-color);
+}
+
+.adm-alert-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* ---------- Invalid ID ---------- */
+.adm-invalid-id-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1.5rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+.adm-invalid-id-container h2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--hib-error-color);
+  margin: 0;
+}
+
+.adm-invalid-id-container p {
+  color: var(--hib-text-muted);
+  margin: 0;
+}
+
+/* ---------- Reused components from admin base ---------- */
+.adm-management-container {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.adm-management-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.adm-header-left,
+.adm-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.adm-page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--hib-text-primary);
+  margin: 0 0 0.25rem 0;
+}
+
+.adm-page-subtitle {
+  color: var(--hib-text-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* Buttons */
+.adm-btn-primary,
+.adm-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  border: none;
+}
+
+.adm-btn-primary {
+  background: var(--hib-primary);
+  color: white;
+}
+.adm-btn-primary:hover:not(:disabled) {
+  background: var(--hib-primary-dark);
+}
+
+.adm-btn-secondary {
+  background: var(--hib-bg-darker);
+  color: var(--hib-text-primary);
+  border: 1px solid var(--hib-border);
+}
+.adm-btn-secondary:hover:not(:disabled) {
+  background: var(--hib-bg-light);
+}
+
+/* Action buttons (icon only) */
+.adm-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  background: var(--hib-bg-darker);
+  color: var(--hib-text-primary);
+  border-color: var(--hib-border);
+}
+.adm-action-btn:hover {
+  background: var(--hib-bg-light);
+}
+.adm-action-btn.adm-edit:hover {
+  background: var(--hib-primary);
+  color: white;
+  border-color: var(--hib-primary);
+}
+.adm-action-btn.adm-delete:hover {
+  background: var(--hib-error-color);
+  color: white;
+  border-color: var(--hib-error-color);
+}
+.adm-action-btn.adm-view:hover {
+  background: var(--hib-primary-600);
+  color: white;
+}
+.adm-action-btn.adm-secondary:hover {
+  background: var(--hib-bg-light);
+}
+.adm-action-btn.adm-warning {
+  background: var(--hib-warning-color);
+  color: white;
+  border-color: var(--hib-warning-color);
+}
+.adm-action-btn.adm-success {
+  background: var(--hib-success-color);
+  color: white;
+  border-color: var(--hib-success-color);
+}
+
+/* Filters */
+.adm-filters-container {
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--hib-card-shadow);
+}
+
+.adm-filter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.adm-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.adm-filter-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--hib-text-primary);
+}
+
+.adm-filter-select {
+  background: var(--hib-bg-darker);
+  color: var(--hib-text-primary);
+  border: 1px solid var(--hib-border);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  min-width: 150px;
+  cursor: pointer;
+}
+.adm-filter-select:focus {
+  outline: none;
+  border-color: var(--hib-primary);
+  box-shadow: 0 0 0 2px rgba(217, 169, 90, 0.2);
+}
+
+/* Status badges */
+.adm-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border: 1px solid transparent;
+}
+.adm-status-badge.published {
+  background: linear-gradient(90deg, #16a34a, #059669);
+  color: white;
+}
+.adm-status-badge.draft {
+  background: var(--hib-bg-darker);
+  color: var(--hib-text-muted);
+  border: 1px solid var(--hib-border);
+}
+
+/* Pagination */
+.adm-pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  flex-wrap: wrap;
+  gap: 1rem;
+  border-top: 1px solid var(--hib-border);
+  margin-top: 1rem;
+}
+.adm-pagination-info {
+  color: var(--hib-text-muted);
+  font-size: 0.875rem;
+}
+.adm-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.adm-pagination-nav {
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  padding: 0.45rem 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--hib-text-primary);
+  font-size: 0.875rem;
+  transition: background 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.adm-pagination-nav:hover:not(:disabled) {
+  background: var(--row-hover-bg);
+}
+.adm-pagination-nav:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.adm-pagination-numbers {
+  display: flex;
+  gap: 0.25rem;
+}
+.adm-pagination-btn {
+  min-width: 32px;
+  height: 32px;
+  border: 1px solid var(--hib-border);
+  background: var(--hib-bg-card);
+  color: var(--hib-text-primary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.adm-pagination-btn:hover {
+  background: var(--row-hover-bg);
+}
+.adm-pagination-btn.adm-active {
+  background: var(--hib-primary);
+  color: white;
+  border-color: var(--hib-primary);
+}
+
+/* Loading */
+.adm-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+}
+.adm-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--hib-border);
+  border-top-color: var(--hib-primary);
+  border-radius: 50%;
+  animation: adm-spin 1s linear infinite;
+}
+@keyframes adm-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Empty state */
+.adm-empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--hib-text-muted);
+  grid-column: 1 / -1;
+}
+.adm-empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.adm-empty-icon {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+.adm-success-banner {
+  background: var(--hib-success-color);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+.adm-success-banner a {
+  color: white;
+  font-weight: 600;
+  text-decoration: underline;
+}
+.adm-success-banner a:hover {
+  text-decoration: none;
+}
+.adm-close-banner {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  margin-left: auto;
+  padding: 0 0.5rem;
+}
+.adm-close-banner:hover {
+  opacity: 0.8;
+}
