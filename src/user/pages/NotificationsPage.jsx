@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NotificationService from '../services/NotificationService';
- 
+import Footer from '../components/common/Footer';
+
 const NotificationsPage = () => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
@@ -64,11 +65,9 @@ const NotificationsPage = () => {
   };
 
   const handleNotificationClick = async (notification) => {
-    // try to read seriesId/episodeId from top-level or nested data
     const seriesId = notification.seriesId || notification.data?.seriesId;
     const episodeId = notification.episodeId || notification.data?.episodeId;
 
-    // Optional: mark as read when user opens notification
     if (!notification.read) {
       try {
         await NotificationService.markAsRead(notification.id);
@@ -81,14 +80,12 @@ const NotificationsPage = () => {
     }
 
     if (seriesId && episodeId) {
-      // navigate to series page with query param for episode
       const params = new URLSearchParams();
       params.set('episode', episodeId);
       navigate(`/user/series/${seriesId}?${params.toString()}`);
     } else if (seriesId) {
       navigate(`/user/series/${seriesId}`);
     } else if (episodeId) {
-      // fallback if only episodeId is available
       navigate(`/user/episode/${episodeId}`);
     } else {
       console.warn('Notification has no seriesId or episodeId', notification);
@@ -101,46 +98,46 @@ const NotificationsPage = () => {
   };
 
   if (loading && notifications.length === 0) {
-    return <div className="loading">Loading notifications...</div>;
+    return <div className="user-loading">Loading notifications...</div>;
   }
 
   return (
-    <div className="notifications-page">
-      <div className="page-header">
+    <div className="user-notifications-page">
+      <div className="user-page-header">
         <h1>Notifications</h1>
         {notifications.some(n => !n.read) && (
-          <button onClick={handleMarkAllAsRead} className="btn-mark-all" type="button">
+          <button onClick={handleMarkAllAsRead} className="user-btn-mark-all" type="button">
             Mark all as read
           </button>
         )}
       </div>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && <div className="user-error-message">{error}</div>}
 
       {notifications.length === 0 && !loading && (
-        <div className="empty-state">No notifications</div>
+        <div className="user-empty-state">No notifications</div>
       )}
 
-      <div className="notifications-list">
+      <div className="user-notifications-list">
         {notifications.map((n) => (
           <div
             key={n.id}
-            className={`notification-item ${n.read ? 'read' : 'unread'}`}
+            className={`user-notification-item ${n.read ? 'read' : 'unread'}`}
             onClick={() => handleNotificationClick(n)}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => { if (e.key === 'Enter') handleNotificationClick(n); }}
           >
-            <div className="notification-content">
-              <div className="title">{n.title}</div>
-              {n.body && <div className="body">{n.body}</div>}
-              <div className="time">{formatTime(n.createdAt)}</div>
+            <div className="user-notification-content">
+              <div className="user-title">{n.title}</div>
+              {n.body && <div className="user-body">{n.body}</div>}
+              <div className="user-time">{formatTime(n.createdAt)}</div>
             </div>
-            <div className="actions">
+            <div className="user-actions">
               {!n.read && (
                 <button
                   type="button"
-                  className="mark-read"
+                  className="user-mark-read"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleMarkAsRead(n.id);
@@ -151,7 +148,7 @@ const NotificationsPage = () => {
               )}
               <button
                 type="button"
-                className="delete"
+                className="user-delete"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDelete(n.id);
@@ -165,7 +162,7 @@ const NotificationsPage = () => {
       </div>
 
       {totalPages > 1 && (
-        <div className="pagination">
+        <div className="user-pagination">
           <button
             disabled={page === 0}
             onClick={() => setPage(p => p - 1)}
@@ -185,6 +182,7 @@ const NotificationsPage = () => {
           </button>
         </div>
       )}
+      <Footer/>
     </div>
   );
 };

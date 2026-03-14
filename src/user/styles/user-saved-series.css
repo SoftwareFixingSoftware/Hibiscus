@@ -1,0 +1,245 @@
+/* ================================
+   USER SAVED SERIES PAGE
+   ================================ */
+
+.user-saved-series-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  min-height: calc(100vh - 72px); /* leave room for mini‑player */
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* ---------- Header ---------- */
+.user-page-header {
+  margin-bottom: 2rem;
+}
+
+.user-page-header h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--user-text-primary);
+  margin: 0 0 0.25rem 0;
+  letter-spacing: -0.02em;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.user-page-header h1::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--user-primary), var(--user-primary-dark));
+  border-radius: 2px;
+}
+
+.user-subtitle {
+  color: var(--user-text-muted);
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+/* ---------- Loading / Error / Empty States ---------- */
+.user-loading,
+.user-error,
+.user-empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--user-text-muted);
+  font-size: 1rem;
+  background: var(--user-bg-darker);
+  border-radius: 12px;
+  border: 1px dashed var(--user-border);
+}
+
+.user-error {
+  color: var(--user-error-color);
+  border-color: var(--user-error-color);
+}
+
+.user-back-button,
+.user-browse-button {
+  background: transparent;
+  border: 1px solid var(--user-border);
+  color: var(--user-text-primary);
+  padding: 0.6rem 1.5rem;
+  border-radius: 30px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 1rem;
+}
+
+.user-back-button:hover,
+.user-browse-button:hover {
+  border-color: var(--user-primary);
+  color: var(--user-primary);
+  background: rgba(217, 169, 90, 0.05);
+}
+
+/* ---------- Series Grid ---------- */
+.user-series-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+/* ---------- Saved Series Card ---------- */
+.user-saved-series-card {
+  display: flex;
+  align-items: center;
+  background: var(--user-bg-card);
+  border: 1px solid var(--user-border);
+  border-radius: 16px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  width: 100%;
+  box-shadow: var(--user-card-shadow);
+}
+
+.user-saved-series-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
+  border-color: var(--user-primary);
+}
+
+.user-saved-series-card .user-card-art {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-right: 1.25rem;
+  flex-shrink: 0;
+  background: var(--user-bg-darker);
+}
+
+.user-saved-series-card .user-card-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-saved-series-card .user-card-art .user-card-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--user-bg-darker), var(--user-bg-card));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--user-text-muted);
+  font-size: 1.5rem;
+}
+
+.user-saved-series-card .user-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-saved-series-card .user-card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--user-text-primary);
+  margin: 0 0 0.25rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-saved-series-card .user-card-author {
+  font-size: 0.875rem;
+  color: var(--user-text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Card Actions (top right) ---------- */
+.user-card-actions {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 2;
+}
+
+.user-notification-toggle,
+.user-remove-button {
+  background: var(--user-bg-darker);
+  border: 1px solid var(--user-border);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--user-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+}
+
+.user-notification-toggle:hover,
+.user-remove-button:hover {
+  border-color: var(--user-primary);
+  color: var(--user-primary);
+  background: var(--user-bg-light);
+}
+
+.user-notification-toggle.active {
+  background: var(--user-warning-color);
+  border-color: var(--user-warning-color);
+  color: #000;
+}
+
+.user-remove-button:hover {
+  border-color: var(--user-error-color);
+  color: var(--user-error-color);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  .user-saved-series-page {
+    padding: 1rem;
+  }
+
+  .user-page-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .user-page-header h1::after {
+    width: 60px;
+  }
+
+  .user-saved-series-card {
+    padding: 0.75rem;
+  }
+
+  .user-saved-series-card .user-card-art {
+    width: 60px;
+    height: 60px;
+    margin-right: 1rem;
+  }
+
+  .user-card-actions {
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .user-notification-toggle,
+  .user-remove-button {
+    width: 32px;
+    height: 32px;
+  }
+}

@@ -1,0 +1,559 @@
+/* ================================
+   USER SERIES DETAIL PAGE
+   ================================ */
+
+.user-series-detail {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 28px;
+  margin-top: 8px;
+  align-items: start;
+}
+
+.user-series-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+.user-series-cover {
+  width: 100%;
+  max-width: 760px;
+  height: 520px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--user-bg-darker);
+}
+
+.user-series-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ---------- Details overlay – very subtle overall tint ---------- */
+.user-series-info-overlay {
+  width: 100%;
+  max-width: 760px;
+  margin-top: -150px;                /* pulls it up to overlay the cover */
+  position: relative;
+  z-index: 30;
+  border-radius: 12px;
+  padding: 20px 22px;
+  color: #fff;
+  background: rgba(0,0,0,0.15);       /* very subtle dark tint */
+  backdrop-filter: blur(2px);          /* slight blur for blend */
+  border: none;
+  box-shadow: none;
+  transition: transform 0.2s ease;
+}
+
+/* Individual elements get their own background for readability */
+.user-breadcrumb {
+  color: #fff;
+  margin-bottom: 8px;
+  font-size: 13px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.4);        /* semi‑transparent background */
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-block;
+}
+.user-breadcrumb .user-crumb {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+}
+.user-breadcrumb .user-crumb:hover {
+  text-decoration: underline;
+  color: var(--user-primary);
+}
+
+.user-badges-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.user-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 12px;
+  border: 1px solid transparent;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  background: rgba(0,0,0,0.7);        /* darker background for badges */
+  color: #fff;
+}
+.user-badge.user-genre {
+  background: var(--user-primary);
+  color: white;
+}
+.user-badge.user-completed {
+  background: rgba(16,185,129,0.9);
+  color: white;
+}
+
+/* Interactive badges – already have background */
+.user-badge.user-follow-button,
+.user-badge.user-save-button,
+.user-badge.user-notification-button {
+  background: rgba(0,0,0,0.7);
+  transition: all 0.2s ease;
+}
+.user-badge.user-follow-button:hover,
+.user-badge.user-save-button:hover,
+.user-badge.user-notification-button:hover {
+  background: var(--user-primary);
+}
+.user-badge.user-follow-button.user-following {
+  background: var(--user-success-color);
+}
+.user-badge.user-save-button.user-saved {
+  background: var(--user-success-color);
+}
+.user-badge.user-notification-button.user-enabled {
+  background: var(--user-warning-color);
+  color: #000;
+}
+.user-badge.user-follow-button:disabled,
+.user-badge.user-save-button:disabled,
+.user-badge.user-notification-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Series title with its own background */
+.user-series-title {
+  font-size: 30px;
+  margin: 8px 0 4px;
+  font-weight: 800;
+  letter-spacing: -0.6px;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.4);        /* semi‑transparent background */
+  padding: 8px 12px;
+  border-radius: 8px;
+  display: inline-block;
+  max-width: 100%;
+}
+
+/* Meta row with its own background */
+.user-series-meta-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 8px 0 12px;
+  color: #fff;
+  font-size: 14px;
+  background: rgba(0,0,0,0.4);        /* semi‑transparent background */
+  padding: 6px 12px;
+  border-radius: 30px;
+  width: fit-content;
+}
+
+/* Description with its own background */
+.user-series-description-text {
+  line-height: 1.6;
+  color: #fff;
+  margin: 12px 0 14px;
+  font-size: 15px;
+  background: rgba(0,0,0,0.4);        /* semi‑transparent background */
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+/* Author row with its own background */
+.user-author-row {
+  display: flex;
+  align-items: center;
+  margin-top: 12px;
+  padding: 8px 12px;
+  gap: 8px;
+  background: rgba(0,0,0,0.4);        /* semi‑transparent background */
+  border-radius: 8px;
+  width: fit-content;
+}
+.user-author-row .user-muted {
+  color: rgba(255,255,255,0.9);
+}
+.user-author-row div:last-child {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* Now‑playing badge – already has background */
+.user-now-playing-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  width: fit-content;
+  border: 1px solid rgba(255,255,255,0.2);
+  animation: user-badge-pulse 2s infinite;
+  color: #fff;
+}
+@keyframes user-badge-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(217,169,90,0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(217,169,90,0); }
+  100% { box-shadow: 0 0 0 0 rgba(217,169,90,0); }
+}
+.user-now-playing-icon {
+  color: var(--user-primary);
+  font-size: 12px;
+}
+
+/* Selected episode panel – separate background */
+.user-selected-episode-panel {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+}
+
+/* ---------- Right column – independent scroll ---------- */
+.user-series-right {
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+  max-height: calc(100vh - 200px); /* adjust based on your layout */
+  min-height: 0;                   /* required for flex child scrolling */
+}
+
+.user-episodes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-shrink: 0;                  /* header stays fixed */
+}
+
+.user-episodes-list {
+  flex: 1;                          /* take remaining space */
+  overflow-y: auto;                  /* enable vertical scroll */
+  padding-right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;                     /* Firefox flex fix */
+}
+
+.user-episode-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 8px;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  min-height: 68px;
+  background: var(--user-bg-card);
+  border: 1px solid var(--user-border);
+  flex-shrink: 0;  /*prevents cards from shrinking */
+}
+.user-episode-row:hover {
+  background: var(--user-bg-light);
+  transform: translateX(4px);
+  box-shadow: -4px 0 0 var(--user-primary);
+}
+.user-episode-row.playing {
+  background: linear-gradient(90deg, rgba(217,169,90,0.15), rgba(217,169,90,0.05));
+  border-color: var(--user-primary);
+}
+
+.user-episode-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.user-episode-number {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: var(--user-bg-darker);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--user-text-primary);
+}
+
+.user-episode-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: 260px;
+}
+
+.user-episode-title {
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--user-text-primary);
+}
+
+.user-episode-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.user-episode-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-play-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: none;
+  background: var(--user-primary);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.user-play-circle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 15px var(--user-primary);
+}
+
+.user-buy-short {
+  background: var(--user-bg-darker);
+  border: 1px solid var(--user-border);
+  color: var(--user-text-primary);
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.user-buy-short:hover {
+  background: var(--user-primary);
+  border-color: var(--user-primary);
+  color: white;
+}
+.user-buy-short:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.user-season-badge {
+  background: var(--user-bg-darker);
+  color: var(--user-text-muted);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  margin-right: 4px;
+}
+
+.user-price-pill {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.user-price-pill.free {
+  background: rgba(16,185,129,0.2);
+  color: var(--user-success-color);
+}
+.user-price-pill.coins {
+  background: rgba(245,158,11,0.2);
+  color: var(--user-warning-color);
+}
+.user-price-pill.money {
+  background: rgba(59,130,246,0.2);
+  color: #3b82f6;
+}
+.user-price-pill.purchased {
+  background: rgba(16,185,129,0.2);
+  color: var(--user-success-color);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.user-purchased-indicator {
+  color: var(--user-success-color);
+  font-size: 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+}
+
+/* Tabs */
+.user-tab-button {
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  color: var(--user-text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  font-size: 0.9rem;
+}
+.user-tab-button.user-active {
+  color: var(--user-primary);
+  border-bottom-color: var(--user-primary);
+}
+
+/* ---------- Reviews section – independent scroll ---------- */
+.user-reviews-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+.user-review-card {
+  flex-shrink: 0;
+}
+
+.user-my-review-area {
+  flex-shrink: 0;
+  margin-bottom: 8px;
+}
+
+.user-my-review-area h4 {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--user-text-primary);
+}
+
+.user-all-reviews {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.user-all-reviews h4 {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--user-text-primary);
+  flex-shrink: 0;
+}
+
+/* ---------- LIGHT THEME OVERRIDES ---------- */
+body.light-theme .user-series-info-overlay {
+  background: rgba(255,255,255,0.15);
+}
+
+body.light-theme .user-breadcrumb {
+  background: rgba(255,255,255,0.6);
+  color: #222;
+  text-shadow: none;
+}
+body.light-theme .user-breadcrumb .user-crumb:hover {
+  color: var(--user-primary);
+}
+
+body.light-theme .user-badge {
+  background: rgba(255,255,255,0.8);
+  color: #222;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+body.light-theme .user-badge.user-genre {
+  background: var(--user-primary);
+  color: white;
+}
+body.light-theme .user-badge.user-completed {
+  background: rgba(16,185,129,0.8);
+  color: white;
+}
+body.light-theme .user-badge.user-follow-button,
+body.light-theme .user-badge.user-save-button,
+body.light-theme .user-badge.user-notification-button {
+  background: rgba(255,255,255,0.8);
+  color: #222;
+}
+body.light-theme .user-badge.user-follow-button:hover,
+body.light-theme .user-badge.user-save-button:hover,
+body.light-theme .user-badge.user-notification-button:hover {
+  background: var(--user-primary);
+  color: white;
+}
+body.light-theme .user-badge.user-follow-button.user-following,
+body.light-theme .user-badge.user-save-button.user-saved {
+  background: var(--user-success-color);
+  color: white;
+}
+body.light-theme .user-badge.user-notification-button.user-enabled {
+  background: var(--user-warning-color);
+  color: #000;
+}
+
+body.light-theme .user-series-title {
+  background: rgba(255,255,255,0.6);
+  color: #222;
+  text-shadow: none;
+}
+
+body.light-theme .user-series-meta-row {
+  background: rgba(255,255,255,0.6);
+  color: #222;
+}
+
+body.light-theme .user-series-description-text {
+  background: rgba(255,255,255,0.6);
+  color: #222;
+}
+
+body.light-theme .user-author-row {
+  background: rgba(255,255,255,0.6);
+}
+body.light-theme .user-author-row .user-muted {
+  color: #333;
+}
+body.light-theme .user-author-row div:last-child {
+  color: #000;
+}
+
+body.light-theme .user-now-playing-badge {
+  background: rgba(255,255,255,0.8);
+  color: #222;
+  border-color: rgba(0,0,0,0.1);
+}
+
+body.light-theme .user-selected-episode-panel {
+  background: rgba(255,255,255,0.5);
+  border-color: rgba(0,0,0,0.1);
+  color: var(--user-text-primary);
+}
+body.light-theme .user-selected-episode-panel .user-muted {
+  color: var(--user-text-muted);
+}

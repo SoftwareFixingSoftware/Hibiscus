@@ -1,0 +1,118 @@
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 1100px) {
+  :root {
+    --user-sidebar-width: 200px;
+  }
+  .user-series-info-overlay {
+    width: calc(100% - 32px);
+    margin-top: 10px;
+  }
+  .user-series-cover {
+    height: 420px;
+  }
+}
+
+@media (max-width: 880px) {
+  .user-series-detail {
+    grid-template-columns: 1fr;
+  }
+  .user-series-right {
+    order: 2;
+  }
+  .user-series-left {
+    order: 1;
+  }
+  .user-series-cover {
+    height: 320px;
+  }
+  .user-series-info-overlay {
+    position: relative;
+    margin-top: 8px;
+    width: 100%;
+    max-width: none;
+    border-radius: 12px;
+  }
+  :root {
+    --user-sidebar-width: 180px;
+  }
+}
+
+@media (max-width: 800px) {
+  .user-hero-carousel {
+    height: 360px;
+  }
+  .user-hero-title {
+    font-size: 32px;
+  }
+  .user-hero-overlay {
+    padding: 40px 20px 30px;
+  }
+  .user-hero-nav {
+    bottom: 20px;
+    right: 20px;
+  }
+  .user-hero-indicators {
+    bottom: 30px;
+    left: 20px;
+  }
+
+  /* collapse sidebar by default on small screens */
+  .user-sidebar {
+    width: var(--user-sidebar-collapsed-width);
+    min-width: var(--user-sidebar-collapsed-width);
+    max-width: var(--user-sidebar-collapsed-width);
+    align-items: center;
+    padding: 18px 8px;
+  }
+  .user-mini-player {
+    left: var(--user-sidebar-collapsed-width);
+  }
+  .user-sidebar + .user-main {
+    margin-left: var(--user-sidebar-collapsed-width);
+    width: calc(100% - var(--user-sidebar-collapsed-width));
+  }
+}
+
+@media (max-width: 600px) {
+  .user-sidebar {
+    display: none; /* or transform into bottom navigation */
+  }
+  .user-main {
+    padding: 12px;
+  }
+  .user-series-cover {
+    height: 200px;
+  }
+  .user-series-info-overlay {
+    padding: 16px;
+  }
+  .user-episode-number {
+    width: 36px;
+    height: 36px;
+  }
+  .user-search-sort-bar {
+    flex-wrap: wrap;
+  }
+  .user-search-input {
+    min-width: 100%;
+  }
+  .user-footer-content {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    text-align: center;
+  }
+  .user-social-links {
+    justify-content: center;
+  }
+}

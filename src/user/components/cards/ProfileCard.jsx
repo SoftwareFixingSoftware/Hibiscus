@@ -1,16 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiSave } from 'react-icons/fi';
 
-/**
- * ProfileCard — presentational card (no API calls)
- *
- * Props:
- *  - user: object matching your U entity
- *  - loading: boolean (save in progress)
- *  - errors: { submit?: string, ... }
- *  - countries: [{ code, name }]  // array of countries to render in select
- *  - onSubmit(formData) => called when user saves (page handles API)
- */
 const ProfileCard = ({ user, loading = false, errors = {}, countries = [], onSubmit }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -21,14 +11,13 @@ const ProfileCard = ({ user, loading = false, errors = {}, countries = [], onSub
   });
 
   useEffect(() => {
-    // Initialize from user. If user has no countryCode we keep it empty so user must choose.
     if (user) {
       setFormData({
         name: user.name || '',
         username: user.username || '',
         email: user.email || '',
         locale: user.locale || '',
-        countryCode: user.countryCode || '' // keep '' if none
+        countryCode: user.countryCode || ''
       });
     }
   }, [user]);
@@ -44,24 +33,24 @@ const ProfileCard = ({ user, loading = false, errors = {}, countries = [], onSub
       name: formData.name,
       username: formData.username,
       locale: formData.locale,
-      countryCode: formData.countryCode || null // server-friendly: null if empty
+      countryCode: formData.countryCode || null
     };
     onSubmit && onSubmit(payload);
   };
 
   return (
-    <article className="card profile-card">
-      <div className="card-body">
-        <h3 className="card-title">Profile Settings</h3>
+    <article className="user-card user-profile-card">
+      <div className="user-card-body">
+        <h3 className="user-card-title">Profile Settings</h3>
 
-        {errors.submit && <div className="alert alert-error">{errors.submit}</div>}
+        {errors.submit && <div className="user-alert user-alert-error">{errors.submit}</div>}
 
         <form onSubmit={handleSubmit}>
 
-          <div className="form-group">
-            <label htmlFor="name">Name *</label>
+          <div className="user-form-group">
+            <label htmlFor="user-name">Name *</label>
             <input
-              id="name"
+              id="user-name"
               name="name"
               value={formData.name}
               onChange={handleChange}
@@ -70,10 +59,10 @@ const ProfileCard = ({ user, loading = false, errors = {}, countries = [], onSub
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="username">Username *</label>
+          <div className="user-form-group">
+            <label htmlFor="user-username">Username *</label>
             <input
-              id="username"
+              id="user-username"
               name="username"
               value={formData.username}
               onChange={handleChange}
@@ -82,20 +71,20 @@ const ProfileCard = ({ user, loading = false, errors = {}, countries = [], onSub
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
+          <div className="user-form-group">
+            <label htmlFor="user-email">Email</label>
             <input
-              id="email"
+              id="user-email"
               name="email"
               value={formData.email}
               disabled
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="locale">Locale</label>
+          <div className="user-form-group">
+            <label htmlFor="user-locale">Locale</label>
             <input
-              id="locale"
+              id="user-locale"
               name="locale"
               value={formData.locale}
               onChange={handleChange}
@@ -103,10 +92,10 @@ const ProfileCard = ({ user, loading = false, errors = {}, countries = [], onSub
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="countryCode">Country</label>
+          <div className="user-form-group">
+            <label htmlFor="user-countryCode">Country</label>
             <select
-              id="countryCode"
+              id="user-countryCode"
               name="countryCode"
               value={formData.countryCode}
               onChange={handleChange}
@@ -120,18 +109,18 @@ const ProfileCard = ({ user, loading = false, errors = {}, countries = [], onSub
               ))}
             </select>
             {countries.length === 0 && (
-              <div className="muted small" style={{ marginTop: 6 }}>
+              <div className="user-muted small" style={{ marginTop: 6 }}>
                 Country list not available
               </div>
             )}
             {!formData.countryCode && countries.length > 0 && (
-              <div className="muted small" style={{ marginTop: 6 }}>
+              <div className="user-muted small" style={{ marginTop: 6 }}>
                 Please select your country.
               </div>
             )}
           </div>
 
-          <button type="submit" className="btn-primary" disabled={loading}>
+          <button type="submit" className="user-btn-primary" disabled={loading}>
             {loading ? 'Saving...' : (<><FiSave style={{ marginRight: 6 }} />Save Profile</>)}
           </button>
         </form>

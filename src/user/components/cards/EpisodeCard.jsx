@@ -2,76 +2,70 @@ import React from 'react';
 import { useAudio } from '../../context/AudioContext';
 import RippleButton from '../common/RippleButton';
 import { formatDuration, formatMoneyFromCents, relativeDate } from '../../utils/episodeHelpers';
+import { FaPlay, FaPause, FaShoppingCart, FaCheckCircle } from 'react-icons/fa';
 
-const EpisodeCard = ({ episode, rawEpisode, index, isPlaying, isSelected, onSelect, onPlay, onBuy, purchasingId }) => {
-  const e = episode; // already mapped
-
+const EpisodeCard = ({ episode, rawEpisode, index, isPlaying, isSelected, onSelect, onPlay, onBuy, purchasingId, isPurchased }) => {
+  const e = episode;
   const buyDisabled = purchasingId !== null && purchasingId !== e.id;
 
   return (
     <div
-      className={`episode-row ${isPlaying ? 'playing' : ''} ${isSelected ? 'selected' : ''}`}
+      className={`user-episode-row ${isPlaying ? 'playing' : ''} ${isSelected ? 'selected' : ''}`}
       title={e.title}
       onClick={() => onSelect(rawEpisode, index)}
     >
-      <div className="episode-left">
-        <div className="episode-number">E{e.number}</div>
-        <div className="episode-meta">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <div className="episode-title">{e.title}</div>
-
-            {/* NEW: Season badge */}
-            {e.seasonNumber && (
-              <span className="season-badge" style={{
-                background: '#444',
-                color: '#fff',
-                padding: '2px 8px',
-                borderRadius: 12,
-                fontSize: '0.75rem',
-                fontWeight: 'bold',
-                marginRight: 4,
-              }}>
-                S{e.seasonNumber}
-              </span>
-            )}
-
+      <div className="user-episode-left">
+        <div className="user-episode-number">E{e.number}</div>
+        <div className="user-episode-meta">
+          <div className="user-episode-title-row">
+            <span className="user-episode-title">{e.title}</span>
+            {e.seasonNumber && <span className="user-season-badge">S{e.seasonNumber}</span>}
             <div>
               {e.isFree ? (
-                <span className="price-pill free">Free</span>
+                <span className="user-price-pill free">Free</span>
+              ) : isPurchased ? (
+                <span className="user-price-pill purchased">
+                  <FaCheckCircle /> Purchased
+                </span>
               ) : e.priceInCoins ? (
-                <span className="price-pill coins">{e.priceInCoins} coins</span>
+                <span className="user-price-pill coins">{e.priceInCoins} coins</span>
               ) : e.priceCents ? (
-                <span className="price-pill money">{formatMoneyFromCents(e.priceCents, e.currency)}</span>
+                <span className="user-price-pill money">{formatMoneyFromCents(e.priceCents, e.currency)}</span>
               ) : null}
             </div>
           </div>
-          <div className="muted small">
+          <div className="user-muted small">
             {e.duration ? formatDuration(e.duration) : '—'} • {e.publishedAt ? relativeDate(e.publishedAt) : ''}
           </div>
         </div>
       </div>
-      <div className="episode-actions">
+      <div className="user-episode-actions">
         <RippleButton
-          className="play-circle"
+          className="user-play-circle"
           onClick={(ev) => {
             ev.stopPropagation();
             onPlay(rawEpisode);
           }}
           aria-label={`Play ${e.title}`}
         >
-          {isPlaying ? '▮▮' : '▶'}
+          {isPlaying ? <FaPause /> : <FaPlay />}
         </RippleButton>
-        {!e.isFree && (
+        {!e.isFree && !isPurchased && (
           <RippleButton
-            className="buy-short"
+            className="user-buy-short"
             onClick={(ev) => {
               ev.stopPropagation();
               onBuy(rawEpisode);
             }}
             disabled={buyDisabled || purchasingId === e.id}
           >
-            {purchasingId === e.id ? 'Buying...' : 'Buy'}
+            {purchasingId === e.id ? 'Buying...' : <><FaShoppingCart /> Buy</>}
           </RippleButton>
+        )}
+        {!e.isFree && isPurchased && (
+          <span className="user-purchased-indicator" title="Purchased">
+            <FaCheckCircle />
+          </span>
         )}
       </div>
     </div>

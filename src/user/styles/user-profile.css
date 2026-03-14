@@ -1,0 +1,101 @@
+/* ================================
+   USER PROFILE PAGE – SHELL ONLY
+   ================================ */
+
+:root {
+  --profile-inner-max: 1100px; /* comfortable card width */
+}
+
+.user-page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  min-height: calc(100vh - 72px); /* leave room for mini-player */
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.user-page-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--user-text-primary);
+  margin: 0 0 1rem 0;
+  letter-spacing: -0.02em;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+/* optional gold underline */
+.user-page-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--user-primary), var(--user-primary-dark));
+  border-radius: 2px;
+}
+
+.user-page-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* loading pill */
+.user-muted {
+  color: var(--user-text-muted);
+  font-size: 0.9375rem;
+  text-align: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--user-border);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+}
+
+/* fade‑in animation */
+@keyframes profile-fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.user-page-body > * {
+  animation: profile-fadeUp 0.24s ease-out both;
+  width: 100%;
+  max-width: var(--profile-inner-max);
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+/* responsive */
+@media (max-width: 1024px) {
+  :root {
+    --profile-inner-max: 920px;
+  }
+}
+
+@media (max-width: 768px) {
+  .user-page-container {
+    padding: 1.5rem 1rem;
+  }
+  .user-page-title {
+    font-size: 1.75rem;
+  }
+  .user-page-title::after {
+    width: 60px;
+  }
+  :root {
+    --profile-inner-max: 100%;
+  }
+}

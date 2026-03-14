@@ -2,13 +2,13 @@ import React from 'react';
 
 const Footer = () => {
   return (
-    <footer className="dash-footer">
-      <div className="footer-content">
-        <div className="footer-section">
+    <footer className="user-footer">
+      <div className="user-footer-content">
+        <div className="user-footer-section">
           <h4>Podcast App</h4>
           <p>© {new Date().getFullYear()} Hibiscus Media. All rights reserved.</p>
         </div>
-        <div className="footer-section">
+        <div className="user-footer-section">
           <h4>Contact</h4>
           <ul>
             <li>
@@ -19,9 +19,9 @@ const Footer = () => {
             </li>
           </ul>
         </div>
-        <div className="footer-section">
+        <div className="user-footer-section">
           <h4>Follow Us</h4>
-          <ul className="social-links">
+          <ul className="user-social-links">
             <li>
               <a href="#" target="_blank" rel="noopener noreferrer">
                 Twitter

@@ -1,0 +1,53 @@
+.user-logout-modal {
+  background: var(--user-panel);
+  border: 1px solid var(--user-glass-border);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+}
+.user-logout-modal h3 {
+  font-size: 22px;
+  margin-bottom: 12px;
+  color: #fff;
+}
+.user-logout-modal p {
+  color: var(--user-muted);
+  margin-bottom: 24px;
+}
+.user-logout-modal .user-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+.user-logout-modal .user-cancel-btn {
+  background: transparent;
+  border: 1px solid var(--user-glass-border);
+  color: var(--user-muted);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.user-logout-modal .user-cancel-btn:hover {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+}
+.user-logout-modal .user-confirm-btn {
+  background: var(--user-accent);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.user-logout-modal .user-confirm-btn:hover {
+  background: #ff1f5c;
+  transform: scale(1.02);
+}

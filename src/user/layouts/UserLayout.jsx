@@ -9,9 +9,9 @@ const UserLayout = () => {
   const { player } = useAudio();
 
   return (
-    <div className="dash-root">
+    <div className="user-root">
       <Sidebar />
-      <main className="dash-main">
+      <main className="user-main">
         <Outlet />
       </main>
       {player.src && <MiniPlayer />}

@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import PublicEpisodeService from '../services/PublicEpisodeService';
 import { relativeDate } from '../utils/episodeHelpers';
 import Footer from '../components/common/Footer';
-import '../styles/user.css';
-
+ 
 const PurchaseHistoryPage = () => {
   const [purchases, setPurchases] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,29 +34,29 @@ const PurchaseHistoryPage = () => {
     navigate(`/user/series/${seriesId}?episode=${episodeId}`);
   };
 
-  if (loading) return <div className="loading-indicator">Loading purchase history...</div>;
-  if (error) return <div className="error-message">{error}</div>;
+  if (loading) return <div className="user-loading-indicator">Loading purchase history...</div>;
+  if (error) return <div className="user-error-message">{error}</div>;
 
   return (
-    <div className="purchase-history-page">
-      <h2 className="section-title">My Purchased Episodes</h2>
+    <div className="user-purchase-history-page">
+      <h2 className="user-section-title">My Purchased Episodes</h2>
       {purchases.length === 0 ? (
-        <p className="muted">You haven't purchased any episodes yet.</p>
+        <p className="user-muted">You haven't purchased any episodes yet.</p>
       ) : (
-        <div className="purchases-list">
+        <div className="user-purchases-list">
           {purchases.map((purchase) => (
-            <div key={purchase.episodeId} className="purchase-item">
-              <div className="purchase-info">
-                <h3 className="purchase-title">{purchase.episodeTitle}</h3>
-                <div className="purchase-meta muted small">
-                  Series: {purchase.seriesTitle || 'Unknown'} • Purchased: {relativeDate(purchase.purchasedAt)} • Spent: {purchase.coinsSpent} coins
+            <div key={purchase.episodeId} className="user-purchase-item">
+              <div className="user-purchase-info">
+                <h3 className="user-purchase-title">{purchase.episodeTitle}</h3>
+                <div className="user-purchase-meta user-muted small">
+                   Purchased: {relativeDate(purchase.purchasedAt)} • Spent: {purchase.coinsSpent} coins
                 </div>
               </div>
-              <div className="purchase-actions">
-                <button className="ctrl" onClick={() => handleViewSeries(purchase.seriesId)}>
+              <div className="user-purchase-actions">
+                <button className="user-ctrl-p" onClick={() => handleViewSeries(purchase.seriesId)}>
                   View Series
                 </button>
-                <button className="ctrl" onClick={() => handleViewEpisode(purchase.seriesId, purchase.episodeId)}>
+                <button className="user-ctrl-p" onClick={() => handleViewEpisode(purchase.seriesId, purchase.episodeId)}>
                   View Episode
                 </button>
               </div>

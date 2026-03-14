@@ -3,21 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import RippleButton from '../common/RippleButton';
 import { FaBell, FaBellSlash } from 'react-icons/fa';
 
-/**
- * Expect `series` to be normalized:
- * {
- *   seriesId,
- *   id,
- *   title,
- *   author,
- *   coverImageUrl,
- *   notificationEnabled (boolean)
- * }
- */
 const SavedSeriesCard = ({ series, onUnfollow, onToggleNotification }) => {
   const navigate = useNavigate();
-
-  // Prefer series.seriesId but fall back to id
   const seriesId = series.seriesId || series.id;
 
   const handleClick = () => {
@@ -31,24 +18,27 @@ const SavedSeriesCard = ({ series, onUnfollow, onToggleNotification }) => {
 
   const handleNotificationClick = (e) => {
     e.stopPropagation();
-    // pass the current boolean state — parent will flip it.
     onToggleNotification(seriesId, !!series.notificationEnabled);
   };
 
   return (
-    <article className="saved-series-card" onClick={handleClick}>
-      <div className="card-art">
+    <article className="user-saved-series-card" onClick={handleClick}>
+      <div className="user-card-art">
         {series.coverImageUrl ? (
           <img src={series.coverImageUrl} alt={series.title} />
         ) : (
-          <div className="card-placeholder" />
+          <div className="user-card-placeholder" />
         )}
       </div>
 
-      {/* Stop the article click from firing when interacting with controls */}
-      <div className="card-actions" onClick={(e) => e.stopPropagation()}>
+      <div className="user-card-body">
+        <h3 className="user-card-title">{series.title || 'Untitled'}</h3>
+        <p className="user-card-author">{series.author || 'Unknown'}</p>
+      </div>
+
+      <div className="user-card-actions" onClick={(e) => e.stopPropagation()}>
         <RippleButton
-          className={`notification-toggle ${series.notificationEnabled ? 'active' : ''}`}
+          className={`user-notification-toggle ${series.notificationEnabled ? 'active' : ''}`}
           onClick={handleNotificationClick}
           aria-label={series.notificationEnabled ? 'Disable notifications' : 'Enable notifications'}
         >
@@ -56,7 +46,7 @@ const SavedSeriesCard = ({ series, onUnfollow, onToggleNotification }) => {
         </RippleButton>
 
         <RippleButton
-          className="remove-button"
+          className="user-remove-button"
           onClick={handleUnfollow}
           aria-label="Unfollow series"
         >

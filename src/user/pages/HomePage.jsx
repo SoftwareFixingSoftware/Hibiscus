@@ -1,6 +1,5 @@
-// src/pages/HomePage.jsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';          // <-- added useLocation
+import { useNavigate, useLocation } from 'react-router-dom';
 import PublicSeriesService from '../services/PublicSeriesService';
 import { mapSeries } from '../utils/episodeHelpers';
 import HeroCarousel from '../components/hero/HeroCarousel';
@@ -8,13 +7,12 @@ import SearchBar from '../components/search/SearchBar';
 import SeriesCard from '../components/cards/SeriesCard';
 import NotificationBell from '../components/NotificationBell';
 import Footer from '../components/common/Footer';
-
+ 
 const HomePage = () => {
   const navigate = useNavigate();
-  const location = useLocation();                                      // <-- new
+  const location = useLocation();
 
-  // Determine if user is logged in based on the current path
-  const isLoggedIn = location.pathname.startsWith('/user');           // <-- new
+  const isLoggedIn = location.pathname.startsWith('/user');
 
   const [allSeries, setAllSeries] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
@@ -97,7 +95,6 @@ const HomePage = () => {
   const openSeries = (seriesRaw) => {
     const id = seriesRaw.id || seriesRaw.uuid;
     if (!id) return;
-    // Navigate to the correct detail page based on authentication
     if (isLoggedIn) {
       navigate(`/user/series/${id}`);
     } else {
@@ -109,13 +106,12 @@ const HomePage = () => {
 
   return (
     <>
-      {/* Header – conditionally show NotificationBell or auth buttons */}
-      <header className="app-header">
-        <div className="logo" onClick={() => navigate('/')}>Hibiscus</div>
+      <header className="user-app-header">
+        <div className="user-logo" onClick={() => navigate('/user')}>Hibiscus</div>
         {isLoggedIn ? (
           <NotificationBell />
         ) : (
-          <div className="auth-buttons">
+          <div className="user-auth-buttons">
             <button onClick={() => navigate('/login')}>Log In</button>
             <button onClick={() => navigate('/signup')}>Sign Up</button>
           </div>
@@ -132,15 +128,15 @@ const HomePage = () => {
 
       {loading && displaySeries.length === 0 ? (
         <>
-          {mode === 'browse' && <div className="hero-carousel skeleton" style={{ height: '460px' }} />}
+          {mode === 'browse' && <div className="user-hero-carousel user-skeleton" style={{ height: '460px' }} />}
           {[1, 2, 3].map(i => (
-            <div key={i} className="category-section">
-              <div className="category-header">
-                <div className="skeleton" style={{ width: '200px', height: '32px' }} />
+            <div key={i} className="user-category-section">
+              <div className="user-category-header">
+                <div className="user-skeleton" style={{ width: '200px', height: '32px' }} />
               </div>
-              <div className="carousel-wrap category-carousel">
+              <div className="user-carousel-wrap user-category-carousel">
                 {Array.from({ length: 6 }).map((_, j) => (
-                  <div key={j} className="card skeleton" style={{ height: '220px' }} />
+                  <div key={j} className="user-card user-skeleton" style={{ height: '220px' }} />
                 ))}
               </div>
             </div>
@@ -153,20 +149,20 @@ const HomePage = () => {
           )}
 
           {mode === 'search' && (
-            <div className="grid-header" style={{ marginBottom: '24px' }}>
-              <h2 className="section-title">Search Results for "{searchQuery}"</h2>
-              <div className="muted small">{searchResults.length} items</div>
+            <div className="user-grid-header" style={{ marginBottom: '24px' }}>
+              <h2 className="user-section-title">Search Results for "{searchQuery}"</h2>
+              <div className="user-muted small">{searchResults.length} items</div>
             </div>
           )}
 
           {mode === 'browse' &&
             categories.map(({ category, items }) => (
-              <section key={category} className="category-section">
-                <div className="category-header">
-                  <h3 className="category-title">{category}</h3>
-                  <span className="category-count">{items.length} series</span>
+              <section key={category} className="user-category-section">
+                <div className="user-category-header">
+                  <h3 className="user-category-title">{category}</h3>
+                  <span className="user-category-count">{items.length} series</span>
                 </div>
-                <div className="carousel-wrap category-carousel">
+                <div className="user-carousel-wrap user-category-carousel">
                   {items.map(s => (
                     <SeriesCard key={s.id} series={s} onClick={() => openSeries(s.raw)} />
                   ))}
@@ -175,7 +171,7 @@ const HomePage = () => {
             ))}
 
           {mode === 'search' && (
-            <div className="carousel-wrap large">
+            <div className="user-carousel-wrap user-large">
               {searchResults.map(s => (
                 <SeriesCard key={s.id} series={s} onClick={() => openSeries(s.raw)} />
               ))}

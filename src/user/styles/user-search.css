@@ -1,0 +1,165 @@
+/* ================================
+   USER REVIEWS
+   ================================ */
+
+/* Rating input */
+.user-rating-input {
+  display: flex;
+  gap: 4px;
+}
+.user-star {
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--user-text-muted);
+  transition: color 0.2s;
+}
+.user-star.filled {
+  color: #f5b301; /* keep star gold independent of theme */
+}
+
+/* Review card */
+.user-review-card {
+  border: 1px solid var(--user-border);
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  background: var(--user-bg-card);
+}
+.user-review-card.user-own-review {
+  border-color: var(--user-primary);
+  background: rgba(217, 169, 90, 0.05);
+}
+
+.user-review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.user-reviewer-name {
+  font-weight: bold;
+  color: var(--user-text-primary);
+}
+.user-review-rating {
+  color: #f5b301;
+}
+.user-review-date {
+  color: var(--user-text-muted);
+}
+.user-review-text {
+  margin: 0;
+  line-height: 1.5;
+  color: var(--user-text-primary);
+}
+
+/* Review form overlay */
+.user-review-form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.user-review-form {
+  background: var(--user-bg-card);
+  padding: 24px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  border: 1px solid var(--user-border);
+}
+.user-review-form h3 {
+  color: var(--user-text-primary);
+  margin-bottom: 20px;
+  font-size: 1.3rem;
+}
+.user-form-group {
+  margin-bottom: 20px;
+}
+.user-form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--user-text-primary);
+}
+.user-form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--user-border);
+  border-radius: 6px;
+  background: var(--user-bg-darker);
+  color: var(--user-text-primary);
+  font-family: inherit;
+  resize: vertical;
+}
+.user-form-group textarea:focus {
+  outline: none;
+  border-color: var(--user-primary);
+}
+.user-form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.user-form-actions button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: 1px solid var(--user-border);
+  background: transparent;
+  color: var(--user-text-primary);
+  transition: all 0.2s;
+}
+.user-form-actions button:last-child {
+  background: var(--user-primary);
+  border-color: var(--user-primary);
+  color: white;
+}
+.user-form-actions button:last-child:hover {
+  background: var(--user-primary-dark);
+}
+.user-form-actions button:hover {
+  border-color: var(--user-primary);
+  color: var(--user-primary);
+}
+/* ================================
+   USER SEARCH BAR
+   ================================ */
+
+.user-search-sort-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  align-items: center;
+}
+
+.user-search-input {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--user-bg-card);
+  border: 1px solid var(--user-border);
+  border-radius: 30px;
+  color: var(--user-text-primary);
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-search-input:focus {
+  outline: none;
+  border-color: var(--user-primary);
+  box-shadow: 0 0 0 2px rgba(217, 169, 90, 0.2);
+}
+
+.user-search-input::placeholder {
+  color: var(--user-text-muted);
+  opacity: 0.7;
+}
+
+/* The clear button uses .user-ctrl which is already styled globally */

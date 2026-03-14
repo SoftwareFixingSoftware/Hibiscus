@@ -1,0 +1,448 @@
+/* ================================
+   USER SUPPORT CENTER
+   ================================ */
+
+.user-support-center-page {
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.user-support-center-page h2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--user-text-primary);
+  margin: 0 0 0.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Header with actions */
+.user-support-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.user-support-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.user-support-actions .user-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  background: var(--user-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.user-support-actions .user-btn:hover {
+  background: var(--user-primary-dark);
+}
+.user-support-actions .user-btn.small {
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+}
+
+/* Main two‑column layout */
+.user-support-body {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* ---------- Sidebar (tickets list) ---------- */
+.user-support-sidebar {
+  background: var(--user-bg-card);
+  border: 1px solid var(--user-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--user-card-shadow);
+  height: fit-content;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.user-support-sidebar h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--user-text-primary);
+  margin: 0 0 1rem 0;
+}
+
+.user-ticket-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.user-ticket-list-item {
+  padding: 1rem;
+  border-bottom: 1px solid var(--user-border);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-radius: 6px;
+}
+.user-ticket-list-item:last-child {
+  border-bottom: none;
+}
+.user-ticket-list-item:hover {
+  background: var(--row-hover-bg);
+}
+.user-ticket-list-item.selected {
+  background: var(--user-primary);
+  color: white;
+}
+.user-ticket-list-item.selected .user-ticket-subject,
+.user-ticket-list-item.selected .user-ticket-meta,
+.user-ticket-list-item.selected .user-ticket-updated {
+  color: white;
+}
+
+.user-ticket-subject {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: var(--user-text-primary);
+}
+
+.user-ticket-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--user-text-muted);
+}
+
+.user-ticket-updated {
+  font-size: 0.75rem;
+}
+
+/* ---------- Status badges (reuse from buy‑coins) ---------- */
+.user-status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+.user-status-badge.user-status-pending {
+  background: rgba(245,158,11,0.2);
+  color: var(--user-warning-color);
+}
+.user-status-badge.user-status-completed {
+  background: rgba(16,185,129,0.2);
+  color: var(--user-success-color);
+}
+.user-status-badge.user-status-failed {
+  background: rgba(239,68,68,0.2);
+  color: var(--user-error-color);
+}
+.user-status-badge.user-status-refunded {
+  background: rgba(107,114,128,0.2);
+  color: #9ca3af;
+}
+
+/* ---------- Main content (ticket details) ---------- */
+.user-support-main {
+  background: var(--user-bg-card);
+  border: 1px solid var(--user-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--user-card-shadow);
+  min-height: 400px;
+}
+
+/* Placeholder when no ticket selected */
+.user-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: var(--user-text-muted);
+  text-align: center;
+  font-style: italic;
+}
+
+/* Ticket detail header */
+.user-ticket-top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.user-back-btn {
+  background: transparent;
+  border: 1px solid var(--user-border);
+  color: var(--user-text-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+.user-back-btn:hover {
+  border-color: var(--user-primary);
+  color: var(--user-primary);
+}
+
+.user-ticket-header h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--user-text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.user-ticket-header .user-ticket-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: var(--user-text-muted);
+  align-items: center;
+}
+
+.user-ticket-priority {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Info boxes (description & links) */
+.user-ticket-info {
+  background: var(--user-bg-darker);
+  border: 1px solid var(--user-border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.user-ticket-description {
+  margin-bottom: 1rem;
+}
+.user-ticket-description strong {
+  color: var(--user-text-primary);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.user-ticket-description p {
+  color: var(--user-text-muted);
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.user-ticket-links {
+  font-size: 0.875rem;
+  color: var(--user-text-muted);
+  border-top: 1px solid var(--user-border);
+  padding-top: 0.75rem;
+}
+.user-ticket-links div {
+  margin-bottom: 0.25rem;
+}
+
+/* Message thread */
+.user-message-thread {
+  margin-top: 1.5rem;
+}
+
+.user-message-thread h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--user-text-primary);
+  margin: 0 0 1rem 0;
+}
+
+.user-messages-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.user-message-item {
+  background: var(--user-bg-darker);
+  border: 1px solid var(--user-border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: background 0.2s ease;
+}
+.user-message-item.internal {
+  background: rgba(245, 158, 11, 0.08);
+  border-left: 4px solid var(--user-warning-color);
+}
+
+.user-message-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.user-responder {
+  font-weight: 600;
+  color: var(--user-primary);
+}
+
+.user-message-time {
+  color: var(--user-text-muted);
+  font-size: 0.8rem;
+}
+
+.user-internal-badge {
+  background: var(--user-warning-color);
+  color: white;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.user-message-body {
+  color: var(--user-text-primary);
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.user-message-attachments {
+  font-size: 0.875rem;
+  color: var(--user-text-muted);
+}
+.user-message-attachments a {
+  color: var(--user-primary);
+  text-decoration: none;
+}
+.user-message-attachments a:hover {
+  text-decoration: underline;
+}
+
+/* Message composer */
+.user-message-composer {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.user-message-composer textarea {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--user-bg-card);
+  border: 1px solid var(--user-border);
+  border-radius: 8px;
+  color: var(--user-text-primary);
+  font-size: 0.875rem;
+  resize: vertical;
+  font-family: inherit;
+}
+.user-message-composer textarea:focus {
+  outline: none;
+  border-color: var(--user-primary);
+  box-shadow: 0 0 0 2px rgba(217, 169, 90, 0.2);
+}
+
+.user-composer-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.user-composer-actions .user-btn {
+  background: var(--user-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.user-composer-actions .user-btn:hover:not(:disabled) {
+  background: var(--user-primary-dark);
+}
+.user-composer-actions .user-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Loading & error states */
+.user-loading-indicator {
+  padding: 2rem;
+  text-align: center;
+  color: var(--user-text-muted);
+  font-style: italic;
+}
+
+.user-error-message {
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--user-error-color);
+  color: var(--user-error-color);
+  border-radius: 8px;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.user-no-tickets,
+.user-no-messages {
+  padding: 2rem;
+  text-align: center;
+  color: var(--user-text-muted);
+  font-style: italic;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1024px) {
+  .user-support-body {
+    grid-template-columns: 1fr;
+  }
+
+  .user-support-sidebar {
+    max-height: 400px;
+  }
+
+  .user-ticket-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .user-back-btn {
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .user-support-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .user-support-actions {
+    justify-content: flex-start;
+  }
+}

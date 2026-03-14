@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { formatDistanceToNow } from 'date-fns';
-import { 
-  FaShoppingBag, 
-  FaHistory, 
-  FaPaypal, 
-  FaCreditCard, 
-  FaBitcoin, 
-  FaGoogle, 
+import {
+  FaShoppingBag,
+  FaHistory,
+  FaPaypal,
+  FaCreditCard,
+  FaBitcoin,
+  FaGoogle,
   FaCoins,
   FaHashtag,
   FaHeadset,
@@ -19,9 +19,6 @@ import CoinPackages from '../components/CoinPackages';
 import Footer from '../components/common/Footer';
 import '../styles/PayPalStyles.css';
 
-/**
- * Support Modal Component (integrated with backend via onSubmit prop)
- */
 const SupportModal = ({ transaction, onClose, onSubmit }) => {
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -47,19 +44,19 @@ const SupportModal = ({ transaction, onClose, onSubmit }) => {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="support-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}><FaTimes /></button>
+    <div className="user-modal-overlay" onClick={onClose}>
+      <div className="user-support-modal" onClick={(e) => e.stopPropagation()}>
+        <button className="user-modal-close" onClick={onClose}><FaTimes /></button>
         <h3>Request Support</h3>
 
-        <div className="transaction-ref">
+        <div className="user-transaction-ref">
           <FaHashtag /> Transaction ID:&nbsp;
-          <span className="tx-id">
+          <span className="user-tx-id">
             {transaction.coinPurchaseId || transaction.paymentId || transaction.txId || '—'}
           </span>
         </div>
 
-        <div className="transaction-summary">
+        <div className="user-transaction-summary">
           {(transaction.coinsAmount != null) ? `${transaction.coinsAmount} coins • ` : ''}
           {transaction.amountCents != null ? `$${(transaction.amountCents / 100).toFixed(2)}` : '—'}
           {transaction.currency ? ` ${transaction.currency}` : ''}
@@ -67,18 +64,18 @@ const SupportModal = ({ transaction, onClose, onSubmit }) => {
         </div>
 
         <form onSubmit={handleSubmit}>
-          <label htmlFor="support-message">Describe your issue:</label>
+          <label htmlFor="user-support-message">Describe your issue:</label>
           <textarea
-            id="support-message"
+            id="user-support-message"
             rows="5"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Please provide details (what happened, when, any screenshots or order ids)..."
             required
           />
-          <div className="modal-actions">
-            <button type="button" className="cancel-btn" onClick={onClose} disabled={submitting}>Cancel</button>
-            <button type="submit" className="submit-btn" disabled={submitting}>
+          <div className="user-modal-actions">
+            <button type="button" className="user-cancel-btn" onClick={onClose} disabled={submitting}>Cancel</button>
+            <button type="submit" className="user-submit-btn" disabled={submitting}>
               {submitting ? 'Submitting...' : 'Submit Request'}
             </button>
           </div>
@@ -88,16 +85,15 @@ const SupportModal = ({ transaction, onClose, onSubmit }) => {
   );
 };
 
-// Helper for status rendering
 const formatStatus = (status) => {
   const statusMap = {
-    PENDING: { label: 'Pending', class: 'status-pending' },
-    COMPLETED: { label: 'Completed', class: 'status-completed' },
-    FAILED: { label: 'Failed', class: 'status-failed' },
-    REFUNDED: { label: 'Refunded', class: 'status-refunded' },
+    PENDING: { label: 'Pending', class: 'user-status-pending' },
+    COMPLETED: { label: 'Completed', class: 'user-status-completed' },
+    FAILED: { label: 'Failed', class: 'user-status-failed' },
+    REFUNDED: { label: 'Refunded', class: 'user-status-refunded' },
   };
   const s = statusMap[status] || { label: status || 'Unknown', class: '' };
-  return <span className={`status-badge ${s.class}`}>{s.label}</span>;
+  return <span className={`user-status-badge ${s.class}`}>{s.label}</span>;
 };
 
 const BuyCoinsPage = () => {
@@ -107,8 +103,6 @@ const BuyCoinsPage = () => {
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('paypal');
-
-  // Support modal state
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -116,14 +110,12 @@ const BuyCoinsPage = () => {
     if (activeTab === 'history') {
       loadHistory();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const loadHistory = async () => {
     setHistoryLoading(true);
     try {
       const data = await PayPalService.getUserCoinPurchaseHistory();
-      // normalize expected fields if needed
       const normalized = (Array.isArray(data) ? data : data || []).map(tx => ({
         coinPurchaseId: tx.coinPurchaseId || tx.coin_purchase_id || tx.coin_purchase_uuid,
         paymentId: tx.paymentId || tx.payment_id || tx.payment_uuid,
@@ -181,46 +173,40 @@ const BuyCoinsPage = () => {
     setModalOpen(true);
   };
 
-  // wired to backend
   const handleSupportSubmit = async (transaction, message) => {
     try {
       await SupportService.createTicket({ transaction, message });
-      // success UX
-      // Consider using toasts for a smoother UX; simple alert for demonstration
       alert('Support request submitted. Our team will contact you soon.');
-      // refresh history in case anything changed
       await loadHistory();
     } catch (err) {
       console.error('Failed to submit support request', err);
-      throw err; // let modal handle the error
+      throw err;
     }
   };
 
   return (
-    <div className="buy-coins-page">
-      {/* Tabs */}
-      <div className="tabs-header">
+    <div className="user-buy-coins-page">
+      <div className="user-tabs-header">
         <button
-          className={`tab-btn ${activeTab === 'buy' ? 'active' : ''}`}
+          className={`user-tab-btn ${activeTab === 'buy' ? 'active' : ''}`}
           onClick={() => setActiveTab('buy')}
         >
           <FaShoppingBag /> Buy Coins
         </button>
         <button
-          className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+          className={`user-tab-btn ${activeTab === 'history' ? 'active' : ''}`}
           onClick={() => setActiveTab('history')}
         >
           <FaHistory /> Transaction History
         </button>
       </div>
 
-      {/* Content */}
-      <div className="tab-content">
+      <div className="user-tab-content">
         {activeTab === 'buy' && (
-          <div className="buy-tab">
-            <div className="payment-methods">
+          <div className="user-buy-tab">
+            <div className="user-payment-methods">
               <h3>Select Payment Method</h3>
-              <div className="payment-methods-grid">
+              <div className="user-payment-methods-grid">
                 {[
                   { id: 'paypal', name: 'PayPal', icon: <FaPaypal />, active: true },
                   { id: 'card', name: 'Credit Card', icon: <FaCreditCard />, active: false },
@@ -229,58 +215,58 @@ const BuyCoinsPage = () => {
                 ].map(method => (
                   <button
                     key={method.id}
-                    className={`payment-method-btn ${selectedPaymentMethod === method.id ? 'active' : ''} ${!method.active ? 'disabled' : ''}`}
+                    className={`user-payment-method-btn ${selectedPaymentMethod === method.id ? 'active' : ''} ${!method.active ? 'disabled' : ''}`}
                     onClick={() => method.active && setSelectedPaymentMethod(method.id)}
                     disabled={!method.active}
                     title={!method.active ? 'Coming soon' : ''}
                   >
-                    <span className="payment-icon">{method.icon}</span>
-                    <span className="payment-name">{method.name}</span>
-                    {!method.active && <span className="coming-soon">Soon</span>}
+                    <span className="user-payment-icon">{method.icon}</span>
+                    <span className="user-payment-name">{method.name}</span>
+                    {!method.active && <span className="user-coming-soon">Soon</span>}
                   </button>
                 ))}
               </div>
             </div>
 
             <CoinPackages onBuy={handleBuy} />
-            {loading && <div className="loading-indicator">Processing purchase...</div>}
-            {error && <div className="error-message">{error}</div>}
+            {loading && <div className="user-loading-indicator">Processing purchase...</div>}
+            {error && <div className="user-error-message">{error}</div>}
           </div>
         )}
 
         {activeTab === 'history' && (
-          <div className="history-tab">
+          <div className="user-history-tab">
             <h2>Your Coin Purchase History</h2>
 
             {historyLoading ? (
-              <div className="loading-indicator">Loading history...</div>
+              <div className="user-loading-indicator">Loading history...</div>
             ) : history.length === 0 ? (
-              <p className="no-history">No transactions yet.</p>
+              <p className="user-no-history">No transactions yet.</p>
             ) : (
-              <div className="transactions-list">
+              <div className="user-transactions-list">
                 {history.map((tx) => (
-                  <div key={tx.coinPurchaseId || tx.paymentId || tx.txId || Math.random()} className="transaction-item">
-                    <div className="tx-icon"><FaCoins /></div>
+                  <div key={tx.coinPurchaseId || tx.paymentId || tx.txId || Math.random()} className="user-transaction-item">
+                    <div className="user-tx-icon"><FaCoins /></div>
 
-                    <div className="tx-details">
-                      <div className="tx-title">
+                    <div className="user-tx-details">
+                      <div className="user-tx-title">
                         {tx.coinsAmount != null ? `${tx.coinsAmount} Coins` : 'Coins'}
                       </div>
-                      <div className="tx-meta">
+                      <div className="user-tx-meta">
                         {formatStatus(tx.status)} • {formatDate(tx.purchasedAt)}
                       </div>
-                      <div className="tx-payment-id">
-                        <FaHashtag className="payment-id-icon" />
+                      <div className="user-tx-payment-id">
+                        <FaHashtag className="user-payment-id-icon" />
                         Payment ID: {formatPaymentId(tx.paymentId)}
                       </div>
                     </div>
 
-                    <div className="tx-amount">
+                    <div className="user-tx-amount">
                       {tx.amountCents != null ? `$${(tx.amountCents / 100).toFixed(2)}` : '—'} {tx.currency || ''}
                     </div>
 
                     <button
-                      className="support-btn"
+                      className="user-support-btn"
                       onClick={() => handleSupportClick(tx)}
                       title="Request support for this transaction"
                     >
@@ -296,7 +282,6 @@ const BuyCoinsPage = () => {
 
       <Footer />
 
-      {/* Support Modal */}
       {modalOpen && (
         <SupportModal
           transaction={selectedTransaction}

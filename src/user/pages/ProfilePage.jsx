@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ProfileCard from '../components/cards/ProfileCard';
 import UserService from '../services/UserService';
 import CountryService from '../services/CountryService';
+import Footer from '../components/common/Footer';
 
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
@@ -12,7 +13,6 @@ const ProfilePage = () => {
 
   useEffect(() => {
     loadInitialData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadInitialData = async () => {
@@ -25,7 +25,6 @@ const ProfilePage = () => {
 
       setUser(profile);
 
-      // Normalize and sort countries so the card can reliably use {code, name}
       const normalized = Array.isArray(countriesList) ? countriesList.map(c => ({
         code: c.code || c.countryCode || c.id || '',
         name: c.name || c.displayName || c.label || (c.country || '')
@@ -39,7 +38,7 @@ const ProfilePage = () => {
         return 0;
       });
 
-      setCountries(normalized.filter(c => c.code || c.name)); // keep only useful entries
+      setCountries(normalized.filter(c => c.code || c.name));
 
     } catch (err) {
       console.error('Failed to load profile or countries', err);
@@ -75,10 +74,10 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="page-container">
-      <h2 className="page-title">My Profile</h2>
+    <div className="user-page-container">
+      <h2 className="user-page-title">My Profile</h2>
 
-      <div className="page-body">
+      <div className="user-page-body">
         <ProfileCard
           user={user}
           loading={saving}
@@ -87,8 +86,10 @@ const ProfilePage = () => {
           onSubmit={handleUpdate}
         />
 
-        {loadingProfile && <div className="muted">Loading profile & countries...</div>}
+        {loadingProfile && <div className="user-muted">Loading profile & countries...</div>}
       </div>
+            <Footer />
+      
     </div>
   );
 };

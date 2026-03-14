@@ -80,52 +80,51 @@ const CoinPackages = ({ onBuy }) => {
     }
   };
 
-  if (loadingPackages && loadingCoins) return <div className="loading-indicator">Loading...</div>;
-  if (packagesError) return <div className="error-message">{packagesError}</div>;
+  if (loadingPackages && loadingCoins) return <div className="user-loading-indicator">Loading...</div>;
+  if (packagesError) return <div className="user-error-message">{packagesError}</div>;
 
   return (
-    <div className="coin-packages-container">
-      {/* Classic Balance Card with React Icon */}
-      <div className="balance-card">
-        <div className="balance-icon"><FaCoins /></div>
-        <div className="balance-details">
-          <span className="balance-label">Your Balance</span>
+    <div className="user-coin-packages-container">
+      <div className="user-balance-card">
+        <div className="user-balance-icon"><FaCoins /></div>
+        <div className="user-balance-details">
+          <span className="user-balance-label">Your Balance</span>
           {loadingCoins ? (
-            <span className="balance-value loading">Loading...</span>
+            <span className="user-balance-value loading">Loading...</span>
           ) : coinsError ? (
-            <span className="balance-value error">{coinsError}</span>
+            <span className="user-balance-value error">{coinsError}</span>
           ) : userCoins ? (
-            <div className="balance-value">
+            <div className="user-balance-value">
               <strong>{userCoins.coins.toLocaleString()}</strong> coins
-              <button className="refresh-btn" onClick={refreshBalance} title="Refresh balance">
+              <button className="user-refresh-btn" onClick={refreshBalance} title="Refresh balance">
                 ↻
               </button>
             </div>
           ) : (
-            <span className="balance-value">—</span>
+            <span className="user-balance-value">—</span>
           )}
         </div>
       </div>
 
-      <h2 className="packages-title">Choose a Coin Package</h2>
+      <h2 className="user-packages-title">Choose a Coin Package</h2>
 
-      <div className="packages-grid">
+      <div className="user-packages-grid">
         {packages.map((pkg) => (
           <div
             key={pkg.packageId}
-            className={`package-card ${selectedPackage?.packageId === pkg.packageId ? 'selected' : ''}`}
+            className={`user-package-card ${selectedPackage?.packageId === pkg.packageId ? 'selected' : ''}`}
             onClick={() => setSelectedPackage(pkg)}
           >
             <h3>{pkg.name}</h3>
-            <p className="price">${(pkg.priceCents / 100).toFixed(2)}</p>
-            <p className="coins">{pkg.coinsAmount} coins</p>
+            <p className="user-price">${(pkg.priceCents / 100).toFixed(2)}</p>
+            <p className="user-coins">{pkg.coinsAmount} coins</p>
           </div>
         ))}
       </div>
 
-      <div className="actions-row">
+      <div className="user-actions-row">
         <button
-          className="buy-button"
+          className="user-buy-button"
           onClick={handleBuy}
           disabled={!selectedPackage}
         >

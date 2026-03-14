@@ -1,9 +1,9 @@
-// src/components/sidebar/Sidebar.jsx
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import RippleButton from '../common/RippleButton';
 import AuthService from '../../services/AuthService';
 import LogoutModal from '../../components/LogoutModal';
+import '../../styles/user-sidebar.css';
 
 import {
   FaHome,
@@ -12,7 +12,7 @@ import {
   FaHistory,
   FaHeart,
   FaSignOutAlt,
-  FaSignInAlt,        // added login icon
+  FaSignInAlt,
   FaChevronLeft,
   FaChevronRight,
   FaBell,
@@ -26,6 +26,11 @@ const Sidebar = ({ public: isPublic = false }) => {
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  const user = {
+    username: localStorage.getItem('username') || 'User',
+    role: 'Member'
+  };
 
   const isActive = (path) => {
     if (path === '/user') return location.pathname === '/user';
@@ -46,7 +51,6 @@ const Sidebar = ({ public: isPublic = false }) => {
     }
   };
 
-  // For public mode, redirect to login instead of navigating
   const handleNavClick = (path) => {
     if (isPublic) {
       localStorage.setItem('redirectAfterLogin', path);
@@ -56,7 +60,6 @@ const Sidebar = ({ public: isPublic = false }) => {
     }
   };
 
-  // Special handler for login button (public only)
   const handleLoginClick = () => {
     localStorage.setItem('redirectAfterLogin', location.pathname);
     navigate('/login');
@@ -75,18 +78,19 @@ const Sidebar = ({ public: isPublic = false }) => {
 
   return (
     <>
-      <aside className={`dash-sidebar ${collapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-header">
-          <div
-            className="dash-logo"
-            onClick={() => isPublic ? navigate('/') : navigate('/user')}
-            style={{ cursor: 'pointer' }}
-          >
-            {collapsed ? 'PF' : 'PodFlow'}
+      <aside className={`user-sidebar ${collapsed ? 'collapsed' : ''}`}>
+        <div className="user-sidebar-header">
+          <div className="user-brand">
+            <div className="user-brand-logo">H</div>
+            {!collapsed && (
+              <div className="user-brand-text">
+                <h2 className="user-brand-title">Hibiscus</h2>
+                <p className="user-brand-subtitle">User</p>
+              </div>
+            )}
           </div>
-
           <button
-            className="sidebar-toggle"
+            className="user-sidebar-toggle"
             onClick={toggleSidebar}
             aria-label="Toggle sidebar"
           >
@@ -94,50 +98,53 @@ const Sidebar = ({ public: isPublic = false }) => {
           </button>
         </div>
 
-        <div className="dash-nav">
+        <div className="user-nav">
           {menuItems.map((item) => (
             <RippleButton
               key={item.path}
-              className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
+              className={`user-nav-item ${isActive(item.path) ? 'active' : ''}`}
               onClick={() => handleNavClick(item.path)}
               title={collapsed ? item.label : ''}
             >
-              <span className="nav-icon">{item.icon}</span>
-              {!collapsed && (
-                <span className="nav-label">{item.label}</span>
-              )}
+              <span className="user-nav-icon">{item.icon}</span>
+              {!collapsed && <span className="user-nav-label">{item.label}</span>}
             </RippleButton>
           ))}
 
-          {/* Conditional bottom button: Logout for private, Login for public */}
-          {isPublic ? (
+          {isPublic && (
             <RippleButton
-              className="nav-item"
+              className="user-nav-item"
               onClick={handleLoginClick}
               title={collapsed ? 'Login' : ''}
             >
-              <span className="nav-icon">
+              <span className="user-nav-icon">
                 <FaSignInAlt />
               </span>
-              {!collapsed && (
-                <span className="nav-label">Login</span>
-              )}
-            </RippleButton>
-          ) : (
-            <RippleButton
-              className="nav-item"
-              onClick={() => setShowLogoutModal(true)}
-              title={collapsed ? 'Logout' : ''}
-            >
-              <span className="nav-icon">
-                <FaSignOutAlt />
-              </span>
-              {!collapsed && (
-                <span className="nav-label">Logout</span>
-              )}
+              {!collapsed && <span className="user-nav-label">Login</span>}
             </RippleButton>
           )}
         </div>
+
+        {!isPublic && (
+          <div className="user-sidebar-footer">
+            <div className="user-info">
+              <div className="user-avatar">{user.username.charAt(0).toUpperCase()}</div>
+              {!collapsed && (
+                <div className="user-details">
+                  <h4 className="user-name">{user.username}</h4>
+                  <p className="user-role">{user.role}</p>
+                </div>
+              )}
+              <button
+                className="user-logout-btn"
+                onClick={() => setShowLogoutModal(true)}
+                title="Logout"
+              >
+                <FaSignOutAlt />
+              </button>
+            </div>
+          </div>
+        )}
       </aside>
 
       {!isPublic && (

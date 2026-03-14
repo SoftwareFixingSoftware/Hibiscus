@@ -1,0 +1,222 @@
+/* ================================
+   USER NOTIFICATIONS PAGE
+   ================================ */
+
+.user-notifications-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  width: 100%;
+}
+
+/* ---------- Header ---------- */
+.user-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.user-page-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--user-text-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.user-btn-mark-all {
+  background: transparent;
+  border: 1px solid var(--user-border);
+  color: var(--user-text-primary);
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.user-btn-mark-all:hover {
+  border-color: var(--user-primary);
+  color: var(--user-primary);
+  background: rgba(217, 169, 90, 0.05);
+}
+
+/* ---------- Notifications List ---------- */
+.user-notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.user-notification-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--user-bg-card);
+  border: 1px solid var(--user-border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--user-card-shadow);
+}
+.user-notification-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  border-color: var(--user-primary);
+}
+.user-notification-item.unread {
+  background: linear-gradient(135deg, rgba(217, 169, 90, 0.08), var(--user-bg-card));
+  border-left: 4px solid var(--user-primary);
+}
+.user-notification-item.read {
+  opacity: 0.8;
+}
+
+.user-notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--user-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.user-body {
+  font-size: 0.875rem;
+  color: var(--user-text-muted);
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.user-time {
+  font-size: 0.75rem;
+  color: var(--user-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* ---------- Action Buttons ---------- */
+.user-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.user-actions button {
+  background: transparent;
+  border: 1px solid var(--user-border);
+  color: var(--user-text-muted);
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.user-actions button:hover {
+  border-color: var(--user-primary);
+  color: var(--user-primary);
+}
+.user-actions .user-delete:hover {
+  border-color: var(--user-error-color);
+  color: var(--user-error-color);
+}
+
+/* ---------- Pagination ---------- */
+.user-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding: 1rem 0;
+}
+
+.user-pagination button {
+  background: var(--user-bg-card);
+  border: 1px solid var(--user-border);
+  color: var(--user-text-primary);
+  padding: 0.5rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.user-pagination button:hover:not(:disabled) {
+  border-color: var(--user-primary);
+  color: var(--user-primary);
+}
+.user-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.user-pagination span {
+  color: var(--user-text-muted);
+  font-size: 0.875rem;
+}
+
+/* ---------- Empty / Error / Loading States ---------- */
+.user-empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--user-text-muted);
+  font-size: 1rem;
+  background: var(--user-bg-darker);
+  border-radius: 12px;
+  border: 1px dashed var(--user-border);
+}
+
+.user-error-message {
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--user-error-color);
+  color: var(--user-error-color);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.user-loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--user-text-muted);
+  font-size: 1rem;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+  .user-notifications-page {
+    padding: 1rem;
+  }
+
+  .user-page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .user-notification-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .user-actions {
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+  }
+
+  .user-pagination {
+    flex-wrap: wrap;
+  }
+}

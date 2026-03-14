@@ -1,0 +1,54 @@
+/* ================================
+   USER FOOTER
+   ================================ */
+
+.user-footer {
+  margin-top: auto;              /* pushes footer to bottom when parent is flex column */
+  border-top: 1px solid var(--user-border);
+  backdrop-filter: blur(10px);
+  width: 100%;
+}
+
+.user-footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.user-footer-section h4 {
+  color: var(--user-text-primary);
+  font-size: 16px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.user-footer-section p,
+.user-footer-section ul {
+  color: var(--user-text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.user-footer-section ul li {
+  margin-bottom: 8px;
+}
+
+.user-footer-section a {
+  color: var(--user-text-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.user-footer-section a:hover {
+  color: var(--user-primary);
+}
+
+.user-social-links {
+  display: flex;
+  gap: 16px;
+}

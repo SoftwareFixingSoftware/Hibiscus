@@ -13,8 +13,8 @@ export const useAudio = () => {
 export const AudioProvider = ({ children }) => {
   const audioRef = useRef(null);
   const currentEpisodeIdRef = useRef(null);
-  const completedEpisodesRef = useRef(new Set()); // tracks episodes that have ended in this session
-  const listenersRef = useRef({}); // keep references to listeners so we can remove them
+  const completedEpisodesRef = useRef(new Set());
+  const listenersRef = useRef({});
 
   const [player, setPlayer] = useState({
     playing: false,
@@ -23,10 +23,10 @@ export const AudioProvider = ({ children }) => {
     title: '',
     author: '',
   });
-  const [progress, setProgress] = useState(0); // percent
-  const [duration, setDuration] = useState(0); // seconds
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [loading, setLoading] = useState(false); // ← new loading state
 
-  // Helper: normalize urls so comparisons are robust (handles relative vs absolute)
   const normalizeUrl = (url) => {
     try {
       return new URL(url, window.location.href).href;
@@ -35,11 +35,9 @@ export const AudioProvider = ({ children }) => {
     }
   };
 
-  // Attach listeners to a given audio element (call immediately after creating new Audio())
   const attachAudioListeners = (audio) => {
     if (!audio) return;
 
-    // Remove any previous listeners on the old audio (safety)
     if (listenersRef.current.audio && listenersRef.current.detach) {
       listenersRef.current.detach();
     }
@@ -49,14 +47,11 @@ export const AudioProvider = ({ children }) => {
         const pct = (audio.currentTime / audio.duration) * 100;
         setProgress(pct);
         const episodeId = currentEpisodeIdRef.current;
-        // Only queue progress if the episode is NOT marked as completed in this session
         if (episodeId && !completedEpisodesRef.current.has(episodeId)) {
           const secs = Math.floor(audio.currentTime || 0);
           try {
             UserListeningHistoryService.queueProgress(episodeId, secs);
-          } catch (e) {
-            // swallow; service logs
-          }
+          } catch (e) {}
         }
       }
     };
@@ -67,14 +62,13 @@ export const AudioProvider = ({ children }) => {
       setPlayer(p => ({ ...p, playing: false }));
       const episodeId = currentEpisodeIdRef.current;
       if (episodeId) {
-        // best-effort: flush pending progress for this episode then mark completed
         (async () => {
           try {
             await UserListeningHistoryService.flush();
           } catch (_) {}
           try {
             UserListeningHistoryService.markCompleted(episodeId);
-            completedEpisodesRef.current.add(episodeId); // remember it's completed
+            completedEpisodesRef.current.add(episodeId);
           } catch (e) {}
         })();
       }
@@ -87,21 +81,33 @@ export const AudioProvider = ({ children }) => {
         const secs = Math.floor(audio.currentTime || 0);
         try {
           UserListeningHistoryService.queueProgress(episodeId, secs);
-          // Best-effort immediate flush so the pause position is sent quickly
           UserListeningHistoryService.flush().catch(() => {});
         } catch (e) {}
       }
     };
 
-    const onPlay = () => setPlayer(p => ({ ...p, playing: true }));
+    const onPlay = () => {
+      setPlayer(p => ({ ...p, playing: true }));
+      setLoading(false); // audio started playing, loading done
+    };
+
+    const onCanPlay = () => {
+      setLoading(false); // audio buffered enough to start
+    };
+
+    const onError = () => {
+      setLoading(false);
+      console.error('Audio error');
+    };
 
     audio.addEventListener('timeupdate', updateTime);
     audio.addEventListener('loadedmetadata', setAudioDuration);
     audio.addEventListener('ended', onEnded);
     audio.addEventListener('pause', onPause);
     audio.addEventListener('play', onPlay);
+    audio.addEventListener('canplay', onCanPlay);
+    audio.addEventListener('error', onError);
 
-    // store a detach helper so we can remove listeners later
     listenersRef.current = {
       audio,
       detach: () => {
@@ -111,13 +117,14 @@ export const AudioProvider = ({ children }) => {
           audio.removeEventListener('ended', onEnded);
           audio.removeEventListener('pause', onPause);
           audio.removeEventListener('play', onPlay);
+          audio.removeEventListener('canplay', onCanPlay);
+          audio.removeEventListener('error', onError);
         } catch (e) {}
         listenersRef.current = {};
       }
     };
   };
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (listenersRef.current && listenersRef.current.detach) listenersRef.current.detach();
@@ -128,21 +135,18 @@ export const AudioProvider = ({ children }) => {
 
   const play = useCallback(async (src, metadata = {}) => {
     try {
-      // Normalize urls for comparison
       const normalizedSrc = normalizeUrl(src);
       const existingSrc = audioRef.current && audioRef.current.src ? normalizeUrl(audioRef.current.src) : null;
 
-      // If switching from another track, save the old episode's position (unless it's completed)
+      // If switching tracks, save progress of old one
       if (audioRef.current && existingSrc && existingSrc !== normalizedSrc) {
         try {
           const oldEpId = currentEpisodeIdRef.current;
           if (oldEpId) {
             const a = audioRef.current;
             const secs = Math.floor(a.currentTime || 0);
-            // Only save progress if the old episode is not completed
             if (!completedEpisodesRef.current.has(oldEpId)) {
               UserListeningHistoryService.queueProgress(oldEpId, secs);
-              // Wait a short period to try to flush before switching (reduce race)
               try {
                 await UserListeningHistoryService.flush();
               } catch (_) {}
@@ -152,24 +156,34 @@ export const AudioProvider = ({ children }) => {
         try { audioRef.current.pause(); } catch (_) {}
       }
 
-      // Create or reuse audio element
+      // Create new audio or reuse
       if (!audioRef.current || normalizeUrl(audioRef.current.src || '') !== normalizedSrc) {
-        // If there's an old audio instance, detach its listeners first
         if (listenersRef.current && listenersRef.current.detach) listenersRef.current.detach();
-
         audioRef.current = new Audio(src);
-        // attach listeners immediately so we don't miss events between creation and setPlayer
         attachAudioListeners(audioRef.current);
+        setLoading(true); // start loading for new source
       }
 
-      // Set current episode id and remove it from completed set (if present) because we're playing it again
       currentEpisodeIdRef.current = metadata?.episodeId ?? null;
       if (currentEpisodeIdRef.current) {
         completedEpisodesRef.current.delete(currentEpisodeIdRef.current);
       }
 
-      // Play
-      await audioRef.current.play();
+      // If already playing the same src, just ensure it's playing
+      if (existingSrc === normalizedSrc && audioRef.current) {
+        if (audioRef.current.paused) {
+          await audioRef.current.play();
+        }
+        // loading already false because it was already loaded
+      } else {
+        // New source – will trigger canplay/play events to set loading false
+        try {
+          await audioRef.current.play();
+        } catch (err) {
+          setLoading(false);
+          throw err;
+        }
+      }
 
       setPlayer({
         playing: true,
@@ -180,6 +194,7 @@ export const AudioProvider = ({ children }) => {
       });
     } catch (err) {
       console.error('Audio play error:', err);
+      setLoading(false);
     }
   }, []);
 
@@ -187,7 +202,6 @@ export const AudioProvider = ({ children }) => {
     if (audioRef.current) {
       try {
         audioRef.current.pause();
-        // queue happens in pause handler (listener)
       } catch (_) {}
     }
   }, []);
@@ -213,23 +227,21 @@ export const AudioProvider = ({ children }) => {
       try {
         audioRef.current.pause();
       } catch (_) {}
-      // detach listeners and drop instance
       if (listenersRef.current && listenersRef.current.detach) listenersRef.current.detach();
       audioRef.current = null;
     }
 
     currentEpisodeIdRef.current = null;
-    // don't clear completedEpisodesRef globally — keep knowledge for this session
     setPlayer({ playing: false, src: '', episodeId: null, title: '', author: '' });
     setProgress(0);
     setDuration(0);
+    setLoading(false); // stop loading
   }, []);
 
   const seek = useCallback((time) => {
     if (audioRef.current) {
       audioRef.current.currentTime = time;
       const epId = currentEpisodeIdRef.current;
-      // If seeking on a completed episode, allow progress again by removing from completed set
       if (epId && completedEpisodesRef.current.has(epId)) {
         completedEpisodesRef.current.delete(epId);
       }
@@ -260,6 +272,7 @@ export const AudioProvider = ({ children }) => {
     player,
     progress,
     duration,
+    loading, // exposed for UI
     play,
     pause,
     toggle,

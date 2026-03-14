@@ -1,21 +1,19 @@
-// src/components/RatingInput.jsx
 import React from 'react';
- 
+import { FaStar } from 'react-icons/fa';
+
 const RatingInput = ({ value, onChange }) => {
-  const handleClick = (newRating) => {
-    onChange(newRating);
+  const handleClick = (rating) => {
+    onChange(rating);
   };
 
   return (
-    <div className="rating-input">
+    <div className="user-rating-input">
       {[1, 2, 3, 4, 5].map((star) => (
-        <span
+        <FaStar
           key={star}
-          className={`star ${star <= value ? 'filled' : ''}`}
+          className={`user-star ${star <= value ? 'filled' : ''}`}
           onClick={() => handleClick(star)}
-        >
-          ★
-        </span>
+        />
       ))}
     </div>
   );
