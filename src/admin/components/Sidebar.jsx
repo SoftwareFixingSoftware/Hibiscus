@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router-dom'; // useNavigate no longer needed
 import {
   FiHome, FiVideo, FiMusic, FiUsers, FiBarChart2,
   FiMenu, FiX, FiPackage, FiLogOut, FiCreditCard,
   FiShoppingCart, FiHelpCircle, FiRepeat
 } from 'react-icons/fi';
-
 
 const Sidebar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -36,9 +35,12 @@ const Sidebar = () => {
     <aside className={`adm-sidebar ${sidebarOpen ? 'adm-open' : 'adm-closed'}`}>
       <div className="adm-sidebar-header">
         <div className="adm-brand">
-          <div className="adm-brand-logo">
-            <span className="adm-logo-text">H</span>
-          </div>
+          <img
+            src="/logo.png"
+            alt="Hibiscus"
+            className="adm-brand-logo"
+            // no onClick – not clickable
+          />
           {sidebarOpen && (
             <div className="adm-brand-text">
               <h2 className="adm-brand-title">Hibiscus</h2>

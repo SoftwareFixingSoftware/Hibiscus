@@ -37,6 +37,8 @@ html,body{
   z-index:1000;
   display:flex;
   flex-direction:column;
+      user-select: none;          /* prevents text selection */
+
 }
 
 .adm-sidebar.adm-closed{
@@ -49,6 +51,7 @@ html,body{
   display:flex;
   align-items:center;
   justify-content:space-between;
+ 
 }
 
 .adm-brand{
@@ -57,14 +60,23 @@ html,body{
   gap:.75rem;
 }
 
-.adm-brand-logo{
-  width:40px;
-  height:40px;
-  background:var(--hib-button-primary);
-  border-radius:10px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+.adm-brand-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  object-fit: contain;
+  flex-shrink: 0;
+  cursor: default;
+   transition: opacity 0.2s ease;
+  background: none;
+}
+
+.adm-brand-logo:hover {
+  opacity: 0.9;
+}
+
+.adm-sidebar.adm-closed .adm-brand-logo {
+  display: none;
 }
 
 .adm-logo-text{

@@ -16,6 +16,8 @@
   flex-direction: column;
   overflow: hidden;
   flex-shrink: 0;
+      user-select: none;          /* prevents text selection */
+
 }
 
 .user-sidebar.collapsed {
@@ -29,6 +31,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+ 
 }
 
 .user-sidebar.collapsed .user-sidebar-header {
@@ -43,23 +46,22 @@
   gap: 0.75rem;
 }
 
-/* Logo circle */
+/* Logo image */
 .user-brand-logo {
-  width: 40px;
-  height: 40px;
+  width: 60px;
+  height: 60px;
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--user-primary), var(--user-primary-dark));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  color: #fff;
+  object-fit: contain; /* or cover, depending on your logo's aspect ratio */
   flex-shrink: 0;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: opacity 0.2s ease;
+  background: none; /* remove any background */
 }
 
-/* Hide logo when collapsed */
+.user-brand-logo:hover {
+  opacity: 0.9;
+}
+
 .user-sidebar.collapsed .user-brand-logo {
   display: none;
 }

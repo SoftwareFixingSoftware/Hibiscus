@@ -81,7 +81,7 @@ const Sidebar = ({ public: isPublic = false }) => {
       <aside className={`user-sidebar ${collapsed ? 'collapsed' : ''}`}>
         <div className="user-sidebar-header">
           <div className="user-brand">
-            <div className="user-brand-logo">H</div>
+            <img src="/logo.png" alt="Hibiscus" className="user-brand-logo" />
             {!collapsed && (
               <div className="user-brand-text">
                 <h2 className="user-brand-title">Hibiscus</h2>
