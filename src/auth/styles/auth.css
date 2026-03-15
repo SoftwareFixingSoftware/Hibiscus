@@ -70,12 +70,11 @@
   min-height: 460px;
 }
 
-/* Avatar container */
 .hib-avatar-container {
   flex: 1 1 35%;
   min-width: 280px;
   padding: 2rem;
-  background: var(--hib-bg-avatar);
+  background: var(--hib-bg-card);          /* match the main card background */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -85,6 +84,8 @@
 .hib-brand-header {
   text-align: center;
   margin-bottom: 2rem;
+  user-select: none;          /* prevents text selection */
+
 }
 
 .hib-brand-logo {
@@ -220,6 +221,8 @@
 
 .hib-form-header {
   margin-bottom: 1.75rem;
+   user-select: none;          /* prevents text selection */
+
 }
 
 .hib-form-title {

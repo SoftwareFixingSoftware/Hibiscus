@@ -215,11 +215,7 @@ export default function SignIn() {
                   </div>
                 </div>
 
-                <div className="hib-form-options">
-                  <label className="hib-checkbox-label">
-                    <input type="checkbox" disabled={loading} className="hib-checkbox" />
-                    <span className="hib-checkbox-text">Remember me</span>
-                  </label>
+                <div className="hib-forgot-password-link">
                   <Link to="/forgot-password" className="hib-forgot-link">
                     Forgot password?
                   </Link>
@@ -254,10 +250,11 @@ export default function SignIn() {
               </div>
 
               <div className="hib-terms-section">
-                <p>
+                <p className="hib-text-xs hib-text-muted">
                   By signing in, you agree to our{' '}
-                  <a href="#" className="hib-terms-link">Terms</a> and{' '}
-                  <a href="#" className="hib-terms-link">Privacy Policy</a>
+                  <Link to="/terms" className="hib-terms-link">Terms of Service</Link>,{' '}
+                  <Link to="/privacy" className="hib-terms-link">Privacy Policy</Link>, and{' '}
+                  <Link to="/cookies" className="hib-terms-link">Cookie Policy</Link>.
                 </p>
               </div>
             </div>

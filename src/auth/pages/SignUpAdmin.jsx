@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import AuthAvatar from '../components/AuthAvatar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaEye, FaEyeSlash, FaExclamationCircle, FaCheckCircle, FaCheck } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaExclamationCircle, FaCheckCircle } from 'react-icons/fa'; // removed FaCheck
 import '../styles/auth.css';
 
 const API_BASE = "http://localhost:9019";
@@ -203,7 +203,7 @@ export default function SignUpAdmin() {
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
                       onFocus={() => handleFocus('name')}
-                      placeholder="John Doe"
+                      placeholder="haka luke"
                       className="hib-form-input"
                       disabled={loading}
                       required
@@ -220,7 +220,7 @@ export default function SignUpAdmin() {
                       value={form.username}
                       onChange={(e) => setForm({ ...form, username: e.target.value })}
                       onFocus={() => handleFocus('username')}
-                      placeholder="johndoe"
+                      placeholder="luke"
                       className="hib-form-input"
                       disabled={loading}
                       autoComplete="username"
@@ -343,7 +343,10 @@ export default function SignUpAdmin() {
                 <div className="hib-form-checkbox">
                   <input id="tos" type="checkbox" required className="hib-checkbox" disabled={loading} />
                   <label htmlFor="tos" className="hib-checkbox-text">
-                    I agree to the <a href="#" className="hib-checkbox-link">Terms of Service</a> and <a href="#" className="hib-checkbox-link">Privacy Policy</a>
+                    I agree to the{' '}
+                    <Link to="/terms" className="hib-checkbox-link">Terms of Service</Link>,{' '}
+                    <Link to="/privacy" className="hib-checkbox-link">Privacy Policy</Link>, and{' '}
+                    <Link to="/cookies" className="hib-checkbox-link">Cookie Policy</Link>.
                   </label>
                 </div>
 
@@ -404,20 +407,11 @@ export default function SignUpAdmin() {
               <h3 className="hib-benefits-title">Admin Access</h3>
               <p className="hib-benefits-subtitle">Granting admin access creates elevated privileges — proceed carefully.</p>
 
-              <ul className="hib-benefits-list">
-                <li className="hib-benefit-item">
-                  <FaCheck className="hib-benefit-icon" />
-                  Local-only authentication
-                </li>
-                <li className="hib-benefit-item">
-                  <FaCheck className="hib-benefit-icon" />
-                  Email verification required
-                </li>
-                <li className="hib-benefit-item">
-                  <FaCheck className="hib-benefit-icon" />
-                  Keep invite code confidential
-                </li>
-              </ul>
+              <div className="hib-feature-list">
+                <span className="hib-feature-item">Local-only authentication</span>
+                <span className="hib-feature-item">Email verification required</span>
+                <span className="hib-feature-item">Keep invite code confidential</span>
+              </div>
             </div>
           </div>
         </div>

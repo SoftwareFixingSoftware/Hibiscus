@@ -3,7 +3,7 @@ import AuthAvatar from '../components/AuthAvatar';
 import SocialAuth from '../components/SocialAuth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaEye, FaEyeSlash, FaExclamationCircle, FaCheckCircle, FaCheck } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaExclamationCircle, FaCheckCircle } from 'react-icons/fa';
 import '../styles/auth.css';
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:9019";
@@ -195,7 +195,7 @@ export default function SignUp() {
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
                       onFocus={() => handleFocus('name')}
-                      placeholder="John Doe"
+                      placeholder="haka luke"
                       className="hib-form-input"
                       disabled={loading}
                       required
@@ -212,7 +212,7 @@ export default function SignUp() {
                       value={form.username}
                       onChange={(e) => setForm({ ...form, username: e.target.value })}
                       onFocus={() => handleFocus('username')}
-                      placeholder="johndoe"
+                      placeholder="luke"
                       className="hib-form-input"
                       disabled={loading}
                       autoComplete="username"
@@ -304,7 +304,10 @@ export default function SignUp() {
                 <div className="hib-form-checkbox">
                   <input id="tos" type="checkbox" required className="hib-checkbox" disabled={loading} />
                   <label htmlFor="tos" className="hib-checkbox-text">
-                    I agree to the <a href="#" className="hib-checkbox-link">Terms of Service</a> and <a href="#" className="hib-checkbox-link">Privacy Policy</a>
+                    I agree to the{' '}
+                    <Link to="/terms" className="hib-checkbox-link">Terms of Service</Link>,{' '}
+                    <Link to="/privacy" className="hib-checkbox-link">Privacy Policy</Link>, and{' '}
+                    <Link to="/cookies" className="hib-checkbox-link">Cookie Policy</Link>.
                   </label>
                 </div>
 
@@ -365,20 +368,11 @@ export default function SignUp() {
               <h3 className="hib-benefits-title">Join Our Community</h3>
               <p className="hib-benefits-subtitle">Create your account in seconds</p>
 
-              <ul className="hib-benefits-list">
-                <li className="hib-benefit-item">
-                  <FaCheck className="hib-benefit-icon" />
-                  Secure authentication
-                </li>
-                <li className="hib-benefit-item">
-                  <FaCheck className="hib-benefit-icon" />
-                  Email verification
-                </li>
-                <li className="hib-benefit-item">
-                  <FaCheck className="hib-benefit-icon" />
-                  Social login options
-                </li>
-              </ul>
+              <div className="hib-feature-list">
+                <span className="hib-feature-item">Secure authentication</span>
+                <span className="hib-feature-item">Email verification</span>
+                <span className="hib-feature-item">Social login options</span>
+              </div>
             </div>
           </div>
         </div>
