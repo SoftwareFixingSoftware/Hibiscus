@@ -10,6 +10,7 @@ const SeriesModal = ({ series, onClose, onSubmit }) => {
     title: '',
     description: '',
     category: '',
+    authorName: '',          // new field
     isPublished: false
   });
 
@@ -19,6 +20,7 @@ const SeriesModal = ({ series, onClose, onSubmit }) => {
         title: series.title || '',
         description: series.description || '',
         category: series.category || '',
+        authorName: series.authorName || '',   // populate if exists
         isPublished: series.isPublished || false
       });
     }
@@ -38,6 +40,7 @@ const SeriesModal = ({ series, onClose, onSubmit }) => {
     if (!formData.title.trim()) newErrors.title = 'Title is required';
     if (!formData.description.trim()) newErrors.description = 'Description is required';
     if (!formData.category.trim()) newErrors.category = 'Category is required';
+    // authorName is optional
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -47,11 +50,19 @@ const SeriesModal = ({ series, onClose, onSubmit }) => {
     if (!validateForm()) return;
     setLoading(true);
     try {
+      // Prepare payload – include authorName if provided
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        isPublished: formData.isPublished,
+        ...(formData.authorName && { authorName: formData.authorName })
+      };
       let result;
       if (isEditMode) {
-        result = await SeriesService.updateSeries(series.id, formData);
+        result = await SeriesService.updateSeries(series.id, payload);
       } else {
-        result = await SeriesService.createSeries(formData);
+        result = await SeriesService.createSeries(payload);
       }
       onSubmit(result);
     } catch (error) {
@@ -133,6 +144,21 @@ const SeriesModal = ({ series, onClose, onSubmit }) => {
               <option value="Entertainment">Entertainment</option>
             </select>
             {errors.category && <span className="adm-form-error">{errors.category}</span>}
+          </div>
+
+          {/* New author name field */}
+          <div className="adm-form-group">
+            <label className="adm-form-label" htmlFor="authorName">Author Name (optional)</label>
+            <input
+              type="text"
+              id="authorName"
+              name="authorName"
+              value={formData.authorName}
+              onChange={handleChange}
+              className="adm-form-input"
+              placeholder="e.g., luke"
+              disabled={loading}
+            />
           </div>
 
           <div className="adm-form-group adm-checkbox-group">
