@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { FaSun, FaMoon } from 'react-icons/fa';
 
 /**
  * ThemeToggle: toggles `body.light-theme`
@@ -73,7 +74,9 @@ export default function ThemeToggle({ className = '' }) {
         gap: '0.6rem',
       }}
     >
-      <span style={{ fontSize: 16 }}>{isLight ? '🌙' : '☀️'}</span>
+      <span style={{ fontSize: 16 }}>
+        {isLight ? <FaMoon /> : <FaSun />}
+      </span>
       <span style={{ fontSize: 13 }}>{isLight ? 'Dark' : 'Light'}</span>
     </button>
   );

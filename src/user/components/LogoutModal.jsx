@@ -7,7 +7,7 @@ const LogoutModal = ({ isOpen, onClose, onConfirm }) => {
   return (
     <div className="user-modal-overlay" onClick={onClose}>
       <div className="user-modal-content user-logout-modal" onClick={(e) => e.stopPropagation()}>
-        <h3>Leave PodFlow?</h3>
+        <h3>Leave Hibiscus?</h3>
         <p>Are you sure you want to log out?</p>
         <div className="user-modal-actions">
           <RippleButton className="user-cancel-btn" onClick={onClose}>

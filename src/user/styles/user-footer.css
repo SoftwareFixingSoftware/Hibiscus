@@ -3,7 +3,7 @@
    ================================ */
 
 .user-footer {
-  margin-top: auto;              /* pushes footer to bottom when parent is flex column */
+  margin-top: auto;
   border-top: 1px solid var(--user-border);
   backdrop-filter: blur(10px);
   width: 100%;
@@ -15,7 +15,7 @@
   gap: 40px;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 40px 24px 20px;
 }
 
 .user-footer-section h4 {
@@ -48,7 +48,64 @@
   color: var(--user-primary);
 }
 
+/* Social links – now a two‑column grid */
 .user-social-links {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.user-social-links li {
+  margin: 0;
+}
+
+.user-social-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.user-footer-description {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--user-text-muted);
+  margin-top: 0.5rem;
+}
+
+.user-footer-bottom {
+  margin-top: 2rem;
+  padding: 1.5rem 24px;
+  border-top: 1px solid var(--user-border);
   display: flex;
-  gap: 16px;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--user-text-muted);
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.user-back-to-top {
+  background: var(--user-bg-darker);
+  border: 1px solid var(--user-border);
+  color: var(--user-text-muted);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.user-back-to-top:hover {
+  background: var(--user-primary);
+  border-color: var(--user-primary);
+  color: white;
 }
