@@ -40,7 +40,12 @@ import AdminPayments from './admin/pages/AdminPayments';
 import AdminEpisodePurchases from './admin/pages/AdminEpisodePurchases';
 import AdminSupport from './admin/pages/AdminSupportPage';
 import AdminPaymentDetail from './admin/pages/AdminPaymentDetail';
-import ThemeToggle from './components/ThemeToggle';   // <-- import stays here
+import ThemeToggle from './components/ThemeToggle';    
+
+import PublicPageLayout from './user/layouts/PublicPageLayout';
+import TermsPage from './user/pages/legal/TermsPage';
+import PrivacyPage from './user/pages/legal/PrivacyPage';
+import CookiePage from './user/pages/legal/CookiePage';
 
 function App() {
   return (
@@ -57,6 +62,13 @@ function App() {
           <Route path="/register" element={<SignUp />} />
           <Route path="/admin/register" element={<SignUpAdmin />} />
           <Route path="/auth/github/callback" element={<GithubCallback />} />
+        
+         {/* ========== LEGAL PAGES (with header & footer, no sidebar) ========== */}
+          <Route element={<PublicPageLayout />}>
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/cookies" element={<CookiePage />} />
+          </Route>
 
           {/* ========== ADMIN ROUTES ========== */}
           <Route

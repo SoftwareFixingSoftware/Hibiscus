@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { 
   FaTwitter, 
   FaInstagram, 
@@ -45,10 +46,9 @@ const Footer = () => {
         <div className="user-footer-section">
           <h4>Legal</h4>
           <ul>
-            <li><a href="/terms">Terms of Service</a></li>
-            <li><a href="/privacy">Privacy Policy</a></li>
-            <li><a href="/cookies">Cookie Policy</a></li>
-            <li><a href="/dmca">DMCA</a></li>
+            <li><Link to="/terms">Terms of Service</Link></li>
+            <li><Link to="/privacy">Privacy Policy</Link></li>
+            <li><Link to="/cookies">Cookie Policy</Link></li>
           </ul>
         </div>
 
@@ -69,7 +69,7 @@ const Footer = () => {
 
       {/* Bottom bar */}
       <div className="user-footer-bottom">
-        <p>© {currentYear} Hibiscus Media. All rights reserved.</p>
+        <p>© {currentYear} Winnas Edtech Ke. All rights reserved.</p>
         <button className="user-back-to-top" onClick={scrollToTop} aria-label="Back to top">
           <FaArrowUp />
         </button>

@@ -245,3 +245,7 @@ body::before {
 .user-notification-bell {
   margin-left: auto;
 }
+.user-main--no-sidebar {
+  margin-left: 0 !important;
+  width: 100% !important;
+}

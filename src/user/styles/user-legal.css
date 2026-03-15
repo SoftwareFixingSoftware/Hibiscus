@@ -1,0 +1,80 @@
+/* ================================
+   USER LEGAL PAGES (Terms, Privacy, Cookie)
+   ================================ */
+
+.user-legal-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: var(--user-bg-card);
+  border: 1px solid var(--user-border);
+  border-radius: 16px;
+  box-shadow: var(--user-card-shadow);
+  color: var(--user-text-primary);
+  line-height: 1.6;
+}
+
+.user-legal-container h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: var(--user-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.user-legal-date {
+  color: var(--user-text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--user-border);
+}
+
+.user-legal-container h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 2rem 0 1rem 0;
+  color: var(--user-primary);
+}
+
+.user-legal-container h2:first-of-type {
+  margin-top: 0;
+}
+
+.user-legal-container p {
+  margin: 1rem 0;
+  color: var(--user-text-primary);
+}
+
+.user-legal-container ul,
+.user-legal-container ol {
+  margin: 0.5rem 0 1rem 1.5rem;
+  padding: 0;
+}
+
+.user-legal-container li {
+  margin-bottom: 0.5rem;
+  color: var(--user-text-primary);
+}
+
+.user-legal-container a {
+  color: var(--user-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.user-legal-container a:hover {
+  text-decoration: underline;
+  color: var(--user-primary-dark);
+}
+
+.user-legal-container strong {
+  color: var(--user-text-primary);
+  font-weight: 600;
+}
+
+/* Light theme adjustments */
+body.light-theme .user-legal-container {
+  background: var(--user-bg-light);
+  border-color: rgba(0, 0, 0, 0.1);
+}
