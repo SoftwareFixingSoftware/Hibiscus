@@ -69,7 +69,7 @@ const SeriesDetail = () => {
 
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching series details:', error);
+
       setLoading(false);
     }
   };
@@ -82,7 +82,7 @@ const SeriesDetail = () => {
       const data = res.content || res.data?.content || res.data || [];
       setSeasons(data);
     } catch (error) {
-      console.error('Error fetching seasons:', error);
+
     } finally {
       setSeasonsLoading(false);
     }
@@ -104,7 +104,7 @@ const SeriesDetail = () => {
       await SeasonService.deleteSeason(seasonId);
       fetchSeasons();
     } catch (error) {
-      console.error('Error deleting season:', error);
+
       alert('Failed to delete season');
     }
   };
@@ -132,7 +132,7 @@ const SeriesDetail = () => {
       await SeriesService.deleteSeries(id);
       navigate('/admin/series');
     } catch (error) {
-      console.error('Error deleting series:', error);
+
       alert('Failed to delete series');
     }
   };
@@ -141,7 +141,7 @@ const SeriesDetail = () => {
       await SeriesService.updateSeries(id, { isPublished: true });
       fetchSeriesDetails();
     } catch (error) {
-      console.error('Error publishing series:', error);
+
       alert('Failed to publish series');
     }
   };
@@ -150,7 +150,7 @@ const SeriesDetail = () => {
       await SeriesService.updateSeries(id, { isPublished: false });
       fetchSeriesDetails();
     } catch (error) {
-      console.error('Error unpublishing series:', error);
+
       alert('Failed to unpublish series');
     }
   };

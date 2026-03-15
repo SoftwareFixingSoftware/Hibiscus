@@ -38,7 +38,7 @@ const SupportCenterPage = () => {
         setSelectedTicketId(normalized[0].ticketId);
       }
     } catch (err) {
-      console.error('Failed to load tickets', err);
+
       setTicketsError('Failed to load tickets');
     } finally {
       setTicketsLoading(false);
@@ -77,7 +77,7 @@ const SupportCenterPage = () => {
       };
       setSelectedTicket(normalized);
     } catch (err) {
-      console.error('Failed to load ticket', err);
+
       setTicketError('Failed to load ticket details');
     } finally {
       setTicketLoading(false);
@@ -114,7 +114,7 @@ const SupportCenterPage = () => {
       setNewMessage('');
       await loadTickets();
     } catch (err) {
-      console.error('Failed to post message', err);
+
       alert('Failed to send message.');
     } finally {
       setPostingMessage(false);

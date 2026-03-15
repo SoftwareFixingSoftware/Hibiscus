@@ -57,8 +57,7 @@ export default function ForgotPassword() {
         setError(msg);
       }
     } catch (err) {
-      console.error(err);
-      setError('Unable to connect to server. Please try again.');
+       setError('Unable to connect to server. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -76,9 +75,7 @@ export default function ForgotPassword() {
         <div className="hib-form-wrapper">
           <div className="hib-form-header">
             <div className="hib-brand-logo">
-              <div className="hib-logo-icon">
-                <span className="hib-logo-text">H</span>
-              </div>
+              <img src="/logo.png" alt="Hibiscus" className="hib-logo-image" />
               <h1 className="hib-brand-title">Hibiscus</h1>
             </div>
             <h2 className="hib-form-title">Reset Your Password</h2>

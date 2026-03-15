@@ -86,7 +86,7 @@ const EpisodeManagement = () => {
       const data = unwrapResponse(res);
       setSeriesInfo(data || null);
     } catch (err) {
-      console.error('Error fetching series info:', err);
+
       setSeriesInfo(null);
     }
   };
@@ -140,7 +140,7 @@ const EpisodeManagement = () => {
       setTotalElements(rawTotalElements);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching episodes:', error);
+
       setLoading(false);
     }
   };
@@ -168,7 +168,7 @@ const EpisodeManagement = () => {
       const maxNumber = episodesList.length > 0 ? Math.max(...episodesList.map(e => e.episodeNumber || 0)) : 0;
       return maxNumber + 1;
     } catch (err) {
-      console.error('Error fetching next episode number', err);
+
       return 1;
     }
   };
@@ -200,7 +200,7 @@ const EpisodeManagement = () => {
       await EpisodeService.deleteEpisode(id);
       fetchEpisodes();
     } catch (error) {
-      console.error('Error deleting episode:', error);
+
       alert('Failed to delete episode');
     }
   };
@@ -210,7 +210,7 @@ const EpisodeManagement = () => {
       await EpisodeService.publishEpisode(id);
       fetchEpisodes();
     } catch (error) {
-      console.error('Error publishing episode:', error);
+
       alert('Failed to publish episode');
     }
   };
@@ -220,7 +220,7 @@ const EpisodeManagement = () => {
       await EpisodeService.unpublishEpisode(id);
       fetchEpisodes();
     } catch (error) {
-      console.error('Error unpublishing episode:', error);
+
       alert('Failed to unpublish episode');
     }
   };

@@ -62,7 +62,7 @@ const SeriesManagement = () => {
       setTotalElements(response.totalElements || content.length || 0);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching series:', error);
+
       setLoading(false);
     }
   };
@@ -90,7 +90,7 @@ const SeriesManagement = () => {
       await SeriesService.deleteSeries(id);
       fetchSeries();
     } catch (error) {
-      console.error('Error deleting series:', error);
+
       alert('Failed to delete series');
     }
   };

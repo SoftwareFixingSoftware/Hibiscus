@@ -29,7 +29,7 @@ const AdminPayments = () => {
       }
     } catch (err) {
       setError('Failed to load payments.');
-      console.error(err);
+
     } finally {
       setLoading(false);
     }
@@ -40,8 +40,7 @@ const AdminPayments = () => {
       const data = await AdminPaymentService.getPaymentStatistics();
       setStatistics(data || {});
     } catch (err) {
-      console.error('Failed to load payment statistics', err);
-    }
+     }
   };
 
   useEffect(() => {

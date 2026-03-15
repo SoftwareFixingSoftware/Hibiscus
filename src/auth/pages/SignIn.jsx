@@ -3,6 +3,7 @@ import AuthAvatar from '../components/AuthAvatar';
 import SocialAuth from '../components/SocialAuth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { FaEye, FaEyeSlash, FaExclamationCircle } from 'react-icons/fa';
 import '../styles/auth.css';
 import AuthService from '../services/AuthService';
 
@@ -25,16 +26,13 @@ export default function SignIn() {
 
   // compute preferred redirect target (priority: location.state.from -> query param -> sessionStorage)
   const getRedirectTarget = () => {
-    // 1) location.state.from (set by ProtectedRoute Navigate)
     const fromState = location.state?.from;
     if (fromState && fromState.pathname) {
       return fromState.pathname + (fromState.search || '');
     }
-    // 2) query param ?redirect=
     const params = new URLSearchParams(location.search);
     const q = params.get('redirect');
     if (q) return q;
-    // 3) sessionStorage (set by interceptor/route)
     const stored = sessionStorage.getItem('redirectAfterLogin');
     if (stored) return stored;
     return null;
@@ -43,13 +41,10 @@ export default function SignIn() {
   const validateLocalRedirect = (path) => {
     if (!path) return null;
     try {
-      // allow relative paths and absolute local paths only
       const url = new URL(path, window.location.origin);
       if (url.origin !== window.location.origin) return null;
-      // return pathname + search + hash
       return url.pathname + url.search + url.hash;
-    } catch (e) {
-      // if it's a simple relative path starting with '/'
+    } catch {
       if (path.startsWith('/')) return path;
       return null;
     }
@@ -94,15 +89,12 @@ export default function SignIn() {
 
     try {
       const response = await AuthService.login(email, password);
-      console.log('SignIn response:', response);
 
       let isAdmin = false;
       try {
         const verifyResponse = await AuthService.verify();
-        console.log('Verify response after signin:', verifyResponse);
         isAdmin = verifyResponse?.isAdmin || false;
-      } catch (verifyErr) {
-        console.warn('Could not verify user after signin:', verifyErr);
+      } catch {
         isAdmin = response?.isAdmin || false;
       }
 
@@ -111,11 +103,8 @@ export default function SignIn() {
       setTimeout(() => setAvatarState('walkAway'), 800);
 
       setTimeout(() => {
-        // decide where to go: prefer validated redirect target
         const candidate = getRedirectTarget();
         const safe = validateLocalRedirect(candidate);
-
-        // clear stored redirect (one-time use)
         sessionStorage.removeItem('redirectAfterLogin');
 
         if (safe) {
@@ -126,7 +115,6 @@ export default function SignIn() {
         }
       }, 1500);
     } catch (err) {
-      console.error('SignIn error:', err);
       const message = err?.message || (err?.data && err.data.message) || 'Network error. Please try again.';
       setError(message);
       setAvatarState('shake');
@@ -152,9 +140,7 @@ export default function SignIn() {
           <div className="hib-avatar-container">
             <div className="hib-brand-header">
               <div className="hib-brand-logo">
-                <div className="hib-logo-icon">
-                  <span className="hib-logo-text">H</span>
-                </div>
+                <img src="/logo.png" alt="Hibiscus" className="hib-logo-image" />
                 <h1 className="hib-brand-title">Hibiscus</h1>
               </div>
               <p className="hib-brand-subtitle">Secure authentication system</p>
@@ -222,8 +208,9 @@ export default function SignIn() {
                       onClick={() => setShowPassword(!showPassword)}
                       className="hib-password-toggle"
                       disabled={loading}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
-                      👁
+                      {showPassword ? <FaEyeSlash /> : <FaEye />}
                     </button>
                   </div>
                 </div>
@@ -246,7 +233,10 @@ export default function SignIn() {
                       exit={{ opacity: 0 }}
                       className="hib-alert-error"
                     >
-                      <p>{error}</p>
+                      <div className="hib-alert-content">
+                        <FaExclamationCircle className="hib-alert-icon" />
+                        <p>{error}</p>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>

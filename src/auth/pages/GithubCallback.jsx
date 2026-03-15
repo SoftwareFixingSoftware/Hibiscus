@@ -53,8 +53,7 @@ export default function GithubCallback() {
           navigate('/user', { replace: true });
         }
       } catch (error) {
-        console.error('GitHub callback error:', error);
-        navigate('/login');
+         navigate('/login');
       }
     };
 

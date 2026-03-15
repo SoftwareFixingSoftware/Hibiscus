@@ -25,7 +25,7 @@ const AdminFollowedSeries = () => {
       }
     } catch (err) {
       setError('Failed to load followed series.');
-      console.error(err);
+
     } finally {
       setLoading(false);
     }
@@ -36,7 +36,7 @@ const AdminFollowedSeries = () => {
       const data = await AdminFollowedSeriesService.getFollowerStatistics();
       setStats(data || []);
     } catch (err) {
-      console.error('Failed to load follower statistics', err);
+
     }
   };
 
@@ -45,7 +45,7 @@ const AdminFollowedSeries = () => {
       const data = await AdminFollowedSeriesService.getTopFollowedSeries(10);
       setTopSeries(data || []);
     } catch (err) {
-      console.error('Failed to load top followed series', err);
+
     }
   };
 

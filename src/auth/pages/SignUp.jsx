@@ -3,6 +3,7 @@ import AuthAvatar from '../components/AuthAvatar';
 import SocialAuth from '../components/SocialAuth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
+import { FaEye, FaEyeSlash, FaExclamationCircle, FaCheckCircle, FaCheck } from 'react-icons/fa';
 import '../styles/auth.css';
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:9019";
@@ -153,9 +154,8 @@ export default function SignUp() {
       }
     } catch (err) {
       if (err.name === 'AbortError') {
-        console.log('Signup request aborted');
+        // ignore
       } else {
-        console.error(err);
         setError('Network error. Please try again.');
         setAvatarState('shake');
         setAvatarEmotion('sad');
@@ -175,9 +175,7 @@ export default function SignUp() {
             <div className="hib-form-wrapper">
               <div className="hib-form-header">
                 <div className="hib-brand-logo" aria-hidden>
-                  <div className="hib-logo-icon">
-                    <span className="hib-logo-text">H</span>
-                  </div>
+                  <img src="/logo.png" alt="Hibiscus" className="hib-logo-image" />
                   <h1 className="hib-brand-title">Hibiscus</h1>
                 </div>
                 <h2 id="signup-heading" className="hib-form-title">Create Account</h2>
@@ -266,16 +264,7 @@ export default function SignUp() {
                         disabled={loading}
                         aria-label={showPassword.password ? 'Hide password' : 'Show password'}
                       >
-                        <svg className="hib-eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                          {showPassword.password ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                          ) : (
-                            <>
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </>
-                          )}
-                        </svg>
+                        {showPassword.password ? <FaEyeSlash /> : <FaEye />}
                       </button>
                     </div>
                   </div>
@@ -306,16 +295,7 @@ export default function SignUp() {
                         disabled={loading}
                         aria-label={showPassword.confirm ? 'Hide confirm password' : 'Show confirm password'}
                       >
-                        <svg className="hib-eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                          {showPassword.confirm ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                          ) : (
-                            <>
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </>
-                          )}
-                        </svg>
+                        {showPassword.confirm ? <FaEyeSlash /> : <FaEye />}
                       </button>
                     </div>
                   </div>
@@ -332,9 +312,7 @@ export default function SignUp() {
                   {error && (
                     <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="hib-alert-error" id="form-error" role="alert" aria-live="assertive">
                       <div className="hib-alert-content">
-                        <svg className="hib-alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                        <FaExclamationCircle className="hib-alert-icon" />
                         <p>{error}</p>
                       </div>
                     </motion.div>
@@ -343,9 +321,7 @@ export default function SignUp() {
                   {success && (
                     <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="hib-alert-success" role="status" aria-live="polite">
                       <div className="hib-alert-content">
-                        <svg className="hib-alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                        <FaCheckCircle className="hib-alert-icon" />
                         <p>{success}</p>
                         <p className="hib-text-sm">You will be redirected to <Link to="/login">login</Link> shortly.</p>
                       </div>
@@ -391,21 +367,15 @@ export default function SignUp() {
 
               <ul className="hib-benefits-list">
                 <li className="hib-benefit-item">
-                  <svg className="hib-benefit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
-                  </svg>
+                  <FaCheck className="hib-benefit-icon" />
                   Secure authentication
                 </li>
                 <li className="hib-benefit-item">
-                  <svg className="hib-benefit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
-                  </svg>
+                  <FaCheck className="hib-benefit-icon" />
                   Email verification
                 </li>
                 <li className="hib-benefit-item">
-                  <svg className="hib-benefit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
-                  </svg>
+                  <FaCheck className="hib-benefit-icon" />
                   Social login options
                 </li>
               </ul>

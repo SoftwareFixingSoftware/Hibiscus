@@ -37,8 +37,7 @@ const SupportModal = ({ transaction, onClose, onSubmit }) => {
       setSubmitting(false);
       onClose();
     } catch (err) {
-      console.error('Support request failed', err);
-      setSubmitting(false);
+       setSubmitting(false);
       alert(err?.response?.data?.message || err?.message || 'Failed to submit support request. Try again later.');
     }
   };
@@ -127,8 +126,7 @@ const BuyCoinsPage = () => {
       }));
       setHistory(normalized);
     } catch (err) {
-      console.error('Failed to load purchase history', err);
-      setError('Failed to load purchase history');
+       setError('Failed to load purchase history');
     } finally {
       setHistoryLoading(false);
     }
@@ -144,8 +142,7 @@ const BuyCoinsPage = () => {
         selectedPackage.packageId,
         idempotencyKey
       );
-      console.log('PayPal order created:', paypalOrderId);
-      window.location.href = approvalUrl;
+       window.location.href = approvalUrl;
     } catch (err) {
       setError(err.message || 'Failed to initiate payment');
       setLoading(false);
@@ -179,8 +176,7 @@ const BuyCoinsPage = () => {
       alert('Support request submitted. Our team will contact you soon.');
       await loadHistory();
     } catch (err) {
-      console.error('Failed to submit support request', err);
-      throw err;
+       throw err;
     }
   };
 

@@ -7,8 +7,7 @@ const CoinPackageService = {
    * @returns {Promise}
    */
   createPackage: (packageData) => {
-    console.log('Creating coin package:', packageData);
-    // If api.js already prefixes with /api, just use '/secure/packages'
+     // If api.js already prefixes with /api, just use '/secure/packages'
     return api.post('/secure/packages', packageData);
   },
 
@@ -18,8 +17,7 @@ const CoinPackageService = {
    * @returns {Promise}
    */
   getAllPackages: async () => {
-    console.log('Fetching all coin packages');
-    const response = await api.get('/secure/packages');
+     const response = await api.get('/secure/packages');
     return response;
   },
 

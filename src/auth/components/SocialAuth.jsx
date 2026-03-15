@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/auth.css';
 
-const API_BASE = "http://localhost:9019";
+// Use environment variable for API base URL
+const API_BASE = process.env.REACT_APP_API_BASE;
 
 export default function SocialAuth({ disabled = false, type = 'signin', onError = () => {} }) {
   const navigate = useNavigate();
@@ -70,7 +71,8 @@ export default function SocialAuth({ disabled = false, type = 'signin', onError 
   const handleGithubLogin = () => {
     if (disabled) return;
 
-    const clientId = "Ov23liBQxrfZlrAxa7HN";
+    // Use environment variable for GitHub client ID
+    const clientId = process.env.REACT_APP_GITHUB_CLIENT_ID;
     const redirectUri = `${window.location.origin}/auth/github/callback`;
 
     // include redirect in state so backend can return/forward it after OAuth
@@ -88,7 +90,8 @@ export default function SocialAuth({ disabled = false, type = 'signin', onError 
     if (disabled || !googleLoaded) return;
 
     window.google.accounts.id.initialize({
-      client_id: "366280838312-6uobsfi97m0556ustv7t6qko6isqeo9r.apps.googleusercontent.com",
+      // Use environment variable for Google client ID
+      client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
       callback: async (response) => {
         try {
           const res = await fetch(`${API_BASE}/api/auth/social`, {
@@ -127,8 +130,7 @@ export default function SocialAuth({ disabled = false, type = 'signin', onError 
           // brief delay for UX (preserve existing behavior)
           setTimeout(() => finishRedirect(isAdmin), 500);
         } catch (err) {
-          console.error('Google login error:', err);
-          onError('error', 'Failed to connect to server');
+           onError('error', 'Failed to connect to server');
         }
       },
       context: type === 'signin' ? 'signin' : 'signup'

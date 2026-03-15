@@ -7,8 +7,7 @@ const CountryService = {
    * @returns {Promise}
    */
   createCountry: (countryData) => {
-    console.log('Creating country:', countryData);
-    return api.post('/secure/countries', countryData);
+     return api.post('/secure/countries', countryData);
   },
 
   /**
@@ -17,8 +16,7 @@ const CountryService = {
    */
   getAllCountries: async () => {
     const response = await api.get('/secure/countries');
-    console.log('Fetched countries:', response.data);
-    return response;
+     return response;
   },
 
   // Additional methods if needed

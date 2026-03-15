@@ -76,7 +76,7 @@ const CoinPackages = ({ onBuy }) => {
         await refreshBalance();
       }
     } catch (err) {
-      console.error('Purchase failed or was cancelled', err);
+
     }
   };
 

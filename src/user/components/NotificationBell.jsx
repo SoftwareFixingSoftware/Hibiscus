@@ -18,7 +18,7 @@ const NotificationBell = () => {
       const res = await NotificationService.getUnreadCount();
       setUnreadCount(res.data);
     } catch (err) {
-      console.error('Failed to fetch unread count', err);
+
     }
   };
 

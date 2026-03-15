@@ -25,8 +25,7 @@ const AdminSeriesReviews = () => {
       }
     } catch (err) {
       setError('Failed to load reviews.');
-      console.error(err);
-    } finally {
+     } finally {
       setLoading(false);
     }
   };
@@ -36,8 +35,7 @@ const AdminSeriesReviews = () => {
       const data = await AdminSeriesReviewService.getReviewStatistics();
       setStats(data || {});
     } catch (err) {
-      console.error('Failed to load review statistics', err);
-    }
+     }
   };
 
   useEffect(() => {

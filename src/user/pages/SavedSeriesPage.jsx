@@ -59,7 +59,7 @@ const SavedSeriesPage = () => {
             );
           } catch (followErr) {
             if (followErr?.response?.status && followErr.response.status !== 404) {
-              console.warn(`Failed to get follow status for ${seriesId}`, followErr);
+
             }
           }
 
@@ -75,7 +75,7 @@ const SavedSeriesPage = () => {
           };
           return canonical;
         } catch (err) {
-          console.warn(`Failed to fetch full series for ${seriesId}`, err);
+
           return null;
         }
       });
@@ -88,7 +88,7 @@ const SavedSeriesPage = () => {
         alert('Please log in to view your saved series.');
         navigate('/login');
       } else {
-        console.error('Failed to load saved series', err);
+
         setError('Failed to load saved series. Please try again.');
       }
     } finally {
@@ -101,7 +101,7 @@ const SavedSeriesPage = () => {
       await UserSavedSeriesService.removeSavedSeries(seriesId);
       setSavedSeries(prev => prev.filter(s => (s.id || s.seriesId) !== seriesId));
     } catch (err) {
-      console.error('Failed to remove saved series', err);
+
       alert('Failed to remove series. Please try again.');
     }
   };
@@ -165,7 +165,7 @@ const SavedSeriesPage = () => {
         );
       }
     } catch (err) {
-      console.error('Failed to update notification for', seriesId, err);
+
       alert('Could not update notification preference.');
       setSavedSeries(prev =>
         prev.map(s =>

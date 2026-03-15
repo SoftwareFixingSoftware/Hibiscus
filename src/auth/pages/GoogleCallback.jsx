@@ -53,8 +53,7 @@ export default function GoogleCallback() {
               navigate('/login');
             }
           } catch (err) {
-            console.error(err);
-            navigate('/login');
+             navigate('/login');
           }
         }
       });

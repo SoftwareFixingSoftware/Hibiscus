@@ -19,7 +19,6 @@ const AdminPaymentDetail = () => {
         setPayment(data);
       } catch (err) {
         setError('Failed to load payment details.');
-        console.error(err);
       } finally {
         setLoading(false);
       }

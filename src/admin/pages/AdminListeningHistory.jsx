@@ -26,7 +26,7 @@ const AdminListeningHistory = () => {
       }
     } catch (err) {
       setError('Failed to load listening history.');
-      console.error(err);
+
     } finally {
       setLoading(false);
     }
@@ -37,7 +37,7 @@ const AdminListeningHistory = () => {
       const data = await AdminListeningHistoryService.getStatistics();
       setStats(data || {});
     } catch (err) {
-      console.error('Failed to load listening statistics', err);
+
     }
   };
 
@@ -46,7 +46,7 @@ const AdminListeningHistory = () => {
       const data = await AdminListeningHistoryService.getTopEpisodes(10);
       setTopEpisodes(data || []);
     } catch (err) {
-      console.error('Failed to load top episodes', err);
+
     }
   };
 
@@ -55,7 +55,7 @@ const AdminListeningHistory = () => {
       const data = await AdminListeningHistoryService.getTopSeries(10);
       setTopSeries(data || []);
     } catch (err) {
-      console.error('Failed to load top series', err);
+
     }
   };
 

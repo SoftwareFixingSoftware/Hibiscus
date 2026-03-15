@@ -111,8 +111,7 @@ class DashboardService {
 
       publishedEpisodes = publishedCount;
     } catch (error) {
-      console.error('Failed to aggregate episodes:', error);
-      // Keep them null – will show '—' in UI
+       // Keep them null – will show '—' in UI
     }
 
     return {

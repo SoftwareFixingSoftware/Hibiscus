@@ -33,7 +33,7 @@ function loadFromStorage() {
       });
     }
   } catch (e) {
-    console.warn('Failed to load pending history from storage', e);
+
   }
 }
 
@@ -50,7 +50,7 @@ function saveToStorage() {
     }));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
   } catch (e) {
-    console.warn('Failed to save pending history to storage', e);
+
   }
 }
 
@@ -70,7 +70,7 @@ async function sendProgress(entry) {
     }
     return true;
   } catch (err) {
-    console.warn(`Failed to send progress for episode ${episodeId}`, err);
+
     return false;
   }
 }
@@ -86,7 +86,7 @@ async function sendComplete(entry) {
     }
     return true;
   } catch (err) {
-    console.warn(`Failed to mark completed for episode ${episodeId}`, err);
+
     return false;
   }
 }
@@ -237,8 +237,7 @@ function ensureFlushTimer() {
     try {
       await flush();
     } catch (err) {
-      console.warn('Periodic flush error', err);
-    }
+     }
     if (!isShuttingDown) {
       flushTimer = setTimeout(tick, flushInterval);
     }

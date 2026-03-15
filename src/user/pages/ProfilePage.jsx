@@ -41,8 +41,7 @@ const ProfilePage = () => {
       setCountries(normalized.filter(c => c.code || c.name));
 
     } catch (err) {
-      console.error('Failed to load profile or countries', err);
-      if (err.response?.status === 401) {
+       if (err.response?.status === 401) {
         localStorage.clear();
         window.location.href = '/login';
         return;
@@ -60,7 +59,7 @@ const ProfilePage = () => {
       const updated = await UserService.updateProfile(payload);
       setUser(updated);
     } catch (err) {
-      console.error('Failed to save profile', err);
+
       if (err.response?.status === 401) {
         localStorage.clear();
         window.location.href = '/login';

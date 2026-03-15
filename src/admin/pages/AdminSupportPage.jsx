@@ -29,8 +29,7 @@ const SupportCenterPage = () => {
       const ticketsArray = Array.isArray(resp) ? resp : [];
       setTickets(ticketsArray);
     } catch (err) {
-      console.error('Failed to load tickets', err);
-      setTicketError('Failed to load tickets');
+       setTicketError('Failed to load tickets');
     } finally {
       setLoadingTickets(false);
     }
@@ -53,8 +52,7 @@ const SupportCenterPage = () => {
       setSelectedTicket(ticket);
       setNewStatus(ticket.status);
     } catch (err) {
-      console.error('Failed to load ticket', err);
-      setTicketError('Failed to load ticket details');
+       setTicketError('Failed to load ticket details');
     } finally {
       setTicketLoading(false);
     }

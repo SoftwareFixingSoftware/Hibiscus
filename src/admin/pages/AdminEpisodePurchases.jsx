@@ -30,8 +30,7 @@ const AdminEpisodePurchases = () => {
       }
     } catch (err) {
       setError('Failed to load episode purchases.');
-      console.error(err);
-    } finally {
+     } finally {
       setLoading(false);
     }
   };
@@ -41,8 +40,7 @@ const AdminEpisodePurchases = () => {
       const data = await AdminEpisodePurchaseService.getPurchaseStatistics();
       setStatistics(data || {});
     } catch (err) {
-      console.error('Failed to load purchase statistics', err);
-    }
+     }
   };
 
   const fetchSeriesAggregates = async () => {
@@ -50,8 +48,7 @@ const AdminEpisodePurchases = () => {
       const data = await AdminEpisodePurchaseService.getSeriesAggregates();
       setSeriesAggregates(data || []);
     } catch (err) {
-      console.error('Failed to load series aggregates', err);
-    }
+     }
   };
 
   useEffect(() => {

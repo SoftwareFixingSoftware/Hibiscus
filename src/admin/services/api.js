@@ -38,13 +38,9 @@ api.interceptors.response.use(
             window.location.href = `/login?redirect=${encoded}`;
           }
         }
-      } else {
-        // optional: log non-401 errors for debugging
-        console.error('API error', status, error?.response?.data || error.message);
-      }
+      } 
     } catch (ex) {
-      console.error('Error in response interceptor', ex);
-    }
+     }
 
     return Promise.reject(error);
   }

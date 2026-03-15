@@ -27,8 +27,7 @@ const NotificationsPage = () => {
       setTotalPages(data.totalPages || 1);
       setTotalElements(data.totalElements || 0);
     } catch (err) {
-      console.error('Failed to load notifications', err);
-      setError('Could not load notifications. Please try again.');
+       setError('Could not load notifications. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -41,8 +40,7 @@ const NotificationsPage = () => {
         prev.map(n => (n.id === id ? { ...n, read: true } : n))
       );
     } catch (err) {
-      console.error('Failed to mark as read', err);
-    }
+     }
   };
 
   const handleMarkAllAsRead = async () => {
@@ -50,8 +48,7 @@ const NotificationsPage = () => {
       await NotificationService.markAllAsRead();
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     } catch (err) {
-      console.error('Failed to mark all as read', err);
-    }
+     }
   };
 
   const handleDelete = async (id) => {
@@ -60,8 +57,7 @@ const NotificationsPage = () => {
       await NotificationService.deleteNotification(id);
       setNotifications(prev => prev.filter(n => n.id !== id));
     } catch (err) {
-      console.error('Failed to delete notification', err);
-    }
+     }
   };
 
   const handleNotificationClick = async (notification) => {
@@ -75,8 +71,7 @@ const NotificationsPage = () => {
           prev.map(n => (n.id === notification.id ? { ...n, read: true } : n))
         );
       } catch (err) {
-        console.error('Failed to mark as read on open', err);
-      }
+       }
     }
 
     if (seriesId && episodeId) {
@@ -88,8 +83,7 @@ const NotificationsPage = () => {
     } else if (episodeId) {
       navigate(`/user/episode/${episodeId}`);
     } else {
-      console.warn('Notification has no seriesId or episodeId', notification);
-    }
+     }
   };
 
   const formatTime = (dateString) => {

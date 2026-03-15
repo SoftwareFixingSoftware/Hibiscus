@@ -24,8 +24,7 @@ api.interceptors.response.use(
       const status = err?.response?.status;
       // if not an HTTP 401, just reject
       if (status !== 401) {
-        console.error('API error', status, err?.response?.data || err.message);
-        return Promise.reject(err);
+         return Promise.reject(err);
       }
 
       // Avoid redirect loop: if already on /login, do nothing special
@@ -48,7 +47,7 @@ api.interceptors.response.use(
       const encoded = encodeURIComponent(redirectTo);
       window.location.href = `/login?redirect=${encoded}`;
     } catch (ex) {
-      console.error('Error handling 401 in interceptor', ex);
+
     }
     return Promise.reject(err);
   }

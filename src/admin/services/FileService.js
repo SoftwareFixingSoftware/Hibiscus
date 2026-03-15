@@ -52,7 +52,7 @@ const FileService = {
       
       return path;
     } catch (e) {
-      console.error('Error parsing URL:', e);
+
       return null;
     }
   },

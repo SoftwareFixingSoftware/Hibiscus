@@ -112,7 +112,7 @@ const SeriesDetailPage = () => {
           if (err?.response?.status === 401 || err?.response?.status === 403) {
             setIsSaved(false);
           } else {
-            console.warn('Failed to check saved status', err);
+
           }
         }
       };
@@ -137,7 +137,7 @@ const SeriesDetailPage = () => {
             setIsFollowing(false);
             setNotificationEnabled(false);
           } else {
-            console.warn('Failed to fetch follow status', err);
+
           }
         } finally {
           if (!cancelled) setAuthChecked(true);
@@ -203,7 +203,7 @@ const SeriesDetailPage = () => {
         if (allReviews.reason?.response?.status === 401) {
           setReviewError('Please log in to see reviews.');
         } else {
-          console.warn('Failed to fetch all reviews', allReviews.reason);
+
         }
       }
 
@@ -226,7 +226,7 @@ const SeriesDetailPage = () => {
         } else if (myReviewRes.reason?.response?.status === 401) {
           setMyReview(null);
         } else {
-          console.warn('Failed to fetch my review', myReviewRes.reason);
+
         }
       }
 
@@ -334,7 +334,7 @@ const SeriesDetailPage = () => {
       if (err.response?.status === 401 || err.response?.status === 403) {
         requireLogin();
       } else {
-        console.error('Toggle follow failed', err);
+
         alert('Failed to update follow status. Please try again.');
       }
     } finally {
@@ -373,7 +373,7 @@ const SeriesDetailPage = () => {
           setNotificationEnabled(serverFollowEnabled);
         }
       } catch (err) {
-        console.error('Failed to follow+enable notifications', err);
+
         alert('Could not enable notifications. Please try again.');
         setIsFollowing(previousFollowing);
         setNotificationEnabled(previousEnabled);
@@ -396,7 +396,7 @@ const SeriesDetailPage = () => {
       );
       setNotificationEnabled(serverEnabled);
     } catch (err) {
-      console.error('Failed to update notification', err);
+
       alert('Could not update notification preference.');
       setNotificationEnabled(previousEnabled);
     } finally {
@@ -419,7 +419,7 @@ const SeriesDetailPage = () => {
         setIsSaved(true);
       }
     } catch (err) {
-      console.error('Failed to toggle save', err);
+
       alert('Could not update your favorites. Please try again.');
       setIsSaved(previous);
     } finally {
@@ -487,7 +487,7 @@ const SeriesDetailPage = () => {
       handleCloseReviewForm();
       await loadSeriesAndEpisodes(series.id);
     } catch (err) {
-      console.error('Failed to save review', err);
+
       if (err.response?.status === 401 || err.response?.status === 403) {
         requireLogin();
       } else {
@@ -518,7 +518,7 @@ const SeriesDetailPage = () => {
       setReviews(normalizedAll);
       await loadSeriesAndEpisodes(series.id);
     } catch (err) {
-      console.error('Failed to delete review', err);
+
       alert('Could not delete review.');
     }
   };
@@ -533,7 +533,7 @@ const SeriesDetailPage = () => {
       if (res && typeof res.hasAccess === 'boolean') return res.hasAccess;
       return false;
     } catch (err) {
-      console.warn('checkAccess error', err);
+
       return false;
     }
   };
@@ -563,7 +563,7 @@ const SeriesDetailPage = () => {
         return false;
       }
     } catch (err) {
-      console.error('purchaseWithCoins', err);
+
       const errMsg = err?.response?.data || err.message || 'unknown error';
       alert('Coin purchase failed: ' + (typeof errMsg === 'string' ? errMsg : JSON.stringify(errMsg)));
       return false;
@@ -588,7 +588,7 @@ const SeriesDetailPage = () => {
         return false;
       }
     } catch (err) {
-      console.error('purchaseWithMoney', err);
+
       alert('Payment initiation failed: ' + (err.message || 'unknown error'));
       return false;
     }
@@ -634,7 +634,6 @@ const SeriesDetailPage = () => {
 
       setSelectedEpisode(mapped);
     } catch (err) {
-      console.error('playEpisode', err);
       alert('Could not play episode — check console.');
     }
   };
