@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaExclamationCircle, FaCheckCircle } from 'react-icons/fa'; // removed FaCheck
 import '../styles/auth.css';
 
+
 const API_BASE = "http://localhost:9019";
 
 export default function SignUpAdmin() {
@@ -258,8 +259,7 @@ export default function SignUpAdmin() {
                         onChange={(e) => setForm({ ...form, password: e.target.value })}
                         onFocus={() => handleFocus('password')}
                         onBlur={handleBlur}
-                        placeholder="••••••••"
-                        className="hib-form-input"
+                         className="hib-form-input"
                         disabled={loading}
                         required
                         autoComplete="new-password"
@@ -289,8 +289,7 @@ export default function SignUpAdmin() {
                         onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
                         onFocus={() => handleFocus('confirmPassword')}
                         onBlur={handleBlur}
-                        placeholder="••••••••"
-                        className="hib-form-input"
+                         className="hib-form-input"
                         disabled={loading}
                         required
                         autoComplete="new-password"

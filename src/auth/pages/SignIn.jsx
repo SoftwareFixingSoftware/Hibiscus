@@ -199,8 +199,7 @@ export default function SignIn() {
                       onChange={(e) => setPassword(e.target.value)}
                       onFocus={handlePasswordFocus}
                       onBlur={handlePasswordBlur}
-                      placeholder="••••••••"
-                      className="hib-form-input"
+                       className="hib-form-input"
                       disabled={loading}
                     />
                     <button

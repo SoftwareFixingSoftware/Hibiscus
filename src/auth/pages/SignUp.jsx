@@ -250,8 +250,7 @@ export default function SignUp() {
                         onChange={(e) => setForm({ ...form, password: e.target.value })}
                         onFocus={() => handleFocus('password')}
                         onBlur={handleBlur}
-                        placeholder="••••••••"
-                        className="hib-form-input"
+                         className="hib-form-input"
                         disabled={loading}
                         required
                         autoComplete="new-password"
@@ -281,8 +280,7 @@ export default function SignUp() {
                         onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
                         onFocus={() => handleFocus('confirmPassword')}
                         onBlur={handleBlur}
-                        placeholder="••••••••"
-                        className="hib-form-input"
+                         className="hib-form-input"
                         disabled={loading}
                         required
                         autoComplete="new-password"

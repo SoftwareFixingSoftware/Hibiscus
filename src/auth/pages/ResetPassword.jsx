@@ -146,8 +146,7 @@ export default function ResetPassword() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onBlur={() => validatePassword()}
-                  placeholder="••••••••"
-                  className="hib-form-input"
+                   className="hib-form-input"
                   disabled={loading}
                   required
                 />
@@ -174,8 +173,7 @@ export default function ResetPassword() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   onBlur={() => validatePassword()}
-                  placeholder="••••••••"
-                  className="hib-form-input"
+                   className="hib-form-input"
                   disabled={loading}
                   required
                 />
