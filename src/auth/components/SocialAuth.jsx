@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/auth.css';
 
 const API_BASE = "http://localhost:9019";
 
 export default function SocialAuth({ disabled = false, type = 'signin', onError = () => {} }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [googleLoaded, setGoogleLoaded] = useState(false);
 
   useEffect(() => {
@@ -23,21 +24,63 @@ export default function SocialAuth({ disabled = false, type = 'signin', onError 
     document.body.appendChild(script);
 
     return () => {
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
+      if (script.parentNode) script.parentNode.removeChild(script);
     };
   }, []);
 
+  // Determine redirect candidate (priority: location.state.from -> query param -> sessionStorage)
+  const getRedirectTarget = () => {
+    const fromState = location.state?.from;
+    if (fromState && fromState.pathname) return fromState.pathname + (fromState.search || '');
+    const params = new URLSearchParams(location.search);
+    const q = params.get('redirect');
+    if (q) return q;
+    const stored = sessionStorage.getItem('redirectAfterLogin');
+    if (stored) return stored;
+    return null;
+  };
+
+  // Validate that redirect is same-origin and returns only a path + search + hash
+  const validateLocalRedirect = (path) => {
+    if (!path) return null;
+    try {
+      const url = new URL(path, window.location.origin);
+      if (url.origin !== window.location.origin) return null;
+      return url.pathname + url.search + url.hash;
+    } catch (e) {
+      if (path.startsWith('/')) return path;
+      return null;
+    }
+  };
+
+  const finishRedirect = (isAdmin = false) => {
+    const candidate = getRedirectTarget();
+    const safe = validateLocalRedirect(candidate);
+    // one-time use
+    sessionStorage.removeItem('redirectAfterLogin');
+
+    if (safe) {
+      navigate(safe, { replace: true });
+    } else {
+      if (isAdmin) navigate('/admin', { replace: true });
+      else navigate('/user', { replace: true });
+    }
+  };
+
   const handleGithubLogin = () => {
     if (disabled) return;
-    
+
     const clientId = "Ov23liBQxrfZlrAxa7HN";
-    const redirectUri = encodeURIComponent(`${window.location.origin}/auth/github/callback`);
+    const redirectUri = `${window.location.origin}/auth/github/callback`;
+
+    // include redirect in state so backend can return/forward it after OAuth
+    const target = getRedirectTarget() || '/user';
+    const encodedState = encodeURIComponent(target);
+
     const scope = encodeURIComponent("user:email");
-    
-    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&prompt=consent`;
-    
+    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&state=${encodedState}&prompt=consent`;
+
+    // Navigate browser to GitHub oauth endpoint
     window.location.href = githubAuthUrl;
   };
 
@@ -52,40 +95,37 @@ export default function SocialAuth({ disabled = false, type = 'signin', onError 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ 
-              provider: 'google', 
-              idToken: response.credential 
+            body: JSON.stringify({
+              provider: 'google',
+              idToken: response.credential
             })
           });
 
           if (!res.ok) {
-            const error = await res.json();
+            const error = await res.json().catch(() => ({}));
             onError('error', error.message || 'Google login failed');
             return;
           }
 
+          // verify session and get user data
           const verifyRes = await fetch(`${API_BASE}/api/auth/verify`, {
             credentials: 'include'
           });
 
           if (!verifyRes.ok) {
-            navigate('/user');
+            // If verify fails, still try to redirect to a safe default
+            onError('success', 'Logged in successfully (could not verify additional data).');
+            finishRedirect(false);
             return;
           }
 
           const userData = await verifyRes.json();
-          const isAdmin = userData?.isAdmin || false;
+          const isAdmin = Boolean(userData?.isAdmin);
 
           onError('success', 'Logged in successfully!');
-          
-          setTimeout(() => {
-            if (isAdmin) {
-              navigate('/admin', { replace: true });
-            } else {
-              navigate('/user', { replace: true });
-            }
-          }, 500);
 
+          // brief delay for UX (preserve existing behavior)
+          setTimeout(() => finishRedirect(isAdmin), 500);
         } catch (err) {
           console.error('Google login error:', err);
           onError('error', 'Failed to connect to server');
@@ -95,13 +135,14 @@ export default function SocialAuth({ disabled = false, type = 'signin', onError 
     });
 
     window.google.accounts.id.prompt((notification) => {
+      // if the credential prompt isn't displayed we render a button fallback (keeps current behavior)
       if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
         const googleButton = document.getElementById('hib-googleButton');
         if (googleButton) {
           window.google.accounts.id.renderButton(
             googleButton,
-            { 
-              theme: 'outline', 
+            {
+              theme: 'outline',
               size: 'large',
               width: 280,
               text: type === 'signin' ? 'signin_with' : 'signup_with'
@@ -114,8 +155,8 @@ export default function SocialAuth({ disabled = false, type = 'signin', onError 
 
   return (
     <div className="hib-social-buttons">
-      <motion.button 
-        type="button" 
+      <motion.button
+        type="button"
         onClick={handleGithubLogin}
         whileHover={!disabled ? { scale: 1.02 } : {}}
         whileTap={!disabled ? { scale: 0.98 } : {}}
@@ -129,8 +170,8 @@ export default function SocialAuth({ disabled = false, type = 'signin', onError 
       </motion.button>
 
       <div id="hib-googleButton" className="hib-google-button-wrapper">
-        <motion.button 
-          type="button" 
+        <motion.button
+          type="button"
           onClick={handleGoogleLogin}
           whileHover={!disabled ? { scale: 1.02 } : {}}
           whileTap={!disabled ? { scale: 0.98 } : {}}

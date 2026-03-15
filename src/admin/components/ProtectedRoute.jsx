@@ -1,4 +1,4 @@
-// src/admin/components/ProtectedRoute.js
+// src/routes/ProtectedRoute.jsx
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
@@ -13,56 +13,34 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
   const location = useLocation();
 
   useEffect(() => {
+    let mounted = true;
+
     const verifyAuth = async () => {
       setLoading(true);
-      console.log('ProtectedRoute - Verifying auth for path:', location.pathname);
-
       try {
-        // This endpoint should work with cookies (withCredentials: true)
-        const response = await api.get('/auth/verify');
-        
-        console.log('ProtectedRoute - Verify response:', response);
-        
-        const { username, email, role, isAdmin } = response || {};
-        
-        // Store user info
-        if (username) localStorage.setItem('username', username);
-        if (email) localStorage.setItem('userEmail', email);
-        if (role) localStorage.setItem('userRole', role);
-        if (isAdmin !== undefined) {
-          localStorage.setItem('isAdmin', String(isAdmin));
-        }
-        
+        // api returns response.data, so 'res' is the payload
+        const res = await api.get('/auth/verify');
+        if (!mounted) return;
+
+        const isAdmin = Boolean(res?.isAdmin);
         setAuthState({
           isAuthenticated: true,
-          isAdmin: Boolean(isAdmin)
+          isAdmin
         });
-        
       } catch (error) {
-        console.error('ProtectedRoute - Auth verification failed:', error);
-        
-        // Check if we have stored user data as fallback
-        const hasUserData = localStorage.getItem('username') || localStorage.getItem('isAdmin');
-        
-        if (hasUserData) {
-          console.log('ProtectedRoute - Using stored user data as fallback');
-          setAuthState({
-            isAuthenticated: true,
-            isAdmin: localStorage.getItem('isAdmin') === 'true'
-          });
-        } else {
-          setAuthState({
-            isAuthenticated: false,
-            isAdmin: false
-          });
-        }
+        if (!mounted) return;
+        setAuthState({
+          isAuthenticated: false,
+          isAdmin: false
+        });
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
     verifyAuth();
-  }, [location.pathname]);
+    return () => { mounted = false; };
+  }, [location.pathname, location.search]);
 
   if (loading) {
     return (
@@ -74,16 +52,18 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
   }
 
   if (!authState.isAuthenticated) {
-    console.log('ProtectedRoute - Not authenticated, redirecting to login');
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    // Save attempted location and redirect to login with redirect query
+    const attempted = location.pathname + location.search;
+    sessionStorage.setItem('redirectAfterLogin', attempted);
+    return <Navigate to={`/login?redirect=${encodeURIComponent(attempted)}`} replace />;
   }
 
   if (adminOnly && !authState.isAdmin) {
-    console.log('ProtectedRoute - Not admin, redirecting to home');
+    // Authenticated but not an admin — don't expose admin content.
+    // Redirect to home (or change to '/user' if desired).
     return <Navigate to="/" replace />;
   }
 
-  console.log('ProtectedRoute - Rendering protected content');
   return children;
 };
 

@@ -6,29 +6,46 @@ const API_BASE_URL = 'http://localhost:9019/api';
 const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
+  timeout: 25000,
+  headers: {
+    Accept: 'application/json',
+    'Content-Type': 'application/json'
+  }
 });
 
-// request logger (optional but useful)
-api.interceptors.request.use((cfg) => {
-  console.log('➡️ HTTP', cfg.method?.toUpperCase(), cfg.baseURL + cfg.url, cfg.params || '');
-  return cfg;
-}, (err) => Promise.reject(err));
+api.interceptors.request.use(
+  (cfg) => cfg,
+  (err) => Promise.reject(err)
+);
 
 api.interceptors.response.use(
-  (response) => response.data, // keep unwrapping body (your UserService.request expects this)
+  (response) => response.data,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('username');
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('isAdmin');
+    try {
+      const status = error?.response?.status;
+      const requestUrl = error?.config?.url || '';
 
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
+      // If 401, and we're not already on login page, save redirect and send user to login
+      if (status === 401) {
+        const currentPath = window.location.pathname + window.location.search;
+
+        // Avoid redirect loop when already on login page
+        if (!window.location.pathname.startsWith('/login')) {
+          // Avoid redirecting for auth endpoints themselves (adjust endpoints as needed)
+          if (!requestUrl.includes('/auth/login') && !requestUrl.includes('/auth/refresh') && !requestUrl.includes('/auth/verify')) {
+            sessionStorage.setItem('redirectAfterLogin', currentPath);
+            const encoded = encodeURIComponent(currentPath);
+            window.location.href = `/login?redirect=${encoded}`;
+          }
+        }
+      } else {
+        // optional: log non-401 errors for debugging
+        console.error('API error', status, error?.response?.data || error.message);
       }
+    } catch (ex) {
+      console.error('Error in response interceptor', ex);
     }
 
-    // RETURN THE FULL ERROR OBJECT so callers can inspect .code, .name, .response, etc.
     return Promise.reject(error);
   }
 );

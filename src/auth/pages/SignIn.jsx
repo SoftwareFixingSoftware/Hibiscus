@@ -2,12 +2,13 @@ import { useState, useRef } from 'react';
 import AuthAvatar from '../components/AuthAvatar';
 import SocialAuth from '../components/SocialAuth';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import '../styles/auth.css';
 import AuthService from '../services/AuthService';
 
 export default function SignIn() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,6 +22,38 @@ export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
 
   const passwordRef = useRef(null);
+
+  // compute preferred redirect target (priority: location.state.from -> query param -> sessionStorage)
+  const getRedirectTarget = () => {
+    // 1) location.state.from (set by ProtectedRoute Navigate)
+    const fromState = location.state?.from;
+    if (fromState && fromState.pathname) {
+      return fromState.pathname + (fromState.search || '');
+    }
+    // 2) query param ?redirect=
+    const params = new URLSearchParams(location.search);
+    const q = params.get('redirect');
+    if (q) return q;
+    // 3) sessionStorage (set by interceptor/route)
+    const stored = sessionStorage.getItem('redirectAfterLogin');
+    if (stored) return stored;
+    return null;
+  };
+
+  const validateLocalRedirect = (path) => {
+    if (!path) return null;
+    try {
+      // allow relative paths and absolute local paths only
+      const url = new URL(path, window.location.origin);
+      if (url.origin !== window.location.origin) return null;
+      // return pathname + search + hash
+      return url.pathname + url.search + url.hash;
+    } catch (e) {
+      // if it's a simple relative path starting with '/'
+      if (path.startsWith('/')) return path;
+      return null;
+    }
+  };
 
   const handleEmailFocus = () => setAvatarEmotion('neutral');
   const handlePasswordFocus = () => {
@@ -75,14 +108,21 @@ export default function SignIn() {
 
       setAvatarEmotion('happy');
       setAvatarState('nod');
-
       setTimeout(() => setAvatarState('walkAway'), 800);
 
       setTimeout(() => {
-        if (isAdmin) {
-          navigate('/admin', { replace: true });
+        // decide where to go: prefer validated redirect target
+        const candidate = getRedirectTarget();
+        const safe = validateLocalRedirect(candidate);
+
+        // clear stored redirect (one-time use)
+        sessionStorage.removeItem('redirectAfterLogin');
+
+        if (safe) {
+          navigate(safe, { replace: true });
         } else {
-          navigate('/user', { replace: true });
+          if (isAdmin) navigate('/admin', { replace: true });
+          else navigate('/user', { replace: true });
         }
       }, 1500);
     } catch (err) {
