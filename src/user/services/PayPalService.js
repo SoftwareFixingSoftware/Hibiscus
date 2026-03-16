@@ -16,7 +16,20 @@ const PayPalService = {
       packageId,
       idempotencyKey,
     });
-    return response.data;
+    const { approvalUrl, paypalOrderId } = response.data;
+    // Store order ID in sessionStorage before redirect
+    if (paypalOrderId) {
+      sessionStorage.setItem('pendingPaypalOrder', paypalOrderId);
+    }
+    return { approvalUrl, paypalOrderId };
+  },
+
+  cancelCoinPurchase: async (paypalOrderId) => {
+    if (!paypalOrderId) {
+      throw new Error('paypalOrderId is required');
+    }
+    await api.post(`${BASE_PATH}/coin-purchases/cancel`, { paypalOrderId });
+    sessionStorage.removeItem('pendingPaypalOrder');
   },
 
   getUserCoins: async () => {
@@ -24,7 +37,6 @@ const PayPalService = {
     return response.data;
   },
 
-  // NEW: Get user's coin purchase history
   getUserCoinPurchaseHistory: async () => {
     const response = await api.get(`${BASE_PATH}/coin-purchases/history`);
     return response.data;
