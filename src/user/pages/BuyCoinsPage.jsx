@@ -11,14 +11,52 @@ import {
   FaCoins,
   FaHashtag,
   FaHeadset,
-  FaTimes
+  FaTimes,
+  FaMobileAlt,
+  FaCheckCircle,
+  FaSpinner
 } from 'react-icons/fa';
 import PayPalService from '../services/PayPalService';
+import MpesaService from '../services/MpesaService';
 import SupportService from '../services/SupportService';
 import CoinPackages from '../components/CoinPackages';
 import Footer from '../components/common/Footer';
 import '../styles/PayPalStyles.css';
 
+// ------------------ Loading Overlay ------------------
+const LoadingOverlay = () => (
+  <div className="user-loading-overlay">
+    <div className="user-loading-content">
+      <FaSpinner className="user-loading-spinner" />
+      <p>Processing purchase...</p>
+    </div>
+  </div>
+);
+
+// ------------------ M-Pesa Success Modal ------------------
+const MpesaSuccessModal = ({ checkoutRequestId, onClose }) => {
+  return (
+    <div className="user-modal-overlay" onClick={onClose}>
+      <div className="user-success-modal" onClick={(e) => e.stopPropagation()}>
+        <button className="user-modal-close" onClick={onClose}><FaTimes /></button>
+        <div className="user-success-icon">
+          <FaCheckCircle />
+        </div>
+        <h3>STK Push Sent!</h3>
+        <p>Please check your phone and enter your M‑Pesa PIN to complete the payment.</p>
+        <p className="user-checkout-id">
+          <strong>Checkout Request ID:</strong> {checkoutRequestId}
+        </p>
+        <p className="user-info-note">
+          The transaction will be updated automatically. You can view its status in your Transaction history.
+        </p>
+        <button className="user-ok-btn" onClick={onClose}>OK, Got It</button>
+      </div>
+    </div>
+  );
+};
+
+// ------------------ Support Modal (unchanged) ------------------
 const SupportModal = ({ transaction, onClose, onSubmit }) => {
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -37,7 +75,7 @@ const SupportModal = ({ transaction, onClose, onSubmit }) => {
       setSubmitting(false);
       onClose();
     } catch (err) {
-       setSubmitting(false);
+      setSubmitting(false);
       alert(err?.response?.data?.message || err?.message || 'Failed to submit support request. Try again later.');
     }
   };
@@ -69,7 +107,7 @@ const SupportModal = ({ transaction, onClose, onSubmit }) => {
             rows="5"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Please provide details (what happened, when, any screenshots or order ids)..."
+            placeholder="Please provide details (what happened?..)"
             required
           />
           <div className="user-modal-actions">
@@ -84,6 +122,7 @@ const SupportModal = ({ transaction, onClose, onSubmit }) => {
   );
 };
 
+// ------------------ Status badge helper (unchanged) ------------------
 const formatStatus = (status) => {
   const statusMap = {
     PENDING: { label: 'Pending', class: 'user-status-pending' },
@@ -95,6 +134,7 @@ const formatStatus = (status) => {
   return <span className={`user-status-badge ${s.class}`}>{s.label}</span>;
 };
 
+// ------------------ Main Page Component ------------------
 const BuyCoinsPage = () => {
   const [activeTab, setActiveTab] = useState('buy');
   const [loading, setLoading] = useState(false);
@@ -105,6 +145,11 @@ const BuyCoinsPage = () => {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
+  // M‑Pesa specific state
+  const [phoneNumberRest, setPhoneNumberRest] = useState('');
+  const [mpesaSuccess, setMpesaSuccess] = useState(null); // { checkoutRequestId }
+
+  // Load transaction history when switching to the history tab
   useEffect(() => {
     if (activeTab === 'history') {
       loadHistory();
@@ -126,26 +171,9 @@ const BuyCoinsPage = () => {
       }));
       setHistory(normalized);
     } catch (err) {
-       setError('Failed to load purchase history');
+      setError('Failed to load purchase history');
     } finally {
       setHistoryLoading(false);
-    }
-  };
-
-  const handleBuy = async (selectedPackage) => {
-    setLoading(true);
-    setError(null);
-    const idempotencyKey = uuidv4();
-
-    try {
-      const { approvalUrl, paypalOrderId } = await PayPalService.createCoinPurchase(
-        selectedPackage.packageId,
-        idempotencyKey
-      );
-       window.location.href = approvalUrl;
-    } catch (err) {
-      setError(err.message || 'Failed to initiate payment');
-      setLoading(false);
     }
   };
 
@@ -176,7 +204,47 @@ const BuyCoinsPage = () => {
       alert('Support request submitted. Our team will contact you soon.');
       await loadHistory();
     } catch (err) {
-       throw err;
+      throw err;
+    }
+  };
+
+  // ------------------ Handle Buy Button ------------------
+  const handleBuy = async (selectedPackage) => {
+    setLoading(true);
+    setError(null);
+    setMpesaSuccess(null);
+    const idempotencyKey = uuidv4();
+
+    try {
+      if (selectedPaymentMethod === 'paypal') {
+        const { approvalUrl } = await PayPalService.createCoinPurchase(
+          selectedPackage.packageId,
+          idempotencyKey
+        );
+        window.location.href = approvalUrl;
+      } else if (selectedPaymentMethod === 'mpesa') {
+        // Validate phone number
+        if (!phoneNumberRest || phoneNumberRest.length < 9) {
+          throw new Error('Please enter a valid phone number after +254 (9 digits)');
+        }
+        const fullPhone = '254' + phoneNumberRest;
+        const response = await MpesaService.initiateCoinPurchase(
+          selectedPackage.packageId,
+          idempotencyKey,
+          fullPhone
+        );
+        // Show success modal
+        setMpesaSuccess({
+          checkoutRequestId: response.checkoutRequestId
+        });
+        setLoading(false);
+      } else {
+        alert('This payment method is coming soon.');
+        setLoading(false);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to initiate payment');
+      setLoading(false);
     }
   };
 
@@ -205,13 +273,14 @@ const BuyCoinsPage = () => {
               <div className="user-payment-methods-grid">
                 {[
                   { id: 'paypal', name: 'PayPal', icon: <FaPaypal />, active: true },
+                  { id: 'mpesa', name: 'M‑Pesa', icon: <FaMobileAlt />, active: true },
                   { id: 'card', name: 'Credit Card', icon: <FaCreditCard />, active: false },
                   { id: 'crypto', name: 'Crypto', icon: <FaBitcoin />, active: false },
                   { id: 'googlepay', name: 'Google Pay', icon: <FaGoogle />, active: false },
                 ].map(method => (
                   <button
                     key={method.id}
-                    className={`user-payment-method-btn ${selectedPaymentMethod === method.id ? 'active' : ''} ${!method.active ? 'disabled' : ''}`}
+                    className={`user-payment-method-btn ${selectedPaymentMethod === method.id ? 'active' : ''} ${!method.active ? 'disabled' : ''} ${method.id === 'mpesa' && selectedPaymentMethod === 'mpesa' ? 'mpesa-active' : ''}`}
                     onClick={() => method.active && setSelectedPaymentMethod(method.id)}
                     disabled={!method.active}
                     title={!method.active ? 'Coming soon' : ''}
@@ -224,8 +293,32 @@ const BuyCoinsPage = () => {
               </div>
             </div>
 
+            {/* M‑Pesa phone number input with fixed +254 prefix */}
+            {selectedPaymentMethod === 'mpesa' && (
+              <div className="user-mpesa-input">
+                <label htmlFor="phoneNumber">M‑Pesa Phone Number:</label>
+                <div className="user-phone-input-wrapper">
+                  <span className="user-phone-prefix">+254</span>
+                  <input
+                    type="tel"
+                    id="phoneNumber"
+                    placeholder="7XXXXXXXX"
+                    value={phoneNumberRest}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      setPhoneNumberRest(val);
+                    }}
+                    disabled={loading}
+                    maxLength={9}
+                  />
+                </div>
+                <p className="user-input-hint">Enter the remaining 9 digits (e.g., 712345678)</p>
+              </div>
+            )}
+
             <CoinPackages onBuy={handleBuy} />
-            {loading && <div className="user-loading-indicator">Processing purchase...</div>}
+
+            {/* Error message */}
             {error && <div className="user-error-message">{error}</div>}
           </div>
         )}
@@ -278,6 +371,18 @@ const BuyCoinsPage = () => {
 
       <Footer />
 
+      {/* Loading Overlay */}
+      {loading && <LoadingOverlay />}
+
+      {/* M-Pesa Success Modal */}
+      {mpesaSuccess && (
+        <MpesaSuccessModal
+          checkoutRequestId={mpesaSuccess.checkoutRequestId}
+          onClose={() => setMpesaSuccess(null)}
+        />
+      )}
+
+      {/* Support Modal */}
       {modalOpen && (
         <SupportModal
           transaction={selectedTransaction}

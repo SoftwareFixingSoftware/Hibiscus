@@ -521,3 +521,170 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+/* M-Pesa input styling – now uses theme variables */
+.user-mpesa-input {
+  margin: 20px 0;
+  padding: 15px;
+  background: var(--user-bg-card);
+  border-radius: 8px;
+  border: 1px solid var(--user-border);
+}
+.user-mpesa-input label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: var(--user-text-primary);
+}
+.user-phone-input-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--user-border);
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--user-bg-input);
+}
+.user-phone-prefix {
+  background: var(--user-bg-card-secondary);
+  padding: 10px 12px;
+  font-size: 16px;
+  color: var(--user-text-muted);
+  border-right: 1px solid var(--user-border);
+}
+.user-phone-input-wrapper input {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  background: transparent;
+  color: var(--user-text-primary);
+}
+.user-phone-input-wrapper input:focus {
+  outline: none;
+}
+.user-input-hint {
+  font-size: 12px;
+  color: var(--user-text-muted);
+  margin-top: 5px;
+}
+
+/* M-Pesa active button – green theme */
+.user-payment-method-btn.mpesa-active {
+  border-color: #2e7d32 !important;  /* M‑Pesa green */
+  background: rgba(46, 125, 50, 0.1) !important;
+  box-shadow: 0 0 10px rgba(46, 125, 50, 0.4) !important;
+}
+.user-payment-method-btn.mpesa-active .user-payment-icon {
+  color: #2e7d32;
+}
+
+/* Success message after M-Pesa initiation – now using theme variables */
+.user-success-message {
+  background-color: var(--user-success-bg, #d4edda);
+  color: var(--user-success-text, #155724);
+  padding: 15px;
+  border-radius: 4px;
+  margin-top: 20px;
+}
+/* M-Pesa Success Modal */
+.user-success-modal {
+  background: var(--user-bg-card);
+  border: 1px solid var(--user-border);
+  border-radius: 16px;
+  padding: 32px 24px;
+  max-width: 450px;
+  width: 90%;
+  position: relative;
+  text-align: center;
+  animation: user-slideUp 0.3s ease;
+}
+.user-success-icon {
+  font-size: 64px;
+  color: #2e7d32; /* M‑Pesa green */
+  margin-bottom: 16px;
+}
+.user-success-modal h3 {
+  font-size: 24px;
+  margin-bottom: 12px;
+  color: var(--user-text-primary);
+}
+.user-success-modal p {
+  color: var(--user-text-muted);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+.user-checkout-id {
+  background: rgba(46, 125, 50, 0.1);
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  word-break: break-all;
+  border: 1px solid rgba(46, 125, 50, 0.3);
+  margin: 16px 0;
+}
+.user-info-note {
+  font-size: 13px;
+  color: var(--user-text-muted);
+  font-style: italic;
+}
+.user-ok-btn {
+  background: var(--user-primary);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 40px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin-top: 20px;
+}
+.user-ok-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(217, 169, 90, 0.6);
+}
+
+/* Spinner animation */
+.user-spinner {
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+/* Loading Overlay */
+.user-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: user-fadeIn 0.2s ease;
+}
+.user-loading-content {
+  background: var(--user-bg-card);
+  border: 1px solid var(--user-border);
+  border-radius: 16px;
+  padding: 32px 24px;
+  max-width: 300px;
+  width: 90%;
+  text-align: center;
+  color: var(--user-text-primary);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+}
+.user-loading-spinner {
+  font-size: 48px;
+  color: var(--user-primary);
+  margin-bottom: 16px;
+  animation: spin 1s linear infinite;
+}
+.user-loading-content p {
+  color: var(--user-text-muted);
+  margin: 0;
+}
