@@ -112,7 +112,9 @@ const HomePage = () => {
           <NotificationBell />
         ) : (
           <div className="user-auth-buttons">
-            </div>
+            <button onClick={() => navigate('/login')}>Log In</button>
+            <button onClick={() => navigate('/register')}>Sign Up</button>
+          </div>
         )}
       </header>
 

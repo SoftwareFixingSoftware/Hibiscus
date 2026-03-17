@@ -2,6 +2,31 @@ import React, { useEffect, useRef, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
+ * Helper: lighten or darken a hex color by a given percentage (0-100)
+ */
+function adjustColor(hex, percent) {
+  // Strip the # if present
+  let raw = hex.startsWith('#') ? hex.slice(1) : hex;
+  // Handle 3‑digit shorthand
+  if (raw.length === 3) {
+    raw = raw.split('').map(c => c + c).join('');
+  }
+  if (raw.length !== 6) return hex; // fallback
+
+  const num = parseInt(raw, 16);
+  let r = (num >> 16) & 0xff;
+  let g = (num >> 8) & 0xff;
+  let b = num & 0xff;
+
+  // Adjust each channel
+  r = Math.min(255, Math.max(0, r + (r * percent) / 100));
+  g = Math.min(255, Math.max(0, g + (g * percent) / 100));
+  b = Math.min(255, Math.max(0, b + (b * percent) / 100));
+
+  return `#${((1 << 24) + (Math.round(r) << 16) + (Math.round(g) << 8) + Math.round(b)).toString(16).slice(1)}`;
+}
+
+/**
  * AuthAvatar — headphones placed & styled like a real over-ear headset.
  *
  * Headphone geometry (all in 200×200 viewBox):
@@ -14,7 +39,7 @@ import { motion, AnimatePresence } from "framer-motion";
  *
  * Props:
  *  - username, eyesClosed (override boolean), state, emotion,
- *  - skinTone, headphoneColor, size, autoBlink, live
+ *  - skinTone, headphoneColorLight, headphoneColorDark, theme, size, autoBlink, live
  */
 export default function AuthAvatar({
   username = "",
@@ -22,13 +47,40 @@ export default function AuthAvatar({
   state = "idle",
   emotion = "neutral",
   skinTone = "#FFDBCB",
-  headphoneColor = "#222233",
+  // Headphone color props – now theme‑aware
+  headphoneColorLight = "#222233",   // default for light mode (dark navy)
+  headphoneColorDark = "#AAAAAA",    // default for dark mode (light grey)
+  theme = "system",                   // 'light', 'dark', or 'system'
   size = 220,
   autoBlink = true,
   live = true,
 }) {
   const svgRef = useRef(null);
   const mounted = useRef(true);
+
+  // Detect system theme when theme="system"
+  const [systemDark, setSystemDark] = useState(false);
+  useEffect(() => {
+    if (theme !== "system") return;
+    const mql = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = (e) => setSystemDark(e.matches);
+    handler(mql); // set initial value
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
+  }, [theme]);
+
+  // Effective theme and headphone color
+  const effectiveTheme = theme === "system"
+    ? (systemDark ? "dark" : "light")
+    : theme;
+  const effectiveHeadphoneColor = effectiveTheme === "dark"
+    ? headphoneColorDark
+    : headphoneColorLight;
+
+  // Lighter and darker variants for inner details (using the effective color)
+  const hpLight = useMemo(() => adjustColor(effectiveHeadphoneColor, 20), [effectiveHeadphoneColor]); // 20% lighter
+  const hpDark = useMemo(() => adjustColor(effectiveHeadphoneColor, -20), [effectiveHeadphoneColor]); // 20% darker
+  const cushion = "#1a1008"; // dark leatherette cushion edge
 
   const [interactionState, setInteractionState] = useState("idle");
   const [eyesClosedAuto, setEyesClosedAuto] = useState(false);
@@ -218,12 +270,6 @@ export default function AuthAvatar({
   const displayEmotion =
     interactionState === "emailFocus" ? "happy" : emotion;
 
-  // ── Derived headphone colors ──────────────────────────────────────────────
-  // Slightly lighter shade for inner details, darker for deep shadows
-  const hpLight = headphoneColor === "#222233" ? "#383855" : headphoneColor + "bb";
-  const hpDark  = headphoneColor === "#222233" ? "#0d0d18" : headphoneColor + "66";
-  const cushion = "#1a1008"; // dark leatherette cushion edge
-
   return (
     <div
       style={{
@@ -296,7 +342,7 @@ export default function AuthAvatar({
             {/* Band top-face gradient — padded top highlight */}
             <linearGradient id="bandGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%"   stopColor={hpLight} stopOpacity="1" />
-              <stop offset="60%"  stopColor={headphoneColor} stopOpacity="1" />
+              <stop offset="60%"  stopColor={effectiveHeadphoneColor} stopOpacity="1" />
               <stop offset="100%" stopColor={hpDark}  stopOpacity="1" />
             </linearGradient>
           </defs>
@@ -313,7 +359,7 @@ export default function AuthAvatar({
           <path
             d="M 46 82 C 46 4, 154 4, 154 82"
             fill="none"
-            stroke={headphoneColor}
+            stroke={effectiveHeadphoneColor}
             strokeWidth="16"
             strokeLinecap="round"
             filter="url(#bandShadow)"
@@ -340,7 +386,7 @@ export default function AuthAvatar({
           {/* Left yoke arm — from band end (46,82) angling to left cup top-right corner ~(42,78) */}
           <path
             d="M 46 82 L 30 78"
-            stroke={headphoneColor}
+            stroke={effectiveHeadphoneColor}
             strokeWidth="7"
             strokeLinecap="round"
             fill="none"
@@ -357,7 +403,7 @@ export default function AuthAvatar({
           {/* Right yoke arm */}
           <path
             d="M 154 82 L 170 78"
-            stroke={headphoneColor}
+            stroke={effectiveHeadphoneColor}
             strokeWidth="7"
             strokeLinecap="round"
             fill="none"
@@ -503,7 +549,7 @@ export default function AuthAvatar({
               x="14" y="75"
               width="28" height="44"
               rx="9"
-              fill={headphoneColor}
+              fill={effectiveHeadphoneColor}
             />
             {/* Face gradient overlay — 3-D convex look */}
             <rect
@@ -562,7 +608,7 @@ export default function AuthAvatar({
               x="158" y="75"
               width="28" height="44"
               rx="9"
-              fill={headphoneColor}
+              fill={effectiveHeadphoneColor}
             />
             {/* Face gradient overlay */}
             <rect
