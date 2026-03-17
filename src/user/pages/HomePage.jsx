@@ -113,8 +113,7 @@ const HomePage = () => {
         ) : (
           <div className="user-auth-buttons">
             <button onClick={() => navigate('/login')}>Log In</button>
-            <button onClick={() => navigate('/signup')}>Sign Up</button>
-          </div>
+           </div>
         )}
       </header>
 
