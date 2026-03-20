@@ -1,25 +1,26 @@
 import { useState, useRef, useEffect } from 'react';
-import AuthAvatar from '../components/AuthAvatar';
 import SocialAuth from '../components/SocialAuth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaExclamationCircle, FaCheckCircle } from 'react-icons/fa';
 import '../styles/auth.css';
 
-const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:9019";
+const API_BASE = process.env.REACT_APP_API_BASE || "https://api.breachpen.co.ke";
 
 export default function SignUp() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', username: '', email: '', password: '', confirmPassword: '' });
+  const [form, setForm] = useState({
+    name: '',
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-  const [avatarState, setAvatarState] = useState('idle');
-  const [avatarEmotion, setAvatarEmotion] = useState('neutral');
-  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [showPassword, setShowPassword] = useState({ password: false, confirm: false });
   const passwordRef = useRef(null);
-  const confirmPasswordRef = useRef(null);
   const abortRef = useRef(null);
 
   useEffect(() => {
@@ -30,66 +31,49 @@ export default function SignUp() {
 
   useEffect(() => {
     if (!form.username && form.email) {
-      const candidate = form.email.split('@')[0].replace(/[^a-zA-Z0-9._-]/g, '').slice(0, 30);
+      const candidate = form.email
+        .split('@')[0]
+        .replace(/[^a-zA-Z0-9._-]/g, '')
+        .slice(0, 30);
+
       setForm(f => ({ ...f, username: candidate }));
     }
-  }, [form.email]);
-
-  const handleFocus = (field) => {
-    setAvatarEmotion('curious');
-    if (field === 'password' || field === 'confirmPassword') setIsPasswordFocused(true);
-  };
-  const handleBlur = () => {
-    setIsPasswordFocused(false);
-    setAvatarEmotion('neutral');
-  };
+  }, [form.email, form.username]);
 
   const handleSocialError = (type, message) => {
     if (type === 'error') {
       setError(message);
-      setAvatarState('shake');
-      setAvatarEmotion('sad');
-      setTimeout(() => setAvatarState('idle'), 1000);
     }
   };
 
   const validateForm = () => {
     setError('');
+
     if (!form.name?.trim() || !form.email?.trim() || !form.password || !form.confirmPassword) {
       setError('Please fill in all required fields.');
-      setAvatarState('shake');
-      setAvatarEmotion('sad');
-      setTimeout(() => setAvatarState('idle'), 1000);
       return false;
     }
+
     if (!/\S+@\S+\.\S+/.test(form.email)) {
       setError('Please enter a valid email address.');
-      setAvatarState('shake');
-      setAvatarEmotion('sad');
-      setTimeout(() => setAvatarState('idle'), 1000);
       return false;
     }
+
     if (form.username && !/^[a-zA-Z0-9._-]{3,30}$/.test(form.username)) {
       setError('Username may contain letters, numbers, . _ - and must be 3–30 characters.');
-      setAvatarState('shake');
-      setAvatarEmotion('sad');
-      setTimeout(() => setAvatarState('idle'), 1000);
       return false;
     }
+
     if (form.password.length < 6) {
       setError('Password must be at least 6 characters long.');
-      setAvatarState('shake');
-      setAvatarEmotion('sad');
-      setTimeout(() => setAvatarState('idle'), 1000);
       return false;
     }
+
     if (form.password !== form.confirmPassword) {
       setError('Passwords do not match.');
-      setAvatarState('shake');
-      setAvatarEmotion('sad');
-      setTimeout(() => setAvatarState('idle'), 1000);
       return false;
     }
+
     return true;
   };
 
@@ -101,11 +85,11 @@ export default function SignUp() {
     if (!validateForm()) return;
 
     setLoading(true);
-    setAvatarEmotion('neutral');
 
     if (abortRef.current) {
       abortRef.current.abort();
     }
+
     const controller = new AbortController();
     abortRef.current = controller;
 
@@ -125,11 +109,16 @@ export default function SignUp() {
       });
 
       const body = await res.text().then(txt => {
-        try { return JSON.parse(txt); } catch { return { raw: txt }; }
+        try {
+          return JSON.parse(txt);
+        } catch {
+          return { raw: txt };
+        }
       });
 
       if (!res.ok) {
         let msg = body?.message || body?.error || body?.raw || 'Signup failed. Please try again.';
+
         if (res.status === 409) {
           msg = body?.message || 'Email or username already in use.';
         } else if (res.status === 400) {
@@ -137,29 +126,21 @@ export default function SignUp() {
         } else if (res.status >= 500) {
           msg = 'Server error. Please try again later.';
         }
+
         setError(msg);
-        setAvatarState('shake');
-        setAvatarEmotion('sad');
         setForm(f => ({ ...f, password: '', confirmPassword: '' }));
         passwordRef.current?.focus?.();
-        setTimeout(() => { setAvatarState('idle'); setAvatarEmotion('neutral'); }, 1000);
       } else {
-        setAvatarEmotion('happy');
-        setAvatarState('nod');
         setSuccess('Account created! Check your email for the verification link.');
         setForm({ name: '', username: '', email: '', password: '', confirmPassword: '' });
+
         setTimeout(() => {
           navigate('/login', { replace: true });
         }, 5000);
       }
     } catch (err) {
-      if (err.name === 'AbortError') {
-        // ignore
-      } else {
+      if (err.name !== 'AbortError') {
         setError('Network error. Please try again.');
-        setAvatarState('shake');
-        setAvatarEmotion('sad');
-        setTimeout(() => { setAvatarState('idle'); setAvatarEmotion('neutral'); }, 1000);
       }
     } finally {
       setLoading(false);
@@ -169,7 +150,14 @@ export default function SignUp() {
 
   return (
     <div className="hib-auth-layout">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="hib-auth-card" role="main" aria-labelledby="signup-heading">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="hib-auth-card"
+        role="main"
+        aria-labelledby="signup-heading"
+      >
         <div className="hib-auth-grid">
           <div className="hib-form-container">
             <div className="hib-form-wrapper">
@@ -194,7 +182,6 @@ export default function SignUp() {
                       type="text"
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
-                      onFocus={() => handleFocus('name')}
                       placeholder="haka luke"
                       className="hib-form-input"
                       disabled={loading}
@@ -211,7 +198,6 @@ export default function SignUp() {
                       type="text"
                       value={form.username}
                       onChange={(e) => setForm({ ...form, username: e.target.value })}
-                      onFocus={() => handleFocus('username')}
                       placeholder="luke"
                       className="hib-form-input"
                       disabled={loading}
@@ -228,7 +214,6 @@ export default function SignUp() {
                     type="email"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    onFocus={() => handleFocus('email')}
                     placeholder="you@example.com"
                     className="hib-form-input"
                     disabled={loading}
@@ -248,9 +233,7 @@ export default function SignUp() {
                         type={showPassword.password ? 'text' : 'password'}
                         value={form.password}
                         onChange={(e) => setForm({ ...form, password: e.target.value })}
-                        onFocus={() => handleFocus('password')}
-                        onBlur={handleBlur}
-                         className="hib-form-input"
+                        className="hib-form-input"
                         disabled={loading}
                         required
                         autoComplete="new-password"
@@ -258,7 +241,9 @@ export default function SignUp() {
                       />
                       <button
                         type="button"
-                        onClick={() => setShowPassword({ ...showPassword, password: !showPassword.password })}
+                        onClick={() =>
+                          setShowPassword({ ...showPassword, password: !showPassword.password })
+                        }
                         className="hib-password-toggle"
                         disabled={loading}
                         aria-label={showPassword.password ? 'Hide password' : 'Show password'}
@@ -274,13 +259,10 @@ export default function SignUp() {
                       <input
                         id="confirmPassword"
                         name="confirmPassword"
-                        ref={confirmPasswordRef}
                         type={showPassword.confirm ? 'text' : 'password'}
                         value={form.confirmPassword}
                         onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                        onFocus={() => handleFocus('confirmPassword')}
-                        onBlur={handleBlur}
-                         className="hib-form-input"
+                        className="hib-form-input"
                         disabled={loading}
                         required
                         autoComplete="new-password"
@@ -288,7 +270,9 @@ export default function SignUp() {
                       />
                       <button
                         type="button"
-                        onClick={() => setShowPassword({ ...showPassword, confirm: !showPassword.confirm })}
+                        onClick={() =>
+                          setShowPassword({ ...showPassword, confirm: !showPassword.confirm })
+                        }
                         className="hib-password-toggle"
                         disabled={loading}
                         aria-label={showPassword.confirm ? 'Hide confirm password' : 'Show confirm password'}
@@ -311,7 +295,15 @@ export default function SignUp() {
 
                 <AnimatePresence>
                   {error && (
-                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="hib-alert-error" id="form-error" role="alert" aria-live="assertive">
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="hib-alert-error"
+                      id="form-error"
+                      role="alert"
+                      aria-live="assertive"
+                    >
                       <div className="hib-alert-content">
                         <FaExclamationCircle className="hib-alert-icon" />
                         <p>{error}</p>
@@ -320,11 +312,20 @@ export default function SignUp() {
                   )}
 
                   {success && (
-                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="hib-alert-success" role="status" aria-live="polite">
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="hib-alert-success"
+                      role="status"
+                      aria-live="polite"
+                    >
                       <div className="hib-alert-content">
                         <FaCheckCircle className="hib-alert-icon" />
                         <p>{success}</p>
-                        <p className="hib-text-sm">You will be redirected to <Link to="/login">login</Link> shortly.</p>
+                        <p className="hib-text-sm">
+                          You will be redirected to <Link to="/login">login</Link> shortly.
+                        </p>
                       </div>
                     </motion.div>
                   )}
@@ -341,7 +342,9 @@ export default function SignUp() {
                       </div>
                       <span>Creating Account...</span>
                     </div>
-                  ) : 'Create Account'}
+                  ) : (
+                    'Create Account'
+                  )}
                 </button>
               </form>
 
@@ -350,26 +353,6 @@ export default function SignUp() {
                   <span className="hib-divider-text">Or sign up with</span>
                 </div>
                 <SocialAuth disabled={loading} type="signup" onError={handleSocialError} />
-              </div>
-            </div>
-          </div>
-
-          <div className="hib-avatar-container" aria-hidden={false}>
-            <AuthAvatar
-              username={form.name || form.username}
-              eyesClosed={isPasswordFocused}
-              state={avatarState}
-              emotion={avatarEmotion}
-            />
-
-            <div className="hib-benefits-section">
-              <h3 className="hib-benefits-title">Join Our Community</h3>
-              <p className="hib-benefits-subtitle">Create your account in seconds</p>
-
-              <div className="hib-feature-list">
-                <span className="hib-feature-item">Secure authentication</span>
-                <span className="hib-feature-item">Email verification</span>
-                <span className="hib-feature-item">Social login options</span>
               </div>
             </div>
           </div>

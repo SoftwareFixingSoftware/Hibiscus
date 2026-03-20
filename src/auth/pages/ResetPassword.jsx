@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaExclamationCircle, FaCheckCircle } from 'react-icons/fa';
 import '../styles/auth.css';
 
-const API_BASE = "http://localhost:9019";
+const API_BASE = "https://api.breachpen.co.ke";
 
 export default function ResetPassword() {
   const navigate = useNavigate();

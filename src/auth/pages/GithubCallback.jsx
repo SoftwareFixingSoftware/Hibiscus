@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/auth.css';
 
-const API_BASE = "http://localhost:9019";
+const API_BASE = "https://api.breachpen.co.ke";
 
 export default function GithubCallback() {
   const navigate = useNavigate();

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const baseURL = 'http://localhost:9019/api';
+const baseURL = 'https://api.breachpen.co.ke/api';
 
 const api = axios.create({
   baseURL,

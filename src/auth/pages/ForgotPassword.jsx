@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import '../styles/auth.css';
 
-const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:9019';
+const API_BASE = process.env.REACT_APP_API_BASE || 'https://api.breachpen.co.ke';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -57,7 +57,7 @@ export default function ForgotPassword() {
         setError(msg);
       }
     } catch (err) {
-       setError('Unable to connect to server. Please try again.');
+      setError('Unable to connect to server. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -93,11 +93,6 @@ export default function ForgotPassword() {
                 exit={{ opacity: 0 }}
                 className="hib-text-center hib-p-8"
               >
-                <div className="hib-success-icon hib-mx-auto hib-mb-6">
-                  <svg className="hib-w-16 hib-h-16 hib-text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
                 <h3 className="hib-text-xl hib-font-semibold hib-mb-2">Check Your Email</h3>
                 <p className="hib-text-muted hib-mb-6">
                   We've sent password reset instructions to <strong>{email}</strong>

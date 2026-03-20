@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/auth.css';
 
-const API_BASE = "http://localhost:9019";
+const API_BASE = "https://api.breachpen.co.ke";
 const client_id = "366280838312-6uobsfi97m0556ustv7t6qko6isqeo9r.apps.googleusercontent.com";
 
 export default function GoogleCallback() {
