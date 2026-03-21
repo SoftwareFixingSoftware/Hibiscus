@@ -29,7 +29,6 @@ const AdminPayments = () => {
       }
     } catch (err) {
       setError('Failed to load payments.');
-
     } finally {
       setLoading(false);
     }
@@ -39,8 +38,7 @@ const AdminPayments = () => {
     try {
       const data = await AdminPaymentService.getPaymentStatistics();
       setStatistics(data || {});
-    } catch (err) {
-     }
+    } catch (err) {}
   };
 
   useEffect(() => {
@@ -99,15 +97,15 @@ const AdminPayments = () => {
           <tbody>
             {payments.map(payment => (
               <tr key={payment.paymentId}>
-                <td><Link to={`/admin/payments/${payment.paymentId}`}>{payment.paymentId}</Link></td>
-                <td>{payment.userEmail || payment.userId}</td>
-                <td>{payment.provider}</td>
-                <td>{payment.paypalOrderId || '-'}</td>
-                <td>{payment.paypalCaptureId || '-'}</td>
-                <td>{formatCurrency(payment.amountCents)}</td>
-                <td>{payment.currency}</td>
-                <td>{payment.status}</td>
-                <td>{formatDate(payment.createdAt)}</td>
+                <td data-label="Payment ID"><Link to={`/admin/payments/${payment.paymentId}`}>{payment.paymentId}</Link></td>
+                <td data-label="User Email">{payment.userEmail || payment.userId}</td>
+                <td data-label="Provider">{payment.provider}</td>
+                <td data-label="Order ID">{payment.paypalOrderId || '-'}</td>
+                <td data-label="Capture ID">{payment.paypalCaptureId || '-'}</td>
+                <td data-label="Amount">{formatCurrency(payment.amountCents)}</td>
+                <td data-label="Currency">{payment.currency}</td>
+                <td data-label="Status">{payment.status}</td>
+                <td data-label="Created At">{formatDate(payment.createdAt)}</td>
               </tr>
             ))}
           </tbody>

@@ -65,13 +65,30 @@
   pointer-events: none;
 }
 
-/* Users Table Container */
+/* Users Table Container – SCROLLABLE */
 .adm-users-table {
   background: var(--hib-bg-card);
   border: 1px solid var(--hib-border);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: var(--hib-card-shadow);
+  max-height: 70vh;          /* fixed max height */
+  overflow-y: auto;          /* scroll when content exceeds */
+  display: block;            /* needed for overflow to work */
+}
+
+/* Custom scrollbar for the table container */
+.adm-users-table::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.adm-users-table::-webkit-scrollbar-track {
+  background: var(--hib-border);
+  border-radius: 4px;
+}
+.adm-users-table::-webkit-scrollbar-thumb {
+  background: var(--hib-primary);
+  border-radius: 4px;
 }
 
 /* Data Table (shared with other admin tables) */
@@ -434,6 +451,10 @@
   .adm-search-box {
     min-width: auto;
   }
+
+  .adm-users-table {
+    max-height: 65vh; /* slightly smaller on tablets */
+  }
 }
 
 @media (max-width: 768px) {
@@ -454,5 +475,9 @@
 
   .adm-drawer {
     width: 100%;
+  }
+
+  .adm-users-table {
+    max-height: 60vh; /* smaller on phones */
   }
 }

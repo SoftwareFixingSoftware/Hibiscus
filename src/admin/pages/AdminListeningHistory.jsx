@@ -26,7 +26,6 @@ const AdminListeningHistory = () => {
       }
     } catch (err) {
       setError('Failed to load listening history.');
-
     } finally {
       setLoading(false);
     }
@@ -36,27 +35,21 @@ const AdminListeningHistory = () => {
     try {
       const data = await AdminListeningHistoryService.getStatistics();
       setStats(data || {});
-    } catch (err) {
-
-    }
+    } catch (err) {}
   };
 
   const fetchTopEpisodes = async () => {
     try {
       const data = await AdminListeningHistoryService.getTopEpisodes(10);
       setTopEpisodes(data || []);
-    } catch (err) {
-
-    }
+    } catch (err) {}
   };
 
   const fetchTopSeries = async () => {
     try {
       const data = await AdminListeningHistoryService.getTopSeries(10);
       setTopSeries(data || []);
-    } catch (err) {
-
-    }
+    } catch (err) {}
   };
 
   useEffect(() => {
@@ -79,32 +72,32 @@ const AdminListeningHistory = () => {
   if (error) return <div className="adm-error">{error}</div>;
 
   return (
-    <div className="adm-analytics-section">
+    <div>
       <h3>Listening History</h3>
 
       {stats && (
-        <div className="adm-stats-cards">
-          <div className="adm-stat-card">
-            <span className="adm-stat-label">Total Events</span>
-            <span className="adm-stat-value">{stats.totalEvents || 0}</span>
+        <div className="adm-analytics-stats-grid">
+          <div className="adm-analytics-stat-card">
+            <span className="adm-analytics-stat-label">Total Events</span>
+            <span className="adm-analytics-stat-value">{stats.totalEvents || 0}</span>
           </div>
-          <div className="adm-stat-card">
-            <span className="adm-stat-label">Unique Users</span>
-            <span className="adm-stat-value">{stats.uniqueUsers || 0}</span>
+          <div className="adm-analytics-stat-card">
+            <span className="adm-analytics-stat-label">Unique Users</span>
+            <span className="adm-analytics-stat-value">{stats.uniqueUsers || 0}</span>
           </div>
-          <div className="adm-stat-card">
-            <span className="adm-stat-label">Total Minutes Listened</span>
-            <span className="adm-stat-value">{Math.round((stats.totalSecondsListened || 0) / 60)}</span>
+          <div className="adm-analytics-stat-card">
+            <span className="adm-analytics-stat-label">Total Minutes Listened</span>
+            <span className="adm-analytics-stat-value">{Math.round((stats.totalSecondsListened || 0) / 60)}</span>
           </div>
-          <div className="adm-stat-card">
-            <span className="adm-stat-label">Avg Progress (Incomplete)</span>
-            <span className="adm-stat-value">{Math.round(stats.averageProgressIncomplete || 0)}s</span>
+          <div className="adm-analytics-stat-card">
+            <span className="adm-analytics-stat-label">Avg Progress (Incomplete)</span>
+            <span className="adm-analytics-stat-value">{Math.round(stats.averageProgressIncomplete || 0)}s</span>
           </div>
         </div>
       )}
 
-      <div className="adm-top-lists">
-        <div className="adm-top-list">
+      <div className="adm-analytics-top-lists">
+        <div className="adm-analytics-top-list">
           <h4>Top 10 Episodes</h4>
           <table className="adm-analytics-table">
             <thead><tr><th>Episode</th><th>Listen Count</th></tr></thead>
@@ -118,7 +111,7 @@ const AdminListeningHistory = () => {
             </tbody>
           </table>
         </div>
-        <div className="adm-top-list">
+        <div className="adm-analytics-top-list">
           <h4>Top 10 Series</h4>
           <table className="adm-analytics-table">
             <thead><tr><th>Series</th><th>Listen Count</th></tr></thead>
@@ -137,30 +130,32 @@ const AdminListeningHistory = () => {
       {history.length === 0 && !loading ? (
         <div className="adm-no-data">No history entries found.</div>
       ) : (
-        <table className="adm-analytics-table">
-          <thead>
-            <tr>
-              <th>User Email</th>
-              <th>Series</th>
-              <th>Episode</th>
-              <th>Progress</th>
-              <th>Completed</th>
-              <th>Last Listened</th>
-            </tr>
-          </thead>
-          <tbody>
-            {history.map(entry => (
-              <tr key={entry.historyId}>
-                <td>{entry.userEmail || entry.userId}</td>
-                <td>{entry.seriesTitle || entry.seriesId}</td>
-                <td>{entry.episodeTitle || entry.episodeId}</td>
-                <td>{formatSeconds(entry.progressSeconds)}</td>
-                <td>{entry.completed ? 'Yes' : 'No'}</td>
-                <td>{formatDate(entry.lastListenedAt)}</td>
+        <div className="adm-table-wrapper">
+          <table className="adm-analytics-table">
+            <thead>
+              <tr>
+                <th>User Email</th>
+                <th>Series</th>
+                <th>Episode</th>
+                <th>Progress</th>
+                <th>Completed</th>
+                <th>Last Listened</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {history.map(entry => (
+                <tr key={entry.historyId}>
+                  <td>{entry.userEmail || entry.userId}</td>
+                  <td>{entry.seriesTitle || entry.seriesId}</td>
+                  <td>{entry.episodeTitle || entry.episodeId}</td>
+                  <td>{formatSeconds(entry.progressSeconds)}</td>
+                  <td>{entry.completed ? 'Yes' : 'No'}</td>
+                  <td>{formatDate(entry.lastListenedAt)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {loading && <div className="adm-loading">Loading...</div>}

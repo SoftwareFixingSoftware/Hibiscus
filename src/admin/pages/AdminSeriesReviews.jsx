@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import AdminSeriesReviewService from '../services/adminSeriesReviewService';
- 
 
 const AdminSeriesReviews = () => {
   const [reviews, setReviews] = useState([]);
@@ -25,7 +24,7 @@ const AdminSeriesReviews = () => {
       }
     } catch (err) {
       setError('Failed to load reviews.');
-     } finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -34,8 +33,7 @@ const AdminSeriesReviews = () => {
     try {
       const data = await AdminSeriesReviewService.getReviewStatistics();
       setStats(data || {});
-    } catch (err) {
-     }
+    } catch (err) {}
   };
 
   useEffect(() => {
@@ -50,18 +48,18 @@ const AdminSeriesReviews = () => {
   if (error) return <div className="adm-error">{error}</div>;
 
   return (
-    <div className="adm-analytics-section">
+    <div>
       <h3>Series Reviews</h3>
 
       {stats && (
-        <div className="adm-stats-cards">
-          <div className="adm-stat-card">
-            <span className="adm-stat-label">Total Reviews</span>
-            <span className="adm-stat-value">{stats.totalReviews || 0}</span>
+        <div className="adm-analytics-stats-grid">
+          <div className="adm-analytics-stat-card">
+            <span className="adm-analytics-stat-label">Total Reviews</span>
+            <span className="adm-analytics-stat-value">{stats.totalReviews || 0}</span>
           </div>
-          <div className="adm-stat-card">
-            <span className="adm-stat-label">Overall Avg Rating</span>
-            <span className="adm-stat-value">{(stats.overallAverageRating || 0).toFixed(2)}</span>
+          <div className="adm-analytics-stat-card">
+            <span className="adm-analytics-stat-label">Overall Avg Rating</span>
+            <span className="adm-analytics-stat-value">{(stats.overallAverageRating || 0).toFixed(2)}</span>
           </div>
         </div>
       )}
@@ -69,58 +67,62 @@ const AdminSeriesReviews = () => {
       {stats?.seriesStatistics && stats.seriesStatistics.length > 0 && (
         <div className="adm-series-stats">
           <h4>Per-Series Statistics</h4>
-          <table className="adm-analytics-table">
-            <thead>
-              <tr>
-                <th>Series</th>
-                <th>Total Reviews</th>
-                <th>Avg Rating</th>
-                <th>Rating Distribution</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.seriesStatistics.slice(0, 5).map(series => (
-                <tr key={series.seriesId}>
-                  <td>{series.seriesTitle}</td>
-                  <td>{series.totalReviews}</td>
-                  <td>{series.averageRating.toFixed(2)}</td>
-                  <td>
-                    {Object.entries(series.ratingDistribution || {}).map(([rating, count]) => (
-                      <span key={rating}>{rating}:{count} </span>
-                    ))}
-                  </td>
+          <div className="adm-table-wrapper">
+            <table className="adm-analytics-table">
+              <thead>
+                <tr>
+                  <th>Series</th>
+                  <th>Total Reviews</th>
+                  <th>Avg Rating</th>
+                  <th>Rating Distribution</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {stats.seriesStatistics.slice(0, 5).map(series => (
+                  <tr key={series.seriesId}>
+                    <td>{series.seriesTitle}</td>
+                    <td>{series.totalReviews}</td>
+                    <td>{series.averageRating.toFixed(2)}</td>
+                    <td>
+                      {Object.entries(series.ratingDistribution || {}).map(([rating, count]) => (
+                        <span key={rating}>{rating}:{count} </span>
+                      ))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
       {reviews.length === 0 && !loading ? (
         <div className="adm-no-data">No reviews found.</div>
       ) : (
-        <table className="adm-analytics-table">
-          <thead>
-            <tr>
-              <th>User Email</th>
-              <th>Series</th>
-              <th>Rating</th>
-              <th>Review Text</th>
-              <th>Created At</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reviews.map(review => (
-              <tr key={review.reviewId}>
-                <td>{review.userEmail || review.userId}</td>
-                <td>{review.seriesTitle || review.seriesId}</td>
-                <td>{review.rating}</td>
-                <td>{review.reviewText ? review.reviewText.substring(0, 50) + '...' : '-'}</td>
-                <td>{formatDate(review.createdAt)}</td>
+        <div className="adm-table-wrapper">
+          <table className="adm-analytics-table">
+            <thead>
+              <tr>
+                <th>User Email</th>
+                <th>Series</th>
+                <th>Rating</th>
+                <th>Review Text</th>
+                <th>Created At</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {reviews.map(review => (
+                <tr key={review.reviewId}>
+                  <td>{review.userEmail || review.userId}</td>
+                  <td>{review.seriesTitle || review.seriesId}</td>
+                  <td>{review.rating}</td>
+                  <td>{review.reviewText ? review.reviewText.substring(0, 50) + '...' : '-'}</td>
+                  <td>{formatDate(review.createdAt)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {loading && <div className="adm-loading">Loading...</div>}

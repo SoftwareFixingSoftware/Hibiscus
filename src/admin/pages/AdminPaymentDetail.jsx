@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import AdminPaymentService from '../services/adminPaymentService';
 import '../styles/admin-payments.css';
 
@@ -44,9 +44,7 @@ const AdminPaymentDetail = () => {
         </div>
         <div className="adm-detail-row">
           <span className="adm-detail-label">User:</span>
-          <span className="adm-detail-value">
-            {payment.userEmail ? <Link to={`/admin/users/${payment.userId}`}>{payment.userEmail}</Link> : payment.userId}
-          </span>
+          <span className="adm-detail-value">{payment.userEmail || payment.userId}</span>
         </div>
         <div className="adm-detail-row">
           <span className="adm-detail-label">Provider:</span>

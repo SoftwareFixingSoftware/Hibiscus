@@ -32,6 +32,58 @@
   gap: 1.5rem;
 }
 
+/* Stat Card Styles */
+.adm-stat-card {
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.adm-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.adm-stat-icon-container {
+  width: 48px;
+  height: 48px;
+  background: var(--hib-primary-light, rgba(59, 130, 246, 0.1));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.adm-stat-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--hib-primary);
+}
+
+.adm-stat-content {
+  flex: 1;
+}
+
+.adm-stat-title {
+  font-size: 0.875rem;
+  color: var(--hib-text-muted);
+  margin: 0 0 0.25rem;
+}
+
+.adm-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--hib-text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
 /* Metrics Section */
 .adm-metrics-section {
   margin-top: 1rem;
@@ -76,6 +128,7 @@
   border-radius: 12px;
   padding: 1.5rem;
   margin-top: 1rem;
+  overflow-x: auto;
 }
 
 .adm-top-list-card h4 {
@@ -88,6 +141,7 @@
 .adm-top-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 300px;
 }
 
 .adm-top-table th {
@@ -106,4 +160,160 @@
 
 .adm-top-table tr:last-child td {
   border-bottom: none;
+}
+
+/* ================================
+   RESPONSIVE – PHONES & SMALL TABLETS
+   ================================ */
+
+/* Up to 768px: force two columns for stat cards and metrics */
+@media (max-width: 768px) {
+  .adm-dashboard {
+    gap: 1rem;
+  }
+
+  .adm-dashboard-title {
+    font-size: 1.5rem;
+  }
+
+  .adm-dashboard-subtitle {
+    font-size: 0.875rem;
+  }
+
+  /* Stat cards: two per row */
+  .adm-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .adm-stat-card {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .adm-stat-icon-container {
+    width: 40px;
+    height: 40px;
+  }
+
+  .adm-stat-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .adm-stat-title {
+    font-size: 0.75rem;
+  }
+
+  .adm-stat-value {
+    font-size: 1.25rem;
+  }
+
+  /* Metrics: also two per row */
+  .adm-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .adm-metric-card {
+    padding: 0.75rem;
+  }
+
+  .adm-metric-value {
+    font-size: 1rem;
+  }
+
+  .adm-section-title {
+    font-size: 1.125rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .adm-top-list-card {
+    padding: 1rem;
+  }
+}
+
+/* Very small screens (≤480px) – extra compact */
+@media (max-width: 480px) {
+  .adm-dashboard {
+    gap: 0.75rem;
+  }
+
+  .adm-dashboard-title {
+    font-size: 1.25rem;
+  }
+
+  .adm-dashboard-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .adm-stats-grid {
+    gap: 0.75rem;
+  }
+
+  .adm-stat-card {
+    padding: 0.5rem;
+    gap: 0.5rem;
+    border-radius: 8px;
+  }
+
+  .adm-stat-icon-container {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+
+  .adm-stat-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .adm-stat-title {
+    font-size: 0.65rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .adm-stat-value {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .adm-metrics-grid {
+    gap: 0.75rem;
+  }
+
+  .adm-metric-card {
+    padding: 0.5rem;
+    border-radius: 6px;
+  }
+
+  .adm-metric-label {
+    font-size: 0.7rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .adm-metric-value {
+    font-size: 0.875rem;
+  }
+
+  .adm-section-title {
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .adm-top-list-card {
+    padding: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  .adm-top-list-card h4 {
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .adm-top-table th,
+  .adm-top-table td {
+    font-size: 0.7rem;
+    padding: 0.4rem 0;
+  }
 }

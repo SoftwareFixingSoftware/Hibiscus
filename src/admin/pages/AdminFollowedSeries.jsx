@@ -25,7 +25,6 @@ const AdminFollowedSeries = () => {
       }
     } catch (err) {
       setError('Failed to load followed series.');
-
     } finally {
       setLoading(false);
     }
@@ -35,18 +34,14 @@ const AdminFollowedSeries = () => {
     try {
       const data = await AdminFollowedSeriesService.getFollowerStatistics();
       setStats(data || []);
-    } catch (err) {
-
-    }
+    } catch (err) {}
   };
 
   const fetchTopSeries = async () => {
     try {
       const data = await AdminFollowedSeriesService.getTopFollowedSeries(10);
       setTopSeries(data || []);
-    } catch (err) {
-
-    }
+    } catch (err) {}
   };
 
   useEffect(() => {
@@ -62,20 +57,20 @@ const AdminFollowedSeries = () => {
   if (error) return <div className="adm-error">{error}</div>;
 
   return (
-    <div className="adm-analytics-section">
+    <div>
       <h3>Followed Series</h3>
 
       {stats.length > 0 && (
-        <div className="adm-stats-cards">
-          <div className="adm-stat-card">
-            <span className="adm-stat-label">Total Follows</span>
-            <span className="adm-stat-value">{stats.length}</span>
+        <div className="adm-analytics-stats-grid">
+          <div className="adm-analytics-stat-card">
+            <span className="adm-analytics-stat-label">Total Follows</span>
+            <span className="adm-analytics-stat-value">{stats.length}</span>
           </div>
         </div>
       )}
 
       {topSeries.length > 0 && (
-        <div className="adm-top-list">
+        <div className="adm-analytics-top-list">
           <h4>Top 10 Followed Series</h4>
           <table className="adm-analytics-table">
             <thead>
@@ -96,26 +91,28 @@ const AdminFollowedSeries = () => {
       {follows.length === 0 && !loading ? (
         <div className="adm-no-data">No follows found.</div>
       ) : (
-        <table className="adm-analytics-table">
-          <thead>
-            <tr>
-              <th>User Email</th>
-              <th>Series</th>
-              <th>Notifications</th>
-              <th>Followed At</th>
-            </tr>
-          </thead>
-          <tbody>
-            {follows.map(follow => (
-              <tr key={follow.followId}>
-                <td>{follow.userEmail || follow.userId}</td>
-                <td>{follow.seriesTitle || follow.seriesId}</td>
-                <td>{follow.notificationsEnabled ? 'Yes' : 'No'}</td>
-                <td>{formatDate(follow.followedAt)}</td>
+        <div className="adm-table-wrapper">
+          <table className="adm-analytics-table">
+            <thead>
+              <tr>
+                <th>User Email</th>
+                <th>Series</th>
+                <th>Notifications</th>
+                <th>Followed At</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {follows.map(follow => (
+                <tr key={follow.followId}>
+                  <td>{follow.userEmail || follow.userId}</td>
+                  <td>{follow.seriesTitle || follow.seriesId}</td>
+                  <td>{follow.notificationsEnabled ? 'Yes' : 'No'}</td>
+                  <td>{formatDate(follow.followedAt)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {loading && <div className="adm-loading">Loading...</div>}

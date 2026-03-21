@@ -38,7 +38,6 @@
 
 /* -------------------------
    LIGHT THEME OVERRIDES
-   Usage: add `body.light-theme` (your ThemeToggle does that)
    ------------------------- */
 body.light-theme{
   --hib-bg-page: #fff8f2;
@@ -55,7 +54,7 @@ body.light-theme{
   --hib-primary-dark: #c2410c;
 
   --table-header-bg: linear-gradient(90deg, rgba(249,115,22,0.96), rgba(251,146,60,0.92));
-  --table-header-text: #000000;   /* changed from #ffffff to constant black */
+  --table-header-text: #000000;
   --table-header-border: rgba(0,0,0,0.06);
   --table-header-glow: rgba(11,22,40,0.06);
 
@@ -91,6 +90,28 @@ body.light-theme{
 }
 
 /* -------------------------
+   BACK BUTTON
+   ------------------------- */
+.adm-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  color: var(--hib-text-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  margin-bottom: 1rem;
+}
+.adm-back-button:hover {
+  border-color: var(--hib-primary);
+  color: var(--hib-primary);
+}
+
+/* -------------------------
    PREMIUM STAT CARDS (with icon slot)
    ------------------------- */
 
@@ -101,14 +122,11 @@ body.light-theme{
   margin-bottom: 1.5rem;
 }
 
-/* card base */
 .adm-stat-card{
   position: relative;
   padding: 1rem 1.1rem;
   border-radius: 12px;
-  background:
-    linear-gradient(160deg, rgba(255,255,255,0.01), rgba(0,0,0,0.04)),
-    var(--hib-bg-card);
+  background: linear-gradient(160deg, rgba(255,255,255,0.01), rgba(0,0,0,0.04)), var(--hib-bg-card);
   border: 1px solid var(--hib-border);
   box-shadow: var(--hib-card-shadow);
   display: flex;
@@ -118,7 +136,6 @@ body.light-theme{
   overflow: hidden;
 }
 
-/* top accent bar */
 .adm-stat-card::before{
   content: "";
   position: absolute;
@@ -128,7 +145,6 @@ body.light-theme{
   opacity: .95;
 }
 
-/* ambient glow corner */
 .adm-stat-card::after{
   content: "";
   position: absolute;
@@ -138,13 +154,11 @@ body.light-theme{
   pointer-events: none;
 }
 
-/* hover */
 .adm-stat-card:hover{
   transform: translateY(-4px);
   box-shadow: 0 14px 40px rgba(2,6,23,0.25);
 }
 
-/* icon wrapper: intended to hold an inline react-icon */
 .adm-stat-icon{
   flex: 0 0 56px;
   height: 56px;
@@ -159,14 +173,12 @@ body.light-theme{
   box-shadow: 0 6px 14px rgba(2,6,23,0.08);
 }
 
-/* icon small variant (if you want) */
 .adm-stat-icon.small{
   width: 42px; height: 42px; font-size: 18px;
 }
 
-/* stat text area */
 .adm-stat-body{
-  display:flex;
+  display: flex;
   flex-direction: column;
   gap: .15rem;
   min-width: 0;
@@ -219,7 +231,6 @@ body.light-theme{
   padding: 0;
 }
 
-/* default table layout */
 .adm-series-table,
 .adm-purchases-table{
   width: 100%;
@@ -236,7 +247,6 @@ body.light-theme{
   background: var(--table-header-bg);
 }
 
-/* header cells */
 .adm-series-table th,
 .adm-purchases-table th{
   padding: 0.95rem 1rem;
@@ -250,7 +260,6 @@ body.light-theme{
   text-overflow: ellipsis;
 }
 
-/* sticky header (keeps gradient) */
 .adm-series-table thead th,
 .adm-purchases-table thead th{
   position: sticky;
@@ -271,20 +280,18 @@ body.light-theme{
 }
 
 /* -------------------------
-   STICKY FIRST COLUMN (TH vs TD careful)
+   STICKY FIRST COLUMN
    ------------------------- */
 
-/* header first column: keep header gradient, ensure it sits above */
 .adm-series-table th:first-child,
 .adm-purchases-table th:first-child{
   position: sticky;
   left: 0;
-  z-index: 40;  /* high so header text stays visible */
-  background: var(--table-header-bg); /* keep header gradient */
+  z-index: 40;
+  background: var(--table-header-bg);
   border-right: 1px solid var(--table-header-border);
 }
 
-/* body first column cells: card bg + subtle divider */
 .adm-series-table td:first-child,
 .adm-purchases-table td:first-child{
   position: sticky;
@@ -308,13 +315,11 @@ body.light-theme{
   vertical-align: middle;
 }
 
-/* zebra subtle alt background */
 .adm-series-table tbody tr:nth-child(even),
 .adm-purchases-table tbody tr:nth-child(even){
   background: rgba(255,255,255,0.00);
 }
 
-/* theme-aware row hover using variable */
 .adm-series-table tbody tr:hover,
 .adm-purchases-table tbody tr:hover{
   background: var(--row-hover-bg);
@@ -338,20 +343,19 @@ body.light-theme{
 
 /* status chips */
 .status-chip{
-  display:inline-flex;
-  align-items:center;
-  gap:.5rem;
-  padding:.25rem .5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .25rem .5rem;
   border-radius: 999px;
-  font-weight:700;
-  font-size:.82rem;
-  color:#fff;
+  font-weight: 700;
+  font-size: .82rem;
+  color: #fff;
 }
 .status-completed{ background: linear-gradient(90deg,#16a34a,#059669); }
 .status-pending{ background: linear-gradient(90deg,#fbbf24,#fb923c); color:#111827; }
 .status-failed { background: linear-gradient(90deg,#ef4444,#f97316); }
 
-/* paid-with-coins classes */
 .adm-purchases-table td.paid-with-coins-yes{ color: var(--hib-success-color); font-weight:700; }
 .adm-purchases-table td.paid-with-coins-no{ color: var(--hib-text-muted); }
 
@@ -377,17 +381,30 @@ body.light-theme{
 .adm-detail-label{ min-width:150px; font-weight:600; color:var(--hib-text-muted); }
 .adm-detail-value{ color:var(--hib-text-primary); word-break:break-word; }
 
+/* Metadata pre block styling */
+.adm-metadata {
+  background: var(--hib-bg-darker);
+  padding: 0.75rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.8rem;
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: monospace;
+}
+
 /* -------------------------
    MISC: pagination, messages
    ------------------------- */
 .adm-no-data, .adm-loading{ padding:1.25rem; background:var(--hib-bg-card); border-radius:10px; color:var(--hib-text-muted); text-align:center; border:1px dashed var(--hib-border); }
-.adm-pagination-container{ display:flex; justify-content:center; align-items:center; gap:1rem; margin-top:1rem; }
-.adm-pagination-nav{ background:var(--hib-bg-card); border:1px solid var(--hib-border); padding:.45rem .8rem; border-radius:8px; cursor:pointer; color:var(--hib-text-primary); }
-.adm-pagination-nav:hover{ background:var(--row-hover-bg); }
+.adm-pagination-container{ display:flex; justify-content:center; align-items:center; gap:1rem; margin-top:1rem; flex-wrap:wrap; }
+.adm-pagination-nav{ background:var(--hib-bg-card); border:1px solid var(--hib-border); padding:.45rem .8rem; border-radius:8px; cursor:pointer; color:var(--hib-text-primary); transition:background 0.2s; }
+.adm-pagination-nav:hover:not(:disabled){ background:var(--row-hover-bg); }
+.adm-pagination-nav:disabled{ opacity:0.5; cursor:not-allowed; }
 .adm-error{ background: rgba(239,68,68,0.08); color:var(--hib-error-color); padding:1rem; border-radius:8px; border:1px solid var(--hib-error-color); }
 
 /* -------------------------
-   MOBILE CARD VIEW
+   MOBILE CARD VIEW (for tables)
    ------------------------- */
 @media (max-width:768px){
   .adm-table-wrapper{ max-height: 70vh; }
@@ -397,14 +414,97 @@ body.light-theme{
   .adm-series-table, .adm-series-table tbody, .adm-series-table tr, .adm-series-table td {
     display:block; width:100%;
   }
-  .adm-purchases-table tr, .adm-series-table tr { margin:0 0 1rem; border-radius:10px; background: var(--hib-bg-card); padding:.75rem; border:1px solid var(--hib-border); }
-  .adm-purchases-table td, .adm-series-table td { padding:.6rem .75rem; white-space:normal; position:relative; padding-left:45%; }
-  .adm-purchases-table td::before, .adm-series-table td::before { content: attr(data-label); position:absolute; left:.9rem; top:.5rem; font-weight:700; color:var(--hib-text-muted); width:40%; font-size:.85rem; }
-  .adm-purchases-table td:first-child, .adm-series-table td:first-child { position:relative; left:auto; box-shadow:none; background:transparent; padding-left:.75rem; }
+  .adm-purchases-table tr, .adm-series-table tr {
+    margin:0 0 1rem; border-radius:10px; background: var(--hib-bg-card); padding:.75rem; border:1px solid var(--hib-border);
+  }
+  .adm-purchases-table td, .adm-series-table td {
+    padding:.6rem .75rem .6rem 45%; white-space:normal; position:relative;
+  }
+  .adm-purchases-table td::before, .adm-series-table td::before {
+    content: attr(data-label); position:absolute; left:.9rem; top:.5rem; font-weight:700; color:var(--hib-text-muted); width:40%; font-size:.85rem;
+  }
 }
 
-/* accessibility/focus */
-.adm-purchases-table tr:focus-within, .adm-series-table tr:focus-within { outline: 3px solid rgba(213,160,86,0.14); outline-offset:4px; }
+/* -------------------------
+   PAYMENT DETAIL CARD RESPONSIVE
+   ------------------------- */
+@media (max-width:768px){
+  .adm-payment-detail-card {
+    padding: 1rem;
+  }
+  .adm-detail-row {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .adm-detail-label {
+    min-width: auto;
+  }
+}
 
-/* small polish */
-.adm-stat-card .small-note { font-size: .85rem; color: var(--hib-text-muted); }
+@media (max-width:480px){
+  .adm-payment-detail-card {
+    padding: 0.75rem;
+  }
+  .adm-detail-row {
+    padding: 0.4rem 0;
+  }
+  .adm-detail-label {
+    font-size: 0.8rem;
+  }
+  .adm-detail-value {
+    font-size: 0.9rem;
+  }
+  .adm-metadata {
+    font-size: 0.7rem;
+  }
+  .adm-back-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Extra small screens: further compact stats cards and card view */
+@media (max-width:480px){
+  .adm-stats-cards{
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  .adm-stat-card{
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+  .adm-stat-icon{
+    flex: 0 0 42px;
+    height: 42px;
+    font-size: 1.2rem;
+  }
+  .adm-stat-value{
+    font-size: 1.2rem;
+    white-space: normal;
+    word-break: break-word;
+  }
+  .adm-stat-label{
+    font-size: 0.7rem;
+  }
+  .adm-table-wrapper{
+    max-height: 50vh;
+  }
+  .adm-purchases-table tr, .adm-series-table tr{
+    padding: 0.5rem;
+  }
+  .adm-purchases-table td, .adm-series-table td{
+    padding: 0.5rem 0.5rem 0.5rem 45%;
+    font-size: 0.8rem;
+  }
+  .adm-purchases-table td::before, .adm-series-table td::before{
+    font-size: 0.7rem;
+    top: 0.4rem;
+  }
+  .adm-pagination-container{
+    gap: 0.5rem;
+  }
+  .adm-pagination-nav{
+    padding: 0.35rem 0.6rem;
+    font-size: 0.75rem;
+  }
+}
