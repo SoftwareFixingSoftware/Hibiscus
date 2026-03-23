@@ -60,8 +60,8 @@ body {
 }
 
 .adm-brand-logo {
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   border-radius: 10px;
   object-fit: contain;
   flex-shrink: 0;
@@ -445,5 +445,50 @@ body {
   /* Increase touch area for toggle button */
   .adm-sidebar-toggle {
     padding: 0.55rem;
+  }
+}
+/* ================================
+   MOBILE SIDEBAR TOGGLE BUTTON – BOTTOM RIGHT
+================================ */
+
+.adm-mobile-toggle {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1100;
+  background: var(--hib-bg-card);
+  border: 1px solid var(--hib-border);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--hib-text-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.adm-mobile-toggle:hover {
+  background: var(--hib-bg-light);
+}
+
+/* Hide the button on screens larger than 768px */
+@media (min-width: 769px) {
+  .adm-mobile-toggle {
+    display: none;
+  }
+}
+
+/* When sidebar is hidden on small screens, hide the sidebar and adjust main content */
+@media (max-width: 768px) {
+  .adm-admin-container.adm-sidebar-hidden .adm-sidebar {
+    display: none;
+  }
+
+  .adm-admin-container.adm-sidebar-hidden .adm-admin-main {
+    margin-left: 0 !important;
+    width: 100% !important;
   }
 }

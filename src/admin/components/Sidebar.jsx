@@ -43,7 +43,7 @@ const Sidebar = () => {
           />
           {sidebarOpen && (
             <div className="adm-brand-text">
-              <h2 className="adm-brand-title">Hibiscus</h2>
+              <h1 className="adm-brand-title">Hibiscus</h1>
               <p className="adm-brand-subtitle">Content Admin</p>
             </div>
           )}

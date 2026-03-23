@@ -1,0 +1,738 @@
+/* ================================
+   USER BASE + SIDEBAR (FULL WIDTH, NO AUTO SHRINK)
+   ================================ */
+
+:root {
+  /* Page & card backgrounds – now referencing admin variables */
+  --user-bg-page: var(--hib-bg-page);
+  --user-bg-card: var(--hib-bg-card);
+  --user-bg-darker: var(--hib-bg-darker);
+  --user-bg-light: var(--hib-bg-light);
+
+  /* Text colors */
+  --user-text-primary: var(--hib-text-primary);
+  --user-text-muted: var(--hib-text-muted);
+
+  /* Borders & shadows */
+  --user-border: var(--hib-border);
+  --user-card-shadow: var(--hib-card-shadow);
+
+  /* Accent (gold) */
+  --user-primary: var(--hib-primary);
+  --user-primary-600: var(--hib-primary-600);
+  --user-primary-dark: var(--hib-primary-dark);
+
+  /* Status colors */
+  --user-success-color: var(--hib-success-color);
+  --user-warning-color: var(--hib-warning-color);
+  --user-error-color: var(--hib-error-color);
+
+  /* Row hover (used in tables) */
+  --row-hover-bg: var(--row-hover-bg);
+
+  /* Sidebar sizes – fixed, never auto‑shrinks */
+  --user-sidebar-width: 320px;
+  --user-sidebar-collapsed-width: 100px;
+
+  /* Overlay tuning */
+  --user-overlay-max-height: 52%;
+
+  /* Compatibility aliases (for old user classes) */
+  --user-bg: var(--user-bg-page);
+  --user-panel: var(--user-bg-card);
+  --user-muted: var(--user-text-muted);
+  --user-accent: var(--user-primary);
+  --user-accent-glow: rgba(217, 169, 90, 0.4);
+  --user-green: var(--user-success-color);
+  --user-glass-bg: var(--user-bg-card);
+  --user-glass-border: var(--user-border);
+}
+
+/* ---------- LIGHT THEME OVERRIDES (direct values) ---------- */
+body.light-theme {
+  --user-bg-page: #fff8f2;
+  --user-bg-card: #fffdf9;
+  --user-bg-darker: #fff5eb;
+  --user-bg-light: #fbf6ef;
+
+  --user-text-primary: #222222;
+  --user-text-muted: #6b6b70;
+
+  --user-border: rgba(11, 22, 36, 0.06);
+  --user-card-shadow: 0 8px 26px rgba(11, 22, 40, 0.06);
+
+  --user-primary: #fb923c;
+  --user-primary-600: #f97316;
+  --user-primary-dark: #c2410c;
+
+  --user-success-color: #16a34a;
+  --user-warning-color: #f59e0b;
+  --user-error-color: #ef4444;
+
+  --row-hover-bg: rgba(245, 236, 220, 0.95);
+
+  /* Compatibility aliases */
+  --user-bg: var(--user-bg-page);
+  --user-panel: var(--user-bg-card);
+  --user-muted: var(--user-text-muted);
+  --user-accent: var(--user-primary);
+  --user-accent-glow: rgba(251, 146, 60, 0.4);
+  --user-green: var(--user-success-color);
+  --user-glass-bg: var(--user-bg-card);
+  --user-glass-border: var(--user-border);
+}
+
+* {
+  box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  background: var(--user-bg-page);
+  background-image: radial-gradient(circle at 20% 20%, rgba(217, 169, 90, 0.03) 0%, transparent 40%);
+  color: var(--user-text-primary);
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Main Layout */
+.user-root {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+.user-main {
+  flex: 1;
+  padding: 18px 24px;
+  overflow-y: auto;
+  min-height: 100vh;
+  scroll-behavior: smooth;
+  transition: opacity 0.25s ease, transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-main.fade-enter {
+  opacity: 0;
+  transform: scale(0.98);
+}
+.user-main.fade-enter-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Background Animation */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 30% 40%, rgba(217, 169, 90, 0.02) 0%, transparent 30%),
+              radial-gradient(circle at 80% 70%, rgba(217, 169, 90, 0.02) 0%, transparent 30%);
+  pointer-events: none;
+  animation: user-bg-move 20s infinite alternate ease-in-out;
+  z-index: -1;
+}
+
+@keyframes user-bg-move {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+/* Utilities */
+.user-muted {
+  color: var(--user-text-muted);
+}
+.user-small {
+  font-size: 13px;
+}
+.user-section-title {
+  font-size: 22px;
+  margin: 0;
+  font-weight: 800;
+  color: var(--user-text-primary);
+}
+.user-grid-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+/* ================================
+   HEADER INSIDE MAIN (logo + auth)
+   ================================ */
+.user-app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--user-border);
+}
+
+.user-logo {
+  font-size: 1.8rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--user-primary), var(--user-primary-dark));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  letter-spacing: -0.02em;
+}
+.user-logo:hover {
+  opacity: 0.8;
+}
+
+.user-auth-buttons {
+  display: flex;
+  gap: 1rem;
+}
+.user-auth-buttons button {
+  background: transparent;
+  border: 1px solid var(--user-border);
+  color: var(--user-text-primary);
+  padding: 0.5rem 1.2rem;
+  border-radius: 30px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.user-auth-buttons button:hover {
+  border-color: var(--user-primary);
+  color: var(--user-primary);
+}
+
+.user-notification-bell {
+  margin-left: auto;
+}
+.user-main--no-sidebar {
+  margin-left: 0 !important;
+  width: 100% !important;
+}
+
+/* ================================
+   SCROLLABLE CONTAINER (for large lists)
+   ================================ */
+.user-scroll-container {
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.25rem;
+  margin-top: 1rem;
+}
+.user-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+.user-scroll-container::-webkit-scrollbar-track {
+  background: var(--user-border);
+  border-radius: 3px;
+}
+.user-scroll-container::-webkit-scrollbar-thumb {
+  background: var(--user-primary);
+  border-radius: 3px;
+}
+
+/* ================================
+   SERIES GRID (responsive)
+   ================================ */
+.user-series-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin: 1rem 0;
+}
+.user-series-card {
+  background: var(--user-bg-card);
+  border: 1px solid var(--user-border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--user-card-shadow);
+}
+.user-series-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+.user-series-cover {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  background: var(--user-bg-darker);
+}
+.user-series-info {
+  padding: 1rem;
+}
+.user-series-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+}
+.user-series-category {
+  font-size: 0.8rem;
+  color: var(--user-text-muted);
+  margin-bottom: 0.5rem;
+}
+.user-series-description {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--user-text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.user-series-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--user-text-muted);
+}
+
+/* ================================
+   EPISODE LIST (responsive)
+   ================================ */
+.user-episodes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+.user-episode-card {
+  background: var(--user-bg-card);
+  border: 1px solid var(--user-border);
+  border-radius: 10px;
+  padding: 0.75rem;
+}
+.user-episode-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.user-episode-number {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--user-primary);
+}
+.user-episode-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+.user-episode-description {
+  font-size: 0.8rem;
+  color: var(--user-text-muted);
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+.user-episode-meta {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--user-text-muted);
+}
+.user-audio-player {
+  width: 100%;
+  margin-top: 0.5rem;
+  border-radius: 6px;
+}
+
+/* ================================
+   TABLES (for admin-like data)
+   ================================ */
+.user-table-wrapper {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 500px;
+  border-radius: 12px;
+  margin: 1rem 0;
+}
+.user-table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+  background: var(--user-bg-card);
+  color: var(--user-text-primary);
+}
+.user-table th,
+.user-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--user-border);
+  text-align: left;
+}
+.user-table th {
+  background: var(--user-bg-darker);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+.user-table tr:hover td {
+  background: var(--row-hover-bg);
+}
+
+/* ================================
+   USER SIDEBAR (FIXED WIDTH, NO AUTO SHRINK)
+   ================================ */
+.user-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--user-sidebar-width);
+  background: var(--user-bg-darker);
+  border-right: 1px solid var(--user-border);
+  transition: width 0.28s ease;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+  user-select: none;
+}
+.user-sidebar.collapsed {
+  width: var(--user-sidebar-collapsed-width);
+}
+.user-sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--user-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.user-sidebar.collapsed .user-sidebar-header {
+  justify-content: center;
+  padding: 1.5rem 0;
+}
+.user-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.user-brand-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  object-fit: contain;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  background: none;
+}
+.user-brand-logo:hover {
+  opacity: 0.9;
+}
+.user-sidebar.collapsed .user-brand-logo {
+  display: none;
+}
+.user-brand-text {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+.user-sidebar.collapsed .user-brand-text {
+  display: none;
+}
+.user-brand-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--user-text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+.user-brand-subtitle {
+  font-size: 0.75rem;
+  color: var(--user-text-muted);
+  margin: 0;
+}
+.user-sidebar-toggle {
+  background: transparent;
+  border: 1px solid var(--user-border);
+  color: var(--user-text-muted);
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.user-sidebar-toggle:hover {
+  background: var(--user-primary);
+  color: white;
+  border-color: var(--user-primary);
+}
+.user-sidebar.collapsed .user-sidebar-toggle {
+  margin: 0;
+}
+.user-nav {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.user-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--user-text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  transition: background 0.2s ease, color 0.2s ease;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.user-nav-item:hover {
+  background: var(--user-bg-light);
+  color: var(--user-text-primary);
+}
+.user-nav-item.active {
+  background: var(--user-primary);
+  color: white;
+}
+.user-nav-icon {
+  font-size: 20px;
+  min-width: 28px;
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.user-nav-label {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  line-height: 1;
+  max-width: calc(var(--user-sidebar-width) - 96px);
+}
+.user-sidebar.collapsed .user-nav-label {
+  display: none;
+}
+.user-nav-item:focus {
+  outline: 2px solid rgba(255,255,255,0.06);
+  outline-offset: 2px;
+}
+.user-sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid var(--user-border);
+  margin-top: auto;
+}
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--user-primary), #34d399);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.user-details {
+  flex: 1;
+  min-width: 0;
+}
+.user-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--user-text-primary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.user-role {
+  font-size: 0.75rem;
+  color: var(--user-text-muted);
+  margin: 0;
+}
+.user-logout-btn {
+  background: none;
+  border: none;
+  color: var(--user-text-muted);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  font-size: 1.2rem;
+}
+.user-logout-btn:hover {
+  color: var(--user-error-color);
+  background: var(--user-bg-light);
+}
+.user-sidebar.collapsed .user-sidebar-footer {
+  padding: 1rem 0;
+  display: flex;
+  justify-content: center;
+}
+.user-sidebar.collapsed .user-info {
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.user-sidebar.collapsed .user-details {
+  display: none;
+}
+.user-sidebar.collapsed .user-logout-btn {
+  margin: 0;
+}
+.user-sidebar.collapsed .user-avatar {
+  display: none;
+}
+
+/* Space for the fixed sidebar */
+.user-sidebar + .user-main {
+  margin-left: var(--user-sidebar-width);
+  width: calc(100% - var(--user-sidebar-width));
+}
+.user-sidebar.collapsed + .user-main {
+  margin-left: var(--user-sidebar-collapsed-width);
+  width: calc(100% - var(--user-sidebar-collapsed-width));
+}
+
+/* Mini‑player positioning */
+.user-mini-player {
+  left: var(--user-sidebar-width);
+}
+.user-sidebar.collapsed ~ .user-mini-player {
+  left: var(--user-sidebar-collapsed-width);
+}
+
+/* ================================
+   RESPONSIVE ADJUSTMENTS (ONLY CONTENT, SIDEBAR WIDTH UNCHANGED)
+   ================================ */
+@media (max-width: 768px) {
+  .user-main {
+    padding: 12px 16px;
+  }
+  .user-section-title {
+    font-size: 1.3rem;
+  }
+  .user-series-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  .user-series-card {
+    border-radius: 8px;
+  }
+  .user-series-info {
+    padding: 0.75rem;
+  }
+  .user-episodes-grid {
+    grid-template-columns: 1fr;
+  }
+  .user-scroll-container {
+    max-height: 60vh;
+  }
+  .user-app-header {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .user-auth-buttons {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  /* Sidebar width remains the same – no auto reduction */
+}
+
+@media (max-width: 480px) {
+  .user-main {
+    padding: 8px 12px;
+  }
+  .user-section-title {
+    font-size: 1.1rem;
+  }
+  .user-series-grid {
+    grid-template-columns: 1fr;
+  }
+  .user-series-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem;
+  }
+  .user-series-cover {
+    width: 80px;
+    height: 120px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+  .user-series-info {
+    flex: 1;
+    padding: 0;
+  }
+  .user-episode-card {
+    padding: 0.5rem;
+  }
+  .user-scroll-container {
+    max-height: 50vh;
+  }
+  .user-table th,
+  .user-table td {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  /* Sidebar width remains the same */
+}
