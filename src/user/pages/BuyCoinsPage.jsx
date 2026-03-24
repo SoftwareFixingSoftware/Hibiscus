@@ -56,7 +56,7 @@ const MpesaSuccessModal = ({ checkoutRequestId, onClose }) => {
   );
 };
 
-// ------------------ Support Modal (unchanged) ------------------
+// ------------------ Support Modal ------------------
 const SupportModal = ({ transaction, onClose, onSubmit }) => {
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -122,7 +122,7 @@ const SupportModal = ({ transaction, onClose, onSubmit }) => {
   );
 };
 
-// ------------------ Status badge helper (unchanged) ------------------
+// ------------------ Status badge helper ------------------
 const formatStatus = (status) => {
   const statusMap = {
     PENDING: { label: 'Pending', class: 'user-status-pending' },
@@ -207,6 +207,20 @@ const BuyCoinsPage = () => {
       throw err;
     }
   };
+
+  // Helper to get payment method name
+  const getPaymentMethodName = () => {
+    const methods = {
+      paypal: 'PayPal',
+      mpesa: 'M‑Pesa',
+      card: 'Credit Card',
+      crypto: 'Crypto',
+      googlepay: 'Google Pay'
+    };
+    return methods[selectedPaymentMethod] || 'selected method';
+  };
+
+  const buyButtonText = `Pay with ${getPaymentMethodName()}`;
 
   // ------------------ Handle Buy Button ------------------
   const handleBuy = async (selectedPackage) => {
@@ -316,7 +330,8 @@ const BuyCoinsPage = () => {
               </div>
             )}
 
-            <CoinPackages onBuy={handleBuy} />
+            {/* CoinPackages with dynamic button text */}
+            <CoinPackages onBuy={handleBuy} buttonText={buyButtonText} />
 
             {/* Error message */}
             {error && <div className="user-error-message">{error}</div>}
@@ -359,7 +374,7 @@ const BuyCoinsPage = () => {
                       onClick={() => handleSupportClick(tx)}
                       title="Request support for this transaction"
                     >
-                      <FaHeadset />
+                      Support
                     </button>
                   </div>
                 ))}

@@ -2,11 +2,27 @@
    USER PROFILE PAGE – SHELL ONLY
    ================================ */
 
+/* Global safety for width calculations */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 :root {
   --profile-inner-max: 1100px; /* comfortable card width */
 }
 
 .user-page-container {
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
@@ -14,6 +30,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  overflow-x: hidden;
 }
 
 .user-page-title {
@@ -24,6 +41,9 @@
   letter-spacing: -0.02em;
   position: relative;
   padding-bottom: 0.5rem;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* optional gold underline */
@@ -43,6 +63,9 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  min-width: 0;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* loading pill */
@@ -55,9 +78,12 @@
   border: 1px solid var(--user-border);
   border-radius: 12px;
   backdrop-filter: blur(4px);
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
-/* fade‑in animation */
+/* fade-in animation */
 @keyframes profile-fadeUp {
   from {
     opacity: 0;
@@ -76,6 +102,17 @@
   margin-left: auto;
   margin-right: auto;
   box-sizing: border-box;
+  min-width: 0;
+}
+
+/* Keep common content from blowing out the layout */
+.user-page-body,
+.user-profile-form,
+.user-profile-card,
+.user-profile-section {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* responsive */
@@ -87,15 +124,183 @@
 
 @media (max-width: 768px) {
   .user-page-container {
-    padding: 1.5rem 1rem;
+    width: 100%;
+    max-width: 100%;
+    padding: 1.25rem 1rem;
+    padding-bottom: 20px; /* extra bottom space for bottom navigation bar */
   }
+
   .user-page-title {
     font-size: 1.75rem;
   }
+
   .user-page-title::after {
     width: 60px;
   }
+
   :root {
     --profile-inner-max: 100%;
+  }
+
+  /* Ensure any form groups or cards are full width and never overflow */
+  .user-profile-form,
+  .user-profile-card,
+  .user-profile-section {
+    width: 100%;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    overflow-x: hidden;
+  }
+
+  /* Make buttons larger for touch */
+  .user-profile-button,
+  .user-button,
+  button[type="submit"] {
+    padding: 12px 20px;
+    font-size: 16px;
+    min-height: 48px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* If there are tabs, allow scrolling inside the tab row only */
+  .user-profile-tabs {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: 2px;
+    max-width: 100%;
+  }
+
+  .user-profile-tab {
+    flex: 0 0 auto;
+    padding: 10px 16px;
+  }
+
+  /* All form controls fit screen width */
+  input,
+  textarea,
+  select {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    font-size: 16px; /* prevents iOS zoom */
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  /* Fix for select dropdown */
+  select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 32px;
+  }
+
+  /* Form groups */
+  .user-form-group,
+  .user-field {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 1rem;
+    min-width: 0;
+  }
+
+  .user-form-group label,
+  .user-field label,
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    max-width: 100%;
+    overflow-wrap: break-word;
+  }
+
+  /* Avatar area */
+  .user-avatar-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+    max-width: 100%;
+  }
+
+  .user-avatar-large {
+    width: 120px;
+    height: 120px;
+    max-width: 100%;
+  }
+
+  /* Prevent text overflow */
+  .user-page-body,
+  .user-profile-form,
+  .user-profile-card,
+  .user-profile-section,
+  .user-page-container {
+    overflow-x: hidden;
+  }
+
+  .user-page-body * {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* Avoid layout overflow from media/content */
+  img,
+  svg,
+  video,
+  canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Bottom margin for the last element */
+  .user-page-body > :last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* For very small phones (≤ 480px) */
+@media (max-width: 480px) {
+  .user-page-container {
+    padding: 1rem 0.75rem;
+    padding-bottom: 20px;
+  }
+
+  .user-page-title {
+    font-size: 1.5rem;
+  }
+
+  .user-page-title::after {
+    width: 48px;
+  }
+
+  input,
+  textarea,
+  select {
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  button,
+  .user-profile-button,
+  .user-button,
+  button[type="submit"] {
+    padding: 10px 16px;
+  }
+
+  .user-avatar-large {
+    width: 96px;
+    height: 96px;
   }
 }

@@ -557,3 +557,169 @@ body.light-theme .user-selected-episode-panel {
 body.light-theme .user-selected-episode-panel .user-muted {
   color: var(--user-text-muted);
 }
+
+/* ================================
+   MOBILE ADAPTATIONS FOR SERIES DETAIL PAGE
+   ================================ */
+@media (max-width: 768px) {
+  /* Switch to single column layout */
+  .user-series-detail {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-top: 0;
+  }
+
+  /* Adjust cover height and overlay margins */
+  .user-series-cover {
+    height: 280px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .user-series-info-overlay {
+    margin-top: -50px;            /* smaller overlap for better visibility */
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  /* Remove independent scroll from right column */
+  .user-series-right {
+    max-height: none;
+    overflow-y: visible;
+    height: auto;                 /* ensure it flows naturally */
+    margin-top: 8px;
+  }
+
+  /* Episodes list should flow naturally */
+  .user-episodes-list {
+    overflow-y: visible;
+    max-height: none;
+    flex: none;
+    padding-right: 0;
+  }
+
+  /* Reviews list also natural flow */
+  .user-reviews-list {
+    overflow-y: visible;
+    max-height: none;
+    flex: none;
+  }
+
+  /* Episode row adjustments for better touch */
+  .user-episode-row {
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+
+  .user-episode-left {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-episode-meta {
+    max-width: 100%;
+  }
+
+  .user-episode-title {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* Actions may wrap on very small screens */
+  .user-episode-actions {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  /* Optional: hide text on buy button for space */
+  .user-buy-short span {
+    display: none;
+  }
+  .user-buy-short {
+    padding: 8px 12px;
+  }
+
+  /* Tabs style */
+  .user-tab-button {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+
+  /* Selected episode panel */
+  .user-selected-episode-panel {
+    margin-top: 12px;
+    padding: 12px;
+  }
+
+  /* Adjust badges row */
+  .user-badges-row {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* Series title font size */
+  .user-series-title {
+    font-size: 24px;
+    padding: 6px 10px;
+  }
+
+  /* Meta row wrap */
+  .user-series-meta-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Description text */
+  .user-series-description-text {
+    font-size: 14px;
+  }
+
+  /* Author row */
+  .user-author-row {
+    flex-wrap: wrap;
+    width: auto;
+  }
+
+  /* Extra bottom spacing for the last episode */
+  .user-episode-row:last-child {
+    margin-bottom: 20px;
+  }
+}
+
+/* For very small phones (≤ 480px), further tweaks */
+@media (max-width: 480px) {
+  .user-series-cover {
+    height: 220px;
+  }
+  .user-series-info-overlay {
+    margin-top: -30px;
+    padding: 12px;
+  }
+  .user-series-title {
+    font-size: 20px;
+  }
+  .user-episode-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .user-episode-left {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  .user-episode-actions {
+    justify-content: flex-end;
+    width: 100%;
+  }
+  .user-play-circle {
+    width: 40px;
+    height: 40px;
+  }
+}
+.user-spinner {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

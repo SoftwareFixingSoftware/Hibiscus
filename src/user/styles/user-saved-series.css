@@ -2,19 +2,36 @@
    USER SAVED SERIES PAGE
    ================================ */
 
+/* Global safety */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 .user-saved-series-page {
+  width: 100%;
   max-width: 1000px;
   margin: 0 auto;
   padding: 1.5rem;
-  min-height: calc(100vh - 72px); /* leave room for mini‑player */
+  min-height: calc(100vh - 72px);
   display: flex;
   flex-direction: column;
-  width: 100%;
+  overflow-x: hidden;
 }
 
 /* ---------- Header ---------- */
 .user-page-header {
   margin-bottom: 2rem;
+  max-width: 100%;
 }
 
 .user-page-header h1 {
@@ -25,6 +42,8 @@
   letter-spacing: -0.02em;
   position: relative;
   padding-bottom: 0.5rem;
+  max-width: 100%;
+  overflow-wrap: break-word;
 }
 
 .user-page-header h1::after {
@@ -42,19 +61,30 @@
   color: var(--user-text-muted);
   font-size: 0.9375rem;
   margin: 0;
+  max-width: 100%;
+  overflow-wrap: break-word;
 }
 
 /* ---------- Loading / Error / Empty States ---------- */
 .user-loading,
 .user-error,
 .user-empty-state {
-  text-align: center;
-  padding: 3rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
+  gap: 0.75rem;
+
+  padding: 1.5rem 1rem;
   color: var(--user-text-muted);
   font-size: 1rem;
   background: var(--user-bg-darker);
   border-radius: 12px;
   border: 1px dashed var(--user-border);
+  max-width: 100%;
+  overflow: hidden;
+  min-height: 180px;
 }
 
 .user-error {
@@ -62,18 +92,43 @@
   border-color: var(--user-error-color);
 }
 
+.user-loading > *,
+.user-error > *,
+.user-empty-state > * {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  margin: 0;
+}
+
+/* Buttons container for states */
+.user-actions {
+  margin-top: auto;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+/* State buttons: smaller, tighter, left aligned */
 .user-back-button,
 .user-browse-button {
   background: transparent;
   border: 1px solid var(--user-border);
   color: var(--user-text-primary);
-  padding: 0.6rem 1.5rem;
-  border-radius: 30px;
-  font-size: 0.875rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
   font-weight: 500;
+  line-height: 1;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-top: 1rem;
+  flex-shrink: 0;
+  max-width: 100%;
+  min-height: 34px;
+  width: auto;
 }
 
 .user-back-button:hover,
@@ -83,6 +138,14 @@
   background: rgba(217, 169, 90, 0.05);
 }
 
+/* If buttons are directly inside empty/error states */
+.user-error .user-back-button,
+.user-empty-state .user-browse-button,
+.user-loading .user-back-button,
+.user-loading .user-browse-button {
+  margin-top: auto;
+}
+
 /* ---------- Series Grid ---------- */
 .user-series-grid {
   display: flex;
@@ -90,6 +153,7 @@
   gap: 1rem;
   width: 100%;
   margin: 1rem 0;
+  min-width: 0;
 }
 
 /* ---------- Saved Series Card ---------- */
@@ -105,6 +169,8 @@
   position: relative;
   width: 100%;
   box-shadow: var(--user-card-shadow);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .user-saved-series-card:hover {
@@ -127,22 +193,13 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.user-saved-series-card .user-card-art .user-card-placeholder {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, var(--user-bg-darker), var(--user-bg-card));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--user-text-muted);
-  font-size: 1.5rem;
+  display: block;
 }
 
 .user-saved-series-card .user-card-body {
   flex: 1;
   min-width: 0;
+  padding-right: 5.5rem; /* keeps text away from the action icons */
 }
 
 .user-saved-series-card .user-card-title {
@@ -164,14 +221,15 @@
   text-overflow: ellipsis;
 }
 
-/* ---------- Card Actions (top right) ---------- */
+/* ---------- Card Actions ---------- */
 .user-card-actions {
   position: absolute;
   top: 1rem;
   right: 1rem;
   display: flex;
-  gap: 0.5rem;
-  z-index: 2;
+  gap: 0.35rem;
+  z-index: 3;
+  flex-shrink: 0;
 }
 
 .user-notification-toggle,
@@ -179,15 +237,20 @@
   background: var(--user-bg-darker);
   border: 1px solid var(--user-border);
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--user-text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 1rem;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
 }
 
 .user-notification-toggle:hover,
@@ -203,9 +266,27 @@
   color: #000;
 }
 
+/* Make the notification icon easier to see */
+.user-notification-toggle.active svg,
+.user-notification-toggle svg,
+.user-remove-button svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
 .user-remove-button:hover {
   border-color: var(--user-error-color);
   color: var(--user-error-color);
+}
+
+/* ---------- Media Safety ---------- */
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
 }
 
 /* ---------- Responsive ---------- */
@@ -232,6 +313,69 @@
     margin-right: 1rem;
   }
 
+  .user-saved-series-card .user-card-body {
+    padding-right: 4.75rem;
+  }
+
+  .user-card-actions {
+    top: 0.6rem;
+    right: 0.6rem;
+    gap: 0.25rem;
+  }
+
+  .user-notification-toggle,
+  .user-remove-button {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    font-size: 0.8rem;
+  }
+
+  .user-loading,
+  .user-error,
+  .user-empty-state {
+    min-height: 170px;
+    padding: 1.25rem 0.9rem;
+  }
+
+  .user-actions {
+    flex-direction: row;
+    gap: 0.4rem;
+    align-items: flex-start;
+  }
+
+  .user-back-button,
+  .user-browse-button {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.78rem;
+    min-height: 32px;
+  }
+}
+
+/* Small phones */
+@media (max-width: 480px) {
+  .user-saved-series-page {
+    padding: 0.75rem;
+  }
+
+  .user-page-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .user-saved-series-card {
+    padding: 0.7rem;
+  }
+
+  .user-saved-series-card .user-card-art {
+    width: 52px;
+    height: 52px;
+  }
+
+  .user-saved-series-card .user-card-body {
+    padding-right: 4.25rem;
+  }
+
   .user-card-actions {
     top: 0.5rem;
     right: 0.5rem;
@@ -239,7 +383,27 @@
 
   .user-notification-toggle,
   .user-remove-button {
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    min-height: 26px;
+    font-size: 0.72rem;
+  }
+
+  .user-loading,
+  .user-error,
+  .user-empty-state {
+    min-height: 160px;
+    padding: 1rem 0.8rem;
+  }
+
+  .user-back-button,
+  .user-browse-button {
+    width: auto;
+    min-width: 120px;
+  }
+
+  .user-actions {
+    flex-wrap: wrap;
   }
 }

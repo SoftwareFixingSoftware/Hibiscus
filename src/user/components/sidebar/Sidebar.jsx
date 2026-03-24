@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import RippleButton from '../common/RippleButton';
 import AuthService from '../../services/AuthService';
 import LogoutModal from '../../components/LogoutModal';
-import '../../styles/user-sidebar.css';
 
 import {
   FaHome,
@@ -23,6 +22,10 @@ import {
 const Sidebar = ({ public: isPublic = false }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isBottomNavVisible, setIsBottomNavVisible] = useState(true);
+
+  const lastScrollY = useRef(0);
+  const ticking = useRef(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -37,7 +40,9 @@ const Sidebar = ({ public: isPublic = false }) => {
     return location.pathname.startsWith(path);
   };
 
-  const toggleSidebar = () => setCollapsed(!collapsed);
+  const toggleSidebar = () => {
+    setCollapsed((prev) => !prev);
+  };
 
   const handleLogout = async () => {
     try {
@@ -65,6 +70,44 @@ const Sidebar = ({ public: isPublic = false }) => {
     navigate('/login');
   };
 
+  // Make collapse state available to the whole layout
+  useEffect(() => {
+    document.documentElement.classList.toggle('user-sidebar-collapsed', collapsed);
+    document.documentElement.classList.toggle('user-sidebar-expanded', !collapsed);
+
+    return () => {
+      document.documentElement.classList.remove('user-sidebar-collapsed');
+      document.documentElement.classList.remove('user-sidebar-expanded');
+    };
+  }, [collapsed]);
+
+  // Scroll detection to hide/show bottom navigation bar
+  useEffect(() => {
+    const mainElement = document.querySelector('.user-main');
+    if (!mainElement) return;
+
+    const handleScroll = () => {
+      if (ticking.current) return;
+
+      ticking.current = true;
+      requestAnimationFrame(() => {
+        const currentScrollY = mainElement.scrollTop;
+
+        if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+          setIsBottomNavVisible(false);
+        } else if (currentScrollY < lastScrollY.current) {
+          setIsBottomNavVisible(true);
+        }
+
+        lastScrollY.current = currentScrollY;
+        ticking.current = false;
+      });
+    };
+
+    mainElement.addEventListener('scroll', handleScroll, { passive: true });
+    return () => mainElement.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const menuItems = [
     { path: '/user', label: 'Home', icon: <FaHome /> },
     { path: '/user/notifications', label: 'Notifications', icon: <FaBell /> },
@@ -78,6 +121,7 @@ const Sidebar = ({ public: isPublic = false }) => {
 
   return (
     <>
+      {/* Desktop sidebar */}
       <aside className={`user-sidebar ${collapsed ? 'collapsed' : ''}`}>
         <div className="user-sidebar-header">
           <div className="user-brand">
@@ -89,10 +133,12 @@ const Sidebar = ({ public: isPublic = false }) => {
               </div>
             )}
           </div>
+
           <button
             className="user-sidebar-toggle"
             onClick={toggleSidebar}
             aria-label="Toggle sidebar"
+            type="button"
           >
             {collapsed ? <FaChevronRight /> : <FaChevronLeft />}
           </button>
@@ -128,17 +174,22 @@ const Sidebar = ({ public: isPublic = false }) => {
         {!isPublic && (
           <div className="user-sidebar-footer">
             <div className="user-info">
-              <div className="user-avatar">{user.username.charAt(0).toUpperCase()}</div>
+              <div className="user-avatar">
+                {user.username.charAt(0).toUpperCase()}
+              </div>
+
               {!collapsed && (
                 <div className="user-details">
                   <h4 className="user-name">{user.username}</h4>
                   <p className="user-role">{user.role}</p>
                 </div>
               )}
+
               <button
                 className="user-logout-btn"
                 onClick={() => setShowLogoutModal(true)}
                 title="Logout"
+                type="button"
               >
                 <FaSignOutAlt />
               </button>
@@ -146,6 +197,47 @@ const Sidebar = ({ public: isPublic = false }) => {
           </div>
         )}
       </aside>
+
+      {/* Mobile bottom navigation bar */}
+      <div className={`user-bottom-nav ${!isBottomNavVisible ? 'user-bottom-nav--hidden' : ''}`}>
+        <div className="user-bottom-nav-scroll">
+          {menuItems.map((item) => (
+            <button
+              key={item.path}
+              className={`user-bottom-nav-item ${isActive(item.path) ? 'active' : ''}`}
+              onClick={() => handleNavClick(item.path)}
+              title={item.label}
+              type="button"
+            >
+              <span className="user-bottom-nav-icon">{item.icon}</span>
+            </button>
+          ))}
+
+          {isPublic ? (
+            <button
+              className="user-bottom-nav-item"
+              onClick={handleLoginClick}
+              title="Login"
+              type="button"
+            >
+              <span className="user-bottom-nav-icon">
+                <FaSignInAlt />
+              </span>
+            </button>
+          ) : (
+            <button
+              className="user-bottom-nav-item"
+              onClick={() => setShowLogoutModal(true)}
+              title="Logout"
+              type="button"
+            >
+              <span className="user-bottom-nav-icon">
+                <FaSignOutAlt />
+              </span>
+            </button>
+          )}
+        </div>
+      </div>
 
       {!isPublic && (
         <LogoutModal

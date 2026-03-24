@@ -3,10 +3,11 @@
    ================================ */
 
 .user-notifications-page {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 1.5rem;
   width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 1.5rem 0;
+  box-sizing: border-box;
 }
 
 /* ---------- Header ---------- */
@@ -17,6 +18,7 @@
   margin-bottom: 2rem;
   flex-wrap: wrap;
   gap: 1rem;
+  width: 100%;
 }
 
 .user-page-header h1 {
@@ -38,6 +40,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
 }
+
 .user-btn-mark-all:hover {
   border-color: var(--user-primary);
   color: var(--user-primary);
@@ -50,6 +53,7 @@
   flex-direction: column;
   gap: 0.75rem;
   margin-bottom: 2rem;
+  width: 100%;
 }
 
 .user-notification-item {
@@ -64,23 +68,29 @@
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: var(--user-card-shadow);
+  width: 100%;
+  box-sizing: border-box;
 }
+
 .user-notification-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
   border-color: var(--user-primary);
 }
+
 .user-notification-item.unread {
   background: linear-gradient(135deg, rgba(217, 169, 90, 0.08), var(--user-bg-card));
   border-left: 4px solid var(--user-primary);
 }
+
 .user-notification-item.read {
   opacity: 0.8;
 }
 
 .user-notification-content {
   flex: 1;
-  min-width: 0;
+  min-width: 0; /* allow shrinking if needed, but actions are limited */
+  overflow: hidden;
 }
 
 .user-title {
@@ -88,6 +98,9 @@
   font-weight: 600;
   color: var(--user-text-primary);
   margin-bottom: 0.25rem;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.4;
 }
 
 .user-body {
@@ -95,6 +108,8 @@
   color: var(--user-text-muted);
   margin-bottom: 0.5rem;
   line-height: 1.5;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .user-time {
@@ -103,6 +118,7 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  flex-wrap: wrap;
 }
 
 /* ---------- Action Buttons ---------- */
@@ -110,6 +126,9 @@
   display: flex;
   gap: 0.5rem;
   flex-shrink: 0;
+  /* On large screens, actions take limited width so content can breathe */
+  max-width: 140px;
+  justify-content: flex-end;
 }
 
 .user-actions button {
@@ -122,11 +141,14 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
+
 .user-actions button:hover {
   border-color: var(--user-primary);
   color: var(--user-primary);
 }
+
 .user-actions .user-delete:hover {
   border-color: var(--user-error-color);
   color: var(--user-error-color);
@@ -140,6 +162,7 @@
   gap: 1rem;
   margin-top: 2rem;
   padding: 1rem 0;
+  flex-wrap: wrap;
 }
 
 .user-pagination button {
@@ -153,10 +176,12 @@
   cursor: pointer;
   transition: all 0.2s ease;
 }
+
 .user-pagination button:hover:not(:disabled) {
   border-color: var(--user-primary);
   color: var(--user-primary);
 }
+
 .user-pagination button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -176,6 +201,8 @@
   background: var(--user-bg-darker);
   border-radius: 12px;
   border: 1px dashed var(--user-border);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .user-error-message {
@@ -186,6 +213,8 @@
   border-radius: 8px;
   margin-bottom: 1.5rem;
   text-align: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .user-loading {
@@ -193,17 +222,23 @@
   padding: 3rem;
   color: var(--user-text-muted);
   font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 640px) {
   .user-notifications-page {
-    padding: 1rem;
+    padding: 1rem 0;
   }
 
   .user-page-header {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .user-page-header h1 {
+    font-size: 1.5rem;
   }
 
   .user-notification-item {
@@ -212,11 +247,16 @@
   }
 
   .user-actions {
+    max-width: none; /* on mobile, allow full width for action buttons */
     justify-content: flex-end;
     margin-top: 0.5rem;
   }
 
+  .user-actions button {
+    white-space: nowrap; /* keep buttons from wrapping */
+  }
+
   .user-pagination {
-    flex-wrap: wrap;
+    justify-content: space-between;
   }
 }

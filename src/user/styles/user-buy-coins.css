@@ -8,7 +8,7 @@
   padding: 2rem;
   display: flex;
   flex-direction: column;
-  width: 100%; /* ensure it fills the main area */
+  width: 100%;
 }
 
 .user-tabs-header {
@@ -114,7 +114,7 @@
   font-weight: bold;
 }
 
-/* Balance card (shared with CoinPackages) */
+/* Balance card */
 .user-balance-card {
   display: flex;
   align-items: center;
@@ -245,115 +245,213 @@
   cursor: not-allowed;
 }
 
-/* Transaction history */
+/* ---------- Transaction history (compact, support text button always visible) ---------- */
 .user-transactions-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  margin-top: 20px;
 }
+
 .user-transaction-item {
   display: flex;
   align-items: center;
-  padding: 16px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
   background: var(--user-bg-card);
-  border-radius: 12px;
   border: 1px solid var(--user-border);
-  transition: transform 0.2s, box-shadow 0.2s;
-  animation: user-slideIn 0.3s ease-out;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: visible;
 }
+
 .user-transaction-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px -10px rgba(217, 169, 90, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border-color: var(--user-primary);
 }
+
 .user-tx-icon {
-  font-size: 32px;
-  margin-right: 16px;
+  font-size: 28px;
+  margin-right: 0;
   color: var(--user-primary);
+  flex-shrink: 0;
 }
+
 .user-tx-details {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
+
 .user-tx-title {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--user-text-primary);
   margin-bottom: 4px;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
 .user-tx-meta {
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--user-text-muted);
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
 .user-status-badge {
   display: inline-block;
-  padding: 4px 8px;
+  padding: 2px 8px;
   border-radius: 20px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
   background: rgba(255,255,255,0.1);
   color: #fff;
 }
+
 .user-status-badge.user-status-completed {
   background: rgba(16,185,129,0.2);
   color: #10b981;
 }
+
 .user-status-badge.user-status-pending {
   background: rgba(245,158,11,0.2);
   color: #f59e0b;
 }
+
 .user-status-badge.user-status-failed {
   background: rgba(239,68,68,0.2);
   color: #ef4444;
 }
+
 .user-status-badge.user-status-refunded {
   background: rgba(107,114,128,0.2);
   color: #9ca3af;
 }
+
 .user-tx-payment-id {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 6px;
-  font-size: 12px;
+  margin-top: 4px;
+  font-size: 11px;
   color: var(--user-text-muted);
   font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
 }
+
 .user-payment-id-icon {
   font-size: 10px;
   color: var(--user-primary);
   opacity: 0.7;
 }
+
 .user-tx-amount {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--user-primary);
-  margin-left: 16px;
+  margin-left: 0;
+  flex-shrink: 0;
+  text-align: right;
+  min-width: 70px;
+  white-space: nowrap;
 }
+
 .user-support-btn {
-  background: transparent;
-  border: 1px solid var(--user-border);
-  color: var(--user-text-muted);
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: var(--user-primary);
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  margin-left: 10px;
   flex-shrink: 0;
+  white-space: nowrap;
 }
+
 .user-support-btn:hover {
-  background: var(--user-primary);
-  color: white;
-  border-color: var(--user-primary);
-  transform: scale(1.1);
+  background: var(--user-primary-dark);
+  transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(217, 169, 90, 0.4);
 }
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .user-transaction-item {
+    padding: 10px 12px;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+  .user-tx-icon {
+    font-size: 24px;
+  }
+  .user-tx-title {
+    font-size: 13px;
+  }
+  .user-tx-meta {
+    font-size: 11px;
+    gap: 6px;
+  }
+  .user-tx-amount {
+    font-size: 14px;
+    min-width: 60px;
+  }
+  .user-support-btn {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+  .user-tx-payment-id {
+    max-width: 100px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-transaction-item {
+    gap: 6px;
+    padding: 8px 10px;
+  }
+  .user-tx-icon {
+    font-size: 20px;
+  }
+  .user-tx-title {
+    font-size: 12px;
+  }
+  .user-tx-meta {
+    font-size: 10px;
+    gap: 4px;
+  }
+  .user-tx-amount {
+    font-size: 13px;
+    min-width: 50px;
+  }
+  .user-support-btn {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+  .user-tx-payment-id {
+    max-width: 70px;
+    font-size: 9px;
+  }
+}
+
+/* No history state */
 .user-no-history {
   text-align: center;
   color: var(--user-text-muted);
@@ -521,7 +619,8 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
-/* M-Pesa input styling – now uses theme variables */
+
+/* M-Pesa input styling */
 .user-mpesa-input {
   margin: 20px 0;
   padding: 15px;
@@ -567,9 +666,9 @@
   margin-top: 5px;
 }
 
-/* M-Pesa active button – green theme */
+/* M-Pesa active button */
 .user-payment-method-btn.mpesa-active {
-  border-color: #2e7d32 !important;  /* M‑Pesa green */
+  border-color: #2e7d32 !important;
   background: rgba(46, 125, 50, 0.1) !important;
   box-shadow: 0 0 10px rgba(46, 125, 50, 0.4) !important;
 }
@@ -577,7 +676,6 @@
   color: #2e7d32;
 }
 
-/* Success message after M-Pesa initiation – now using theme variables */
 .user-success-message {
   background-color: var(--user-success-bg, #d4edda);
   color: var(--user-success-text, #155724);
@@ -585,6 +683,7 @@
   border-radius: 4px;
   margin-top: 20px;
 }
+
 /* M-Pesa Success Modal */
 .user-success-modal {
   background: var(--user-bg-card);
@@ -599,7 +698,7 @@
 }
 .user-success-icon {
   font-size: 64px;
-  color: #2e7d32; /* M‑Pesa green */
+  color: #2e7d32;
   margin-bottom: 16px;
 }
 .user-success-modal h3 {
@@ -652,6 +751,7 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
 /* Loading Overlay */
 .user-loading-overlay {
   position: fixed;
@@ -687,4 +787,132 @@
 .user-loading-content p {
   color: var(--user-text-muted);
   margin: 0;
+}
+
+/* ================================
+   MOBILE ADAPTATIONS
+   ================================ */
+@media (max-width: 768px) {
+  .user-buy-coins-page {
+    padding: 1rem;
+  }
+
+  .user-tabs-header {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    margin-bottom: 1.5rem;
+    padding-bottom: 2px;
+  }
+  .user-tab-btn {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+
+  .user-balance-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 16px;
+    gap: 12px;
+  }
+  .user-balance-icon {
+    font-size: 48px;
+  }
+  .user-balance-value {
+    justify-content: center;
+    font-size: 24px;
+  }
+  .user-balance-value strong {
+    font-size: 28px;
+  }
+
+  .user-packages-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  .user-package-card {
+    padding: 16px;
+  }
+  .user-price {
+    font-size: 20px;
+  }
+
+  .user-payment-methods-grid {
+    gap: 8px;
+  }
+  .user-payment-method-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+    min-width: auto;
+  }
+
+  .user-buy-button {
+    padding: 12px 32px;
+    font-size: 16px;
+  }
+
+  .user-support-modal,
+  .user-success-modal {
+    width: 95%;
+    max-width: 95%;
+    padding: 20px;
+  }
+  .user-modal-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .user-modal-actions button {
+    width: 100%;
+  }
+
+  .user-mpesa-input {
+    padding: 12px;
+  }
+  .user-phone-input-wrapper {
+    flex-wrap: wrap;
+  }
+  .user-phone-prefix {
+    flex-shrink: 0;
+  }
+  .user-phone-input-wrapper input {
+    font-size: 16px;
+  }
+
+  .user-buy-coins-page {
+    padding-bottom: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-packages-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .user-package-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    padding: 12px 16px;
+  }
+  .user-package-card h3 {
+    margin-bottom: 0;
+    font-size: 16px;
+  }
+  .user-price {
+    margin-bottom: 0;
+    font-size: 18px;
+  }
+  .user-coins {
+    display: inline-block;
+    margin-left: 8px;
+  }
+
+  .user-balance-value {
+    font-size: 20px;
+  }
+  .user-balance-value strong {
+    font-size: 24px;
+  }
 }

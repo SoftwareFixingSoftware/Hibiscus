@@ -18,6 +18,8 @@ import {
   FaRegHeart, 
   FaCheckCircle,
   FaPlay,
+  FaPause,
+  FaSpinner,
   FaTimes
 } from 'react-icons/fa';
 import '../styles/user-series-detail.css';
@@ -26,7 +28,7 @@ const SeriesDetailPage = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const { player, play } = useAudio();
+  const { player, play, toggle } = useAudio(); // ← added toggle (pause/play toggle)
 
   const isLoggedIn = location.pathname.startsWith('/user');
 
@@ -37,6 +39,7 @@ const SeriesDetailPage = () => {
   const [error, setError] = useState(null);
   const [purchasingEpisodeId, setPurchasingEpisodeId] = useState(null);
   const [purchasedEpisodes, setPurchasedEpisodes] = useState(new Set());
+  const [loadingEpisodeId, setLoadingEpisodeId] = useState(null);
 
   // Follow/notification state
   const [isFollowing, setIsFollowing] = useState(false);
@@ -50,8 +53,8 @@ const SeriesDetailPage = () => {
 
   // Reviews tab state
   const [activeTab, setActiveTab] = useState('episodes');
-  const [reviews, setReviews] = useState([]);        // only other users' reviews
-  const [myReview, setMyReview] = useState(null);    // current user's review
+  const [reviews, setReviews] = useState([]);
+  const [myReview, setMyReview] = useState(null);
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [reviewError, setReviewError] = useState(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -63,6 +66,7 @@ const SeriesDetailPage = () => {
   const [showTopFade, setShowTopFade] = useState(false);
   const [showBottomFade, setShowBottomFade] = useState(false);
 
+  // ----- Helper functions (unchanged) -----
   const extractReviewsArray = (data) => {
     if (Array.isArray(data)) return data;
     if (data && typeof data === 'object') {
@@ -90,6 +94,7 @@ const SeriesDetailPage = () => {
     navigate('/login');
   };
 
+  // ----- Lifecycle -----
   useEffect(() => {
     if (!id) return;
     loadSeriesAndEpisodes(id);
@@ -111,8 +116,6 @@ const SeriesDetailPage = () => {
         } catch (err) {
           if (err?.response?.status === 401 || err?.response?.status === 403) {
             setIsSaved(false);
-          } else {
-
           }
         }
       };
@@ -136,8 +139,6 @@ const SeriesDetailPage = () => {
           } else if (err.response?.status === 401 || err.response?.status === 403) {
             setIsFollowing(false);
             setNotificationEnabled(false);
-          } else {
-
           }
         } finally {
           if (!cancelled) setAuthChecked(true);
@@ -188,7 +189,6 @@ const SeriesDetailPage = () => {
         isLoggedIn ? SeriesReviewService.getMyReviewForSeries(series.id) : Promise.reject({ status: 401 })
       ]);
 
-      // Normalize all reviews
       let allNormalized = [];
       if (allReviews.status === 'fulfilled') {
         const rawReviews = extractReviewsArray(allReviews.value);
@@ -202,12 +202,9 @@ const SeriesDetailPage = () => {
       } else {
         if (allReviews.reason?.response?.status === 401) {
           setReviewError('Please log in to see reviews.');
-        } else {
-
         }
       }
 
-      // Normalize my review – handle possible wrapping
       let myNormalized = null;
       if (myReviewRes.status === 'fulfilled') {
         const r = myReviewRes.value;
@@ -225,12 +222,9 @@ const SeriesDetailPage = () => {
           setMyReview(null);
         } else if (myReviewRes.reason?.response?.status === 401) {
           setMyReview(null);
-        } else {
-
         }
       }
 
-      // Filter out my review from all reviews (if it exists)
       if (myNormalized) {
         setReviews(allNormalized.filter(r => r.reviewId !== myNormalized.reviewId));
       } else {
@@ -309,7 +303,7 @@ const SeriesDetailPage = () => {
     setShowBottomFade(scrollTop + clientHeight < scrollHeight - 6);
   };
 
-  // Interactive handlers
+  // ----- Interactive handlers (unchanged) -----
   const toggleFollow = async () => {
     if (!isLoggedIn) return requireLogin();
     if (!series || !series.id) return;
@@ -334,7 +328,6 @@ const SeriesDetailPage = () => {
       if (err.response?.status === 401 || err.response?.status === 403) {
         requireLogin();
       } else {
-
         alert('Failed to update follow status. Please try again.');
       }
     } finally {
@@ -373,7 +366,6 @@ const SeriesDetailPage = () => {
           setNotificationEnabled(serverFollowEnabled);
         }
       } catch (err) {
-
         alert('Could not enable notifications. Please try again.');
         setIsFollowing(previousFollowing);
         setNotificationEnabled(previousEnabled);
@@ -396,7 +388,6 @@ const SeriesDetailPage = () => {
       );
       setNotificationEnabled(serverEnabled);
     } catch (err) {
-
       alert('Could not update notification preference.');
       setNotificationEnabled(previousEnabled);
     } finally {
@@ -419,7 +410,6 @@ const SeriesDetailPage = () => {
         setIsSaved(true);
       }
     } catch (err) {
-
       alert('Could not update your favorites. Please try again.');
       setIsSaved(previous);
     } finally {
@@ -463,7 +453,6 @@ const SeriesDetailPage = () => {
       } else {
         updated = await SeriesReviewService.createReview(series.id, reviewData);
       }
-      // Normalize updated review
       const normalizedUpdated = {
         reviewId: updated.reviewId || updated.id,
         userName: updated.userName || updated.user?.name || updated.user?.email || 'You',
@@ -473,7 +462,6 @@ const SeriesDetailPage = () => {
       };
       setMyReview(normalizedUpdated);
 
-      // Refresh all reviews and filter out own
       const allReviews = await SeriesReviewService.getReviewsForSeries(series.id);
       const rawReviews = extractReviewsArray(allReviews);
       const normalizedAll = rawReviews.map(r => ({
@@ -487,7 +475,6 @@ const SeriesDetailPage = () => {
       handleCloseReviewForm();
       await loadSeriesAndEpisodes(series.id);
     } catch (err) {
-
       if (err.response?.status === 401 || err.response?.status === 403) {
         requireLogin();
       } else {
@@ -505,7 +492,6 @@ const SeriesDetailPage = () => {
       await SeriesReviewService.deleteMyReview(series.id);
       setMyReview(null);
 
-      // Refresh all reviews (now without mine)
       const allReviews = await SeriesReviewService.getReviewsForSeries(series.id);
       const rawReviews = extractReviewsArray(allReviews);
       const normalizedAll = rawReviews.map(r => ({
@@ -518,7 +504,6 @@ const SeriesDetailPage = () => {
       setReviews(normalizedAll);
       await loadSeriesAndEpisodes(series.id);
     } catch (err) {
-
       alert('Could not delete review.');
     }
   };
@@ -533,7 +518,6 @@ const SeriesDetailPage = () => {
       if (res && typeof res.hasAccess === 'boolean') return res.hasAccess;
       return false;
     } catch (err) {
-
       return false;
     }
   };
@@ -563,7 +547,6 @@ const SeriesDetailPage = () => {
         return false;
       }
     } catch (err) {
-
       const errMsg = err?.response?.data || err.message || 'unknown error';
       alert('Coin purchase failed: ' + (typeof errMsg === 'string' ? errMsg : JSON.stringify(errMsg)));
       return false;
@@ -588,12 +571,12 @@ const SeriesDetailPage = () => {
         return false;
       }
     } catch (err) {
-
       alert('Payment initiation failed: ' + (err.message || 'unknown error'));
       return false;
     }
   };
 
+  // ----- FIXED: playEpisode uses toggle for same episode -----
   const playEpisode = async (epRaw) => {
     if (!isLoggedIn) { requireLogin(); return; }
     try {
@@ -601,6 +584,13 @@ const SeriesDetailPage = () => {
       if (!id) throw new Error('episode id missing');
       const mapped = mapEpisode(epRaw, 0);
 
+      // If this episode is already the current one, toggle play/pause
+      if (player.episodeId === id) {
+        toggle(); // <--- uses the toggle function from context
+        return;
+      }
+
+      // Purchase check (unchanged)
       if (!mapped.isFree && !purchasedEpisodes.has(id)) {
         const wantsToBuy = window.confirm(
           mapped.priceInCoins
@@ -626,6 +616,8 @@ const SeriesDetailPage = () => {
       const url = await PublicEpisodeService.getStreamUrl(id);
       if (!url) throw new Error('No playable url');
 
+      setLoadingEpisodeId(id);
+
       await play(url, {
         episodeId: id,
         title: epRaw.title || epRaw.name || epRaw.episodeTitle || 'Untitled',
@@ -634,7 +626,10 @@ const SeriesDetailPage = () => {
 
       setSelectedEpisode(mapped);
     } catch (err) {
+      console.error(err);
       alert('Could not play episode — check console.');
+    } finally {
+      setLoadingEpisodeId(null);
     }
   };
 
@@ -663,6 +658,10 @@ const SeriesDetailPage = () => {
   if (error) return <div className="user-error-message">Error: {error?.message ?? String(error)}</div>;
   if (!series) return <div className="user-loading-indicator">Loading series...</div>;
 
+  const isSelectedPlaying = player.episodeId === selectedEpisode?.id && player.playing;
+  const isSelectedLoading = loadingEpisodeId === selectedEpisode?.id;
+
+  // ----- JSX (identical to original) -----
   return (
     <section className="user-series-detail">
       <div className="user-series-left">
@@ -790,9 +789,10 @@ const SeriesDetailPage = () => {
                     <RippleButton
                       className="user-ctrl user-play user-small"
                       onClick={() => playEpisode(selectedEpisode.raw)}
-                      aria-label="Play selected episode"
+                      disabled={isSelectedLoading}
+                      aria-label={isSelectedPlaying ? "Pause" : "Play"}
                     >
-                      <FaPlay />
+                      {isSelectedLoading ? <FaSpinner className="user-spinner" /> : (isSelectedPlaying ? <FaPause /> : <FaPlay />)}
                     </RippleButton>
                   ) : (
                     <button className="user-ctrl user-play user-small" onClick={requireLogin}>
@@ -852,9 +852,10 @@ const SeriesDetailPage = () => {
               ? Array.from({ length: 8 }).map((_, i) => <div key={i} className="user-episode-row user-skeleton" style={{ height: '68px' }} />)
               : episodes.map((eRaw, idx) => {
                   const e = mapEpisode(eRaw, idx);
-                  const isPlaying = player.episodeId === e.id;
+                  const isPlaying = player.episodeId === e.id && player.playing;
                   const isSelected = selectedEpisode && selectedEpisode.id === e.id;
                   const isPurchased = purchasedEpisodes.has(e.id);
+                  const isLoading = loadingEpisodeId === e.id;
                   return (
                     <EpisodeCard
                       key={e.id || idx}
@@ -863,6 +864,7 @@ const SeriesDetailPage = () => {
                       index={idx}
                       isPlaying={isPlaying}
                       isSelected={isSelected}
+                      isLoading={isLoading}
                       onSelect={selectEpisodeWithoutPlay}
                       onPlay={isLoggedIn ? playEpisode : requireLogin}
                       onBuy={isLoggedIn ? handleBuyClick : requireLogin}

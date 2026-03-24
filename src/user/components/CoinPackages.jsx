@@ -3,7 +3,7 @@ import { FaCoins } from 'react-icons/fa';
 import PayPalService from '../services/PayPalService';
 import '../styles/PayPalStyles.css';
 
-const CoinPackages = ({ onBuy }) => {
+const CoinPackages = ({ onBuy, buttonText = 'Buy' }) => {
   const [packages, setPackages] = useState([]);
   const [loadingPackages, setLoadingPackages] = useState(true);
   const [packagesError, setPackagesError] = useState(null);
@@ -76,7 +76,7 @@ const CoinPackages = ({ onBuy }) => {
         await refreshBalance();
       }
     } catch (err) {
-
+      // error handled in parent
     }
   };
 
@@ -128,7 +128,7 @@ const CoinPackages = ({ onBuy }) => {
           onClick={handleBuy}
           disabled={!selectedPackage}
         >
-          Buy with PayPal
+          {buttonText}
         </button>
       </div>
     </div>

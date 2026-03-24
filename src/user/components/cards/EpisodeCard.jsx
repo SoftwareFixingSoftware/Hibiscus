@@ -2,9 +2,9 @@ import React from 'react';
 import { useAudio } from '../../context/AudioContext';
 import RippleButton from '../common/RippleButton';
 import { formatDuration, formatMoneyFromCents, relativeDate } from '../../utils/episodeHelpers';
-import { FaPlay, FaPause, FaShoppingCart, FaCheckCircle } from 'react-icons/fa';
+import { FaPlay, FaPause, FaShoppingCart, FaCheckCircle, FaSpinner } from 'react-icons/fa';
 
-const EpisodeCard = ({ episode, rawEpisode, index, isPlaying, isSelected, onSelect, onPlay, onBuy, purchasingId, isPurchased }) => {
+const EpisodeCard = ({ episode, rawEpisode, index, isPlaying, isSelected, isLoading, onSelect, onPlay, onBuy, purchasingId, isPurchased }) => {
   const e = episode;
   const buyDisabled = purchasingId !== null && purchasingId !== e.id;
 
@@ -46,9 +46,10 @@ const EpisodeCard = ({ episode, rawEpisode, index, isPlaying, isSelected, onSele
             ev.stopPropagation();
             onPlay(rawEpisode);
           }}
+          disabled={isLoading}
           aria-label={`Play ${e.title}`}
         >
-          {isPlaying ? <FaPause /> : <FaPlay />}
+          {isLoading ? <FaSpinner className="user-spinner" /> : (isPlaying ? <FaPause /> : <FaPlay />)}
         </RippleButton>
         {!e.isFree && !isPurchased && (
           <RippleButton
