@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaExclamationCircle, FaCheckCircle } from 'react-icons/fa';
 import '../styles/auth.css';
+import SEO from "../../components/SEO";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "https://api.breachpen.co.ke";
 
@@ -149,6 +150,15 @@ export default function SignUp() {
   };
 
   return (
+    <>
+     <SEO
+        title="Create Account | Hibiscus"
+        description="Join Hibiscus to access premium audio podcasts, playbooks, and personalized listening experiences."
+        keywords="hibiscus register, create account, audio platform signup"
+        url="https://hibiscus.breachpen.co.ke/register"
+        image="https://hibiscus.breachpen.co.ke/logo.png"
+       />
+ 
     <div className="hib-auth-layout">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -359,5 +369,6 @@ export default function SignUp() {
         </div>
       </motion.div>
     </div>
+    </>
   );
 }

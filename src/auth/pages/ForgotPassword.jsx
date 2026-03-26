@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import '../styles/auth.css';
+import SEO from "../../components/SEO";
+
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'https://api.breachpen.co.ke';
 
@@ -64,6 +66,14 @@ export default function ForgotPassword() {
   };
 
   return (
+    <>
+    <SEO
+        title="Reset Password | Hibiscus"
+        description="Reset your Hibiscus account password and regain access to your audio content."
+        keywords="hibiscus reset password, forgot password, account recovery"
+        url="https://hibiscus.breachpen.co.ke/forgot-password"
+        image="https://hibiscus.breachpen.co.ke/logo.png"
+       /> 
     <div className="hib-auth-layout">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -177,5 +187,6 @@ export default function ForgotPassword() {
         </div>
       </motion.div>
     </div>
+    </>
   );
 }

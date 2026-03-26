@@ -6,6 +6,8 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaExclamationCircle } from 'react-icons/fa';
 import '../styles/auth.css';
 import AuthService from '../services/AuthService';
+import SEO from "../../components/SEO";
+
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -129,6 +131,14 @@ export default function SignIn() {
   };
 
   return (
+    <>
+    <SEO
+        title="Sign In | Hibiscus"
+        description="Sign in to your Hibiscus account to access audio podcasts, playbooks, and your saved content."
+        keywords="Hibiscus sign in, audio podcasts login, playbooks login, Hibiscus account"
+        url="https://hibiscus.breachpen.co.ke/login"
+        image="https://hibiscus.breachpen.co.ke/logo.png"
+      />
     <div className="hib-auth-layout">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -261,5 +271,6 @@ export default function SignIn() {
         </div>
       </motion.div>
     </div>
+   </>
   );
 }

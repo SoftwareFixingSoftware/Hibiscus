@@ -7,6 +7,8 @@ import SearchBar from '../components/search/SearchBar';
 import SeriesCard from '../components/cards/SeriesCard';
 import NotificationBell from '../components/NotificationBell';
 import Footer from '../components/common/Footer';
+import SEO from "../../components/SEO";
+
  
 const HomePage = () => {
   const navigate = useNavigate();
@@ -106,6 +108,14 @@ const HomePage = () => {
 
   return (
     <>
+    <SEO
+        title="Hibiscus | Audio Podcasts & Playbooks"
+        description="Stream curated audio podcasts, narrated playbooks, and immersive audio stories on Hibiscus."
+        keywords="audio podcasts, playbooks, audio stories, hibiscus audio, streaming podcasts"
+        url="https://hibiscus.breachpen.co.ke/"
+        image="https://hibiscus.breachpen.co.ke/logo.png"
+      />
+
       <header className="user-app-header">
         <div className="user-logo" onClick={() => navigate('/user')}>Hibiscus</div>
         {isLoggedIn ? (
