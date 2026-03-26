@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 
 // Admin Components
@@ -9,6 +9,13 @@ import EpisodeManagement from './admin/pages/EpisodeManagement';
 import SeriesDetail from './admin/pages/SeriesDetail';
 import AdminUsers from './admin/pages/AdminUsers';
 import AdminAnalytics from './admin/pages/AdminAnalytics';
+import AdminCoinPackagesPage from './admin/pages/AdminCoinPackagesPage';
+import AdminPayments from './admin/pages/AdminPayments';
+import AdminEpisodePurchases from './admin/pages/AdminEpisodePurchases';
+import AdminSupport from './admin/pages/AdminSupportPage';
+import AdminPaymentDetail from './admin/pages/AdminPaymentDetail';
+import ProtectedRoute from './admin/components/ProtectedRoute';
+
 // Auth Components
 import ForgotPassword from './auth/pages/ForgotPassword';
 import ResetPassword from './auth/pages/ResetPassword';
@@ -21,6 +28,7 @@ import GithubCallback from './auth/pages/GithubCallback';
 import { AudioProvider } from './user/context/AudioContext';
 import UserLayout from './user/layouts/UserLayout';
 import PublicLayout from './user/layouts/PublicLayout';
+import PublicPageLayout from './user/layouts/PublicPageLayout';
 import HomePage from './user/pages/HomePage';
 import SeriesDetailPage from './user/pages/SeriesDetailPage';
 import BuyCoinsPage from './user/pages/BuyCoinsPage';
@@ -33,27 +41,94 @@ import SavedSeries from './user/pages/SavedSeriesPage';
 import NotificationsPage from './user/pages/NotificationsPage';
 import UserSupport from './user/pages/SupportCenterPage';
 
-// Common Components
-import ProtectedRoute from './admin/components/ProtectedRoute';
-import AdminCoinPackagesPage from './admin/pages/AdminCoinPackagesPage';
-import AdminPayments from './admin/pages/AdminPayments';
-import AdminEpisodePurchases from './admin/pages/AdminEpisodePurchases';
-import AdminSupport from './admin/pages/AdminSupportPage';
-import AdminPaymentDetail from './admin/pages/AdminPaymentDetail';
-import ThemeToggle from './components/ThemeToggle';    
-
-import PublicPageLayout from './user/layouts/PublicPageLayout';
+// Legal Pages
 import TermsPage from './user/pages/legal/TermsPage';
 import PrivacyPage from './user/pages/legal/PrivacyPage';
 import CookiePage from './user/pages/legal/CookiePage';
 
+// Common Components
+import ThemeToggle from './components/ThemeToggle';
+
 function App() {
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+
+  useEffect(() => {
+    // Detect whether the app is already running as an installed PWA
+    const standalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true;
+
+    setIsStandalone(standalone);
+
+    const handleBeforeInstallPrompt = (e) => {
+      // Prevent the browser from showing the default install prompt immediately
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallButton(true);
+    };
+
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null);
+      setShowInstallButton(false);
+      setIsStandalone(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+
+    const choiceResult = await deferredPrompt.userChoice;
+    if (choiceResult?.outcome === 'accepted') {
+      console.log('User accepted the PWA install');
+    } else {
+      console.log('User dismissed the PWA install');
+    }
+
+    setDeferredPrompt(null);
+    setShowInstallButton(false);
+  };
+
   return (
     <BrowserRouter>
       <AudioProvider>
-        {/* ThemeToggle is now outside <Routes> – appears on all pages */}
         <ThemeToggle />
-        
+
+        {!isStandalone && showInstallButton && (
+          <button
+            type="button"
+            onClick={handleInstallClick}
+            style={{
+              position: 'fixed',
+              right: 20,
+              bottom: 20,
+              zIndex: 9999,
+              padding: '12px 16px',
+              border: 'none',
+              borderRadius: 10,
+              cursor: 'pointer',
+              fontWeight: 600,
+              background: '#111827',
+              color: '#ffffff',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+            }}
+            aria-label="Install app"
+          >
+            Install App
+          </button>
+        )}
+
         <Routes>
           {/* ========== PUBLIC AUTH ROUTES ========== */}
           <Route path="/login" element={<SignIn />} />
@@ -62,8 +137,8 @@ function App() {
           <Route path="/register" element={<SignUp />} />
           <Route path="/admin/register" element={<SignUpAdmin />} />
           <Route path="/auth/github/callback" element={<GithubCallback />} />
-        
-         {/* ========== LEGAL PAGES (with header & footer, no sidebar) ========== */}
+
+          {/* ========== LEGAL PAGES (with header & footer, no sidebar) ========== */}
           <Route element={<PublicPageLayout />}>
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
@@ -110,8 +185,14 @@ function App() {
                 <Route path="success" element={<SuccessPage />} />
                 <Route path="cancel" element={<CancelPage />} />
                 <Route path="dashboard" element={<Navigate to="/user" replace />} />
-                <Route path="payments/paypal/success" element={<Navigate to="/user/success" replace />} />
-                <Route path="payments/paypal/cancel" element={<Navigate to="/user/cancel" replace />} />
+                <Route
+                  path="payments/paypal/success"
+                  element={<Navigate to="/user/success" replace />}
+                />
+                <Route
+                  path="payments/paypal/cancel"
+                  element={<Navigate to="/user/cancel" replace />}
+                />
                 <Route path="purchases" element={<PurchaseHistoryPage />} />
                 <Route path="profile" element={<UserProfile />} />
                 <Route path="saved-series" element={<SavedSeries />} />
@@ -125,7 +206,10 @@ function App() {
           <Route
             path="*"
             element={
-              <div className="error-container" style={{ padding: 32, textAlign: 'center' }}>
+              <div
+                className="error-container"
+                style={{ padding: 32, textAlign: 'center' }}
+              >
                 <h2>Page Not Found</h2>
                 <p>The page you're looking for doesn't exist.</p>
                 <button onClick={() => (window.location.href = '/')}>Go Home</button>
