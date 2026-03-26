@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FiX, FiCalendar, FiClock, FiAlertCircle, FiUpload } from 'react-icons/fi';
+import { FiX, FiClock, FiAlertCircle, FiUpload } from 'react-icons/fi';
 import EpisodeService from '../services/EpisodeService';
 import SeasonService from '../services/SeasonService';
 
@@ -26,7 +26,9 @@ const EpisodeModal = ({ episode, seriesId, suggestedEpisodeNumber, onClose, onSu
   });
 
   useEffect(() => {
-    if (seriesId) fetchSeasons();
+    if (seriesId) {
+      fetchSeasons();
+    }
   }, [seriesId]);
 
   useEffect(() => {
@@ -34,6 +36,7 @@ const EpisodeModal = ({ episode, seriesId, suggestedEpisodeNumber, onClose, onSu
       const releaseDate = episode.releaseDate
         ? new Date(episode.releaseDate).toISOString().split('T')[0]
         : new Date().toISOString().split('T')[0];
+
       setFormData({
         title: episode.title || '',
         description: episode.description || '',
@@ -65,20 +68,35 @@ const EpisodeModal = ({ episode, seriesId, suggestedEpisodeNumber, onClose, onSu
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    let newValue = type === 'checkbox' ? checked : (type === 'number' ? parseInt(value) || 0 : value);
+
+    const newValue =
+      type === 'checkbox'
+        ? checked
+        : type === 'number'
+          ? parseInt(value, 10) || 0
+          : value;
+
     setFormData(prev => ({ ...prev, [name]: newValue }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleDurationMinutesChange = (e) => {
     const minutes = parseFloat(e.target.value) || 0;
     const seconds = Math.round(minutes * 60);
     setFormData(prev => ({ ...prev, durationSeconds: seconds }));
+
+    if (errors.durationSeconds) {
+      setErrors(prev => ({ ...prev, durationSeconds: '' }));
+    }
   };
 
   const handleAudioFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
     setAudioFile(file);
     setComputingDuration(true);
 
@@ -101,16 +119,20 @@ const EpisodeModal = ({ episode, seriesId, suggestedEpisodeNumber, onClose, onSu
 
   const validateForm = () => {
     const newErrors = {};
+
     if (!formData.title.trim()) newErrors.title = 'Title is required';
     if (!formData.description.trim()) newErrors.description = 'Description is required';
     if (formData.episodeNumber <= 0) newErrors.episodeNumber = 'Episode number must be positive';
     if (formData.durationSeconds <= 0) newErrors.durationSeconds = 'Duration must be greater than 0';
+
     if (!formData.isFree && formData.priceInCoins <= 0) {
       newErrors.priceInCoins = 'Price in coins must be greater than 0 for paid episodes';
     }
+
     if (!isEditMode && !seriesId) {
       newErrors.seriesId = 'Series ID is required.';
     }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -118,6 +140,7 @@ const EpisodeModal = ({ episode, seriesId, suggestedEpisodeNumber, onClose, onSu
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+
     setLoading(true);
     try {
       const episodeData = {
@@ -128,8 +151,10 @@ const EpisodeModal = ({ episode, seriesId, suggestedEpisodeNumber, onClose, onSu
         isPublished: formData.isPublished,
         durationSeconds: formData.durationSeconds,
         isFree: formData.isFree,
-        priceInCoins: formData.isFree ? 0 : formData.priceInCoins
+        priceInCoins: formData.isFree ? 0 : formData.priceInCoins,
+        seasonId: formData.seasonId ? formData.seasonId : null
       };
+
       let result;
       if (isEditMode) {
         result = await EpisodeService.updateEpisode(episode.id, episodeData);
@@ -140,9 +165,11 @@ const EpisodeModal = ({ episode, seriesId, suggestedEpisodeNumber, onClose, onSu
           result = await EpisodeService.createEpisodeInSeries(seriesId, episodeData);
         }
       }
+
       onSubmit(result.data);
     } catch (error) {
       console.error('Episode save error:', error);
+
       let errorMessage = 'Failed to save episode';
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
@@ -150,11 +177,10 @@ const EpisodeModal = ({ episode, seriesId, suggestedEpisodeNumber, onClose, onSu
         errorMessage = error.message;
       }
 
-      // Handle duplicate episode number (unique constraint)
       if (
         errorMessage.toLowerCase().includes('duplicate') ||
         errorMessage.includes('ux_series_episode') ||
-        errorMessage.includes('1062') // MySQL duplicate entry code
+        errorMessage.includes('1062')
       ) {
         errorMessage = `Episode number ${formData.episodeNumber} already exists for this series. Please choose a different number.`;
       }
@@ -178,7 +204,7 @@ const EpisodeModal = ({ episode, seriesId, suggestedEpisodeNumber, onClose, onSu
           <h3 className="adm-modal-title">
             {isEditMode ? 'Edit Episode' : 'Create New Episode'}
           </h3>
-          <button className="adm-modal-close" onClick={onClose}>
+          <button className="adm-modal-close" onClick={onClose} type="button">
             <FiX />
           </button>
         </div>
@@ -200,7 +226,7 @@ const EpisodeModal = ({ episode, seriesId, suggestedEpisodeNumber, onClose, onSu
               value={formData.seasonId}
               onChange={handleChange}
               className="adm-form-select"
-              disabled={loadingSeasons || isEditMode}
+              disabled={loadingSeasons || loading}
             >
               <option value="">-- Auto-assign based on episode number --</option>
               {seasons.map(season => (
@@ -254,6 +280,7 @@ const EpisodeModal = ({ episode, seriesId, suggestedEpisodeNumber, onClose, onSu
                 <span className="adm-form-hint">Suggested: {suggestedEpisodeNumber} (you can change it)</span>
               )}
             </div>
+
             <div className="adm-form-group">
               <label className="adm-form-label">Duration (minutes) *</label>
               <div className="adm-input-with-icon">
@@ -271,12 +298,13 @@ const EpisodeModal = ({ episode, seriesId, suggestedEpisodeNumber, onClose, onSu
               <div className="adm-form-hint">
                 {computingDuration ? 'Computing from audio...' : `Current: ${getDurationDisplay()}`}
               </div>
+              {errors.durationSeconds && <span className="adm-form-error">{errors.durationSeconds}</span>}
             </div>
           </div>
 
           {!isEditMode && (
             <div className="adm-form-group">
-              <label className="adm-form-label">Audio File (for auto‑duration)</label>
+              <label className="adm-form-label">Audio File (for auto-duration)</label>
               <div>
                 <input
                   type="file"
@@ -288,7 +316,7 @@ const EpisodeModal = ({ episode, seriesId, suggestedEpisodeNumber, onClose, onSu
                 <button
                   type="button"
                   className="adm-btn-secondary"
-                  onClick={() => fileInputRef.current.click()}
+                  onClick={() => fileInputRef.current?.click()}
                   disabled={computingDuration}
                 >
                   <FiUpload /> Select Audio File
