@@ -51,7 +51,7 @@ const PublicEpisodeService = {
    */
   getStreamUrl: async (id) => {
     if (!id) throw new Error('id required');
-    const baseURL = api.defaults.baseURL; // e.g. 'https://api.breachpen.co.ke/api'
+    const baseURL = api.defaults.baseURL;  
     return `${baseURL}${getBasePath()}/${id}/stream`;
   },
 

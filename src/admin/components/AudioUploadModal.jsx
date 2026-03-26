@@ -39,6 +39,7 @@ const AudioUploadModal = ({ episode, onClose, onSubmit }) => {
     setSelectedFile(file);
     setError('');
     setSuccess('');
+    setUploadProgress(0);
   };
 
   const handleUpload = async () => {
@@ -53,26 +54,50 @@ const AudioUploadModal = ({ episode, onClose, onSubmit }) => {
     setUploadProgress(0);
 
     try {
-      const response = await EpisodeService.uploadEpisodeAudio(episode.id, selectedFile);
-      console.log('Upload response:', response.data);
+      // 1. Get presigned URL from server
+      const uploadData = await EpisodeService.getUploadUrl(episode.id);
+      const { uploadUrl, storageKey } = uploadData; // data is returned directly
+
+      // 2. Upload file directly to R2 using XMLHttpRequest (supports progress)
+      const xhr = new XMLHttpRequest();
+      xhr.open('PUT', uploadUrl);
+      xhr.setRequestHeader('Content-Type', selectedFile.type);
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded * 100) / event.total);
+          setUploadProgress(percent);
+        }
+      };
+
+      const uploadPromise = new Promise((resolve, reject) => {
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            resolve();
+          } else {
+            reject(new Error(`Upload failed with status ${xhr.status}`));
+          }
+        };
+        xhr.onerror = () => reject(new Error('Network error during upload'));
+        xhr.send(selectedFile);
+      });
+
+      await uploadPromise;
+
+      // 3. Finalize on server
+      await EpisodeService.finalizeAudioUpload(episode.id, storageKey, selectedFile.size, selectedFile.type);
+
       setSuccess('Audio uploaded successfully!');
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       setTimeout(() => onSubmit(), 1500);
     } catch (err) {
-      console.error('Upload error details:', err);
+      console.error('Upload error:', err);
       let errorMessage = 'Failed to upload audio file';
-      if (err.response) {
-        if (err.response.status === 404) errorMessage = 'Episode not found';
-        else if (err.response.status === 400) errorMessage = 'Invalid file or episode data';
-        else if (err.response.data) {
-          if (err.response.data.message) errorMessage = err.response.data.message;
-          else if (typeof err.response.data === 'string') errorMessage = err.response.data;
-        }
-      } else if (err.request) {
-        errorMessage = 'No response from server. Please check your connection.';
-      } else {
-        errorMessage = err.message || 'Unknown error occurred';
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
       }
       setError(errorMessage);
     } finally {

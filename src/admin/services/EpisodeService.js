@@ -1,4 +1,3 @@
-// src/services/EpisodeService.js
 import api from './api';
 
 const EpisodeService = {
@@ -15,9 +14,6 @@ const EpisodeService = {
   // Get episode by ID
   getEpisodeById: async (id) => {
     const res = await api.get(`/secure/admin/episodes/${id}`);
-    const ep = res.data;
-
-
     return res;
   },
 
@@ -57,44 +53,52 @@ const EpisodeService = {
 
   // Update episode
   updateEpisode: (id, episodeData) => {
-
     return api.put(`/secure/admin/episodes/${id}`, episodeData);
   },
 
   // Delete episode
   deleteEpisode: (id) => {
-
     return api.delete(`/secure/admin/episodes/${id}`);
   },
 
   // Upload audio for episode (overwrites existing)
-  uploadEpisodeAudio: (id, audioFile) => {
+  uploadEpisodeAudio: (id, audioFile, onUploadProgress) => {
     const formData = new FormData();
     formData.append('file', audioFile);
-
 
     return api.post(`/secure/admin/episodes/${id}/upload-audio`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
-      }
+      },
+      timeout: 3600000, // 60 minutes
+      onUploadProgress: onUploadProgress // callback for progress updates
+    });
+  },
+
+    getUploadUrl: (episodeId) => {
+    return api.get(`/secure/admin/episodes/${episodeId}/upload-url`);
+  },
+
+  finalizeAudioUpload: (episodeId, storageKey, fileSize, contentType) => {
+    return api.post(`/secure/admin/episodes/${episodeId}/finalize-upload`, {
+      storageKey,
+      fileSize,
+      contentType
     });
   },
 
   // Delete audio from episode
   deleteEpisodeAudio: (id) => {
-
     return api.delete(`/secure/admin/episodes/${id}/audio`);
   },
 
   // Publish episode
   publishEpisode: (id) => {
-
     return api.put(`/secure/admin/episodes/${id}/publish`);
   },
 
   // Unpublish episode
   unpublishEpisode: (id) => {
-
     return api.put(`/secure/admin/episodes/${id}/unpublish`);
   },
 
