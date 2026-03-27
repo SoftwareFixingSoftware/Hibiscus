@@ -2,9 +2,10 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaExclamationCircle, FaCheckCircle } from 'react-icons/fa';
+import TurnstileWidget from '../components/TurnstileWidget';
 import '../styles/auth.css';
 
-const API_BASE = 'https://api.breachpen.co.ke';
+const API_BASE = process.env.REACT_APP_API_BASE || 'https://api.breachpen.co.ke';
 
 export default function SignUpAdmin() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export default function SignUpAdmin() {
     confirm: false,
     adminCode: false
   });
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const passwordRef = useRef(null);
   const abortRef = useRef(null);
@@ -78,6 +80,11 @@ export default function SignUpAdmin() {
       return false;
     }
 
+    if (!turnstileToken) {
+      setError('Please complete the security check.');
+      return false;
+    }
+
     return true;
   };
 
@@ -98,6 +105,31 @@ export default function SignUpAdmin() {
     abortRef.current = controller;
 
     try {
+      const verifyRes = await fetch(`${API_BASE}/api/auth/cloudflare-verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: turnstileToken }),
+        signal: controller.signal
+      });
+
+      const verifyBody = await verifyRes.text().then((txt) => {
+        try {
+          return JSON.parse(txt);
+        } catch {
+          return { raw: txt };
+        }
+      });
+
+      if (!verifyRes.ok) {
+        const verifyMsg =
+          verifyBody?.message ||
+          verifyBody?.error ||
+          verifyBody?.raw ||
+          'Security check failed. Please try again.';
+        setError(verifyMsg);
+        return;
+      }
+
       const payload = {
         name: form.name.trim(),
         username: form.username?.trim() || form.email.split('@')[0],
@@ -140,6 +172,7 @@ export default function SignUpAdmin() {
       } else {
         setSuccess('Admin account created! Check your email for the verification link.');
         setForm({ name: '', username: '', email: '', password: '', confirmPassword: '', adminCode: '' });
+        setTurnstileToken('');
 
         setTimeout(() => {
           navigate('/login', { replace: true });
@@ -332,6 +365,11 @@ export default function SignUpAdmin() {
                   <p id="adminCode-help" className="hib-text-sm hib-text-muted">
                     Provide the admin invite code you received from the system administrator. Keep it secret.
                   </p>
+                </div>
+
+                <div className="hib-form-group">
+                  <label className="hib-form-label">Security Check</label>
+                  <TurnstileWidget onToken={(token) => setTurnstileToken(token)} />
                 </div>
 
                 <div className="hib-form-checkbox">

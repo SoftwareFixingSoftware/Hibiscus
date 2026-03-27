@@ -1,13 +1,13 @@
 import { useState, useRef } from 'react';
 import AuthAvatar from '../components/AuthAvatar';
 import SocialAuth from '../components/SocialAuth';
+import TurnstileWidget from '../components/TurnstileWidget';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaExclamationCircle } from 'react-icons/fa';
 import '../styles/auth.css';
 import AuthService from '../services/AuthService';
 import SEO from "../../components/SEO";
-
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -23,6 +23,8 @@ export default function SignIn() {
 
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const passwordRef = useRef(null);
 
@@ -74,6 +76,13 @@ export default function SignIn() {
       setTimeout(() => setAvatarState('idle'), 1000);
       return false;
     }
+    if (!turnstileToken) {
+      setError('Please complete the security check');
+      setAvatarState('shake');
+      setAvatarEmotion('sad');
+      setTimeout(() => setAvatarState('idle'), 1000);
+      return false;
+    }
     return true;
   };
 
@@ -83,6 +92,7 @@ export default function SignIn() {
 
   const submit = async (e) => {
     e.preventDefault();
+      console.log('Current turnstileToken:', turnstileToken);  // <-- add this
     setError('');
     if (!validateForm()) return;
 
@@ -90,6 +100,8 @@ export default function SignIn() {
     setAvatarEmotion('neutral');
 
     try {
+      await AuthService.verifyTurnstile(turnstileToken);
+
       const response = await AuthService.login(email, password);
 
       let isAdmin = false;
@@ -117,7 +129,10 @@ export default function SignIn() {
         }
       }, 1500);
     } catch (err) {
-      const message = err?.message || (err?.data && err.data.message) || 'Network error. Please try again.';
+      const message =
+        err?.message ||
+        (err?.data && err.data.message) ||
+        'Network error. Please try again.';
       setError(message);
       setAvatarState('shake');
       setAvatarEmotion('sad');
@@ -132,145 +147,169 @@ export default function SignIn() {
 
   return (
     <>
-    <SEO
+      <SEO
         title="Sign In | Hibiscus"
         description="Sign in to your Hibiscus account to access audio podcasts, playbooks, and your saved content."
         keywords="Hibiscus sign in, audio podcasts login, playbooks login, Hibiscus account"
         url="https://hibiscus.breachpen.co.ke/login"
         image="https://hibiscus.breachpen.co.ke/logo.png"
       />
-    <div className="hib-auth-layout">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="hib-auth-card"
-      >
-        <div className="hib-auth-grid">
-          <div className="hib-avatar-container">
-            <div className="hib-brand-header">
-              <div className="hib-brand-logo">
-                <img src="/logo.png" alt="Hibiscus" className="hib-logo-image" />
-                <h1 className="hib-brand-title">Hibiscus</h1>
+      <div className="hib-auth-layout">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="hib-auth-card"
+        >
+          <div className="hib-auth-grid">
+            <div className="hib-avatar-container">
+              <div className="hib-brand-header">
+                <div className="hib-brand-logo">
+                  <img src="/logo.png" alt="Hibiscus" className="hib-logo-image" />
+                  <h1 className="hib-brand-title">Hibiscus</h1>
+                </div>
+                <p className="hib-brand-subtitle">Secure authentication system</p>
               </div>
-              <p className="hib-brand-subtitle">Secure authentication system</p>
-            </div>
 
-            <div className="hib-avatar-wrapper">
-              <AuthAvatar
-                username={email.split('@')[0]}
-                eyesClosed={isPasswordFocused}
-                state={avatarState}
-                emotion={avatarEmotion}
-              />
-            </div>
+              <div className="hib-avatar-wrapper">
+                <AuthAvatar
+                  username={email.split('@')[0]}
+                  eyesClosed={isPasswordFocused}
+                  state={avatarState}
+                  emotion={avatarEmotion}
+                />
+              </div>
 
-            <div className="hib-welcome-section">
-              <h3 className="hib-welcome-title">Welcome Back</h3>
-              <p className="hib-welcome-subtitle">
-                Sign in to access your account
-              </p>
-            </div>
-          </div>
-
-          <div className="hib-form-container">
-            <div className="hib-form-wrapper">
-              <div className="hib-form-header">
-                <h2 className="hib-form-title">Sign In</h2>
-                <p className="hib-form-switch">
-                  Don&apos;t have an account?{' '}
-                  <Link to="/register" className="hib-form-link">
-                    Create one now
-                  </Link>
+              <div className="hib-welcome-section">
+                <h3 className="hib-welcome-title">Welcome Back</h3>
+                <p className="hib-welcome-subtitle">
+                  Sign in to access your account
                 </p>
               </div>
+            </div>
 
-              <form onSubmit={submit} className="hib-form">
-                <div className="hib-form-group">
-                  <label className="hib-form-label">Email Address</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    onFocus={handleEmailFocus}
-                    placeholder="you@example.com"
-                    className="hib-form-input"
+            <div className="hib-form-container">
+              <div className="hib-form-wrapper">
+                <div className="hib-form-header">
+                  <h2 className="hib-form-title">Sign In</h2>
+                  <p className="hib-form-switch">
+                    Don&apos;t have an account?{' '}
+                    <Link to="/register" className="hib-form-link">
+                      Create one now
+                    </Link>
+                  </p>
+                </div>
+
+                <form onSubmit={submit} className="hib-form">
+                  <div className="hib-form-group">
+                    <label className="hib-form-label">Email Address</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      onFocus={handleEmailFocus}
+                      placeholder="you@example.com"
+                      className="hib-form-input"
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="hib-form-group">
+                    <label className="hib-form-label">Password</label>
+                    <div className="hib-password-container">
+                      <input
+                        ref={passwordRef}
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        onFocus={handlePasswordFocus}
+                        onBlur={handlePasswordBlur}
+                        className="hib-form-input"
+                        disabled={loading}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="hib-password-toggle"
+                        disabled={loading}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="hib-form-group">
+                    <label className="hib-form-label">Security Check</label>
+                    <TurnstileWidget
+                      onToken={(token) => setTurnstileToken(token)}
+                    />
+                  </div>
+
+                  <div className="hib-forgot-password-link">
+                    <Link to="/forgot-password" className="hib-forgot-link">
+                      Forgot password?
+                    </Link>
+                  </div>
+
+                  <AnimatePresence>
+                    {error && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="hib-alert-error"
+                      >
+                        <div className="hib-alert-content">
+                          <FaExclamationCircle className="hib-alert-icon" />
+                          <p>{error}</p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <button
+                    type="submit"
                     disabled={loading}
+                    className="hib-btn-primary"
+                  >
+                    {loading ? 'Signing In…' : 'Sign In'}
+                  </button>
+                </form>
+
+                <div className="hib-divider-section">
+                  <div className="hib-divider">
+                    <span className="hib-divider-text">Or continue with</span>
+                  </div>
+                  <SocialAuth
+                    disabled={loading}
+                    type="signin"
+                    onError={handleSocialError}
                   />
                 </div>
 
-                <div className="hib-form-group">
-                  <label className="hib-form-label">Password</label>
-                  <div className="hib-password-container">
-                    <input
-                      ref={passwordRef}
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      onFocus={handlePasswordFocus}
-                      onBlur={handlePasswordBlur}
-                       className="hib-form-input"
-                      disabled={loading}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="hib-password-toggle"
-                      disabled={loading}
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showPassword ? <FaEyeSlash /> : <FaEye />}
-                    </button>
-                  </div>
+                <div className="hib-terms-section">
+                  <p className="hib-text-xs hib-text-muted">
+                    By signing in, you agree to our{' '}
+                    <Link to="/terms" className="hib-terms-link">
+                      Terms of Service
+                    </Link>
+                    ,{' '}
+                    <Link to="/privacy" className="hib-terms-link">
+                      Privacy Policy
+                    </Link>
+                    , and{' '}
+                    <Link to="/cookies" className="hib-terms-link">
+                      Cookie Policy
+                    </Link>
+                    .
+                  </p>
                 </div>
-
-                <div className="hib-forgot-password-link">
-                  <Link to="/forgot-password" className="hib-forgot-link">
-                    Forgot password?
-                  </Link>
-                </div>
-
-                <AnimatePresence>
-                  {error && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="hib-alert-error"
-                    >
-                      <div className="hib-alert-content">
-                        <FaExclamationCircle className="hib-alert-icon" />
-                        <p>{error}</p>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <button type="submit" disabled={loading} className="hib-btn-primary">
-                  {loading ? 'Signing In…' : 'Sign In'}
-                </button>
-              </form>
-
-              <div className="hib-divider-section">
-                <div className="hib-divider">
-                  <span className="hib-divider-text">Or continue with</span>
-                </div>
-                <SocialAuth disabled={loading} type="signin" onError={handleSocialError} />
-              </div>
-
-              <div className="hib-terms-section">
-                <p className="hib-text-xs hib-text-muted">
-                  By signing in, you agree to our{' '}
-                  <Link to="/terms" className="hib-terms-link">Terms of Service</Link>,{' '}
-                  <Link to="/privacy" className="hib-terms-link">Privacy Policy</Link>, and{' '}
-                  <Link to="/cookies" className="hib-terms-link">Cookie Policy</Link>.
-                </p>
               </div>
             </div>
           </div>
-        </div>
-      </motion.div>
-    </div>
-   </>
+        </motion.div>
+      </div>
+    </>
   );
 }
